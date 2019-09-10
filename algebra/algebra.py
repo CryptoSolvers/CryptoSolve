@@ -64,35 +64,34 @@ Term = Union[Function, Constant, Variable]
 ## Directed Acyclic Graphs
 #
 
-def createTermDAG(term : Term) -> nx.classes.digraph.DiGraph : 
-    dag = nx.DiGraph()
-    last_term = None
-    dag = appendTermDAG(last_term, term, dag)
-    return dag
+class TermDAG:
+    def __init__(self, term: Term):
+        self.dag = nx.DiGraph()
+        last_term = None
+        self._appendTermDAG(last_term, term, self.dag)
 
-def appendTermDAG(last_term : Optional[Term], term: Term, dag : nx.classes.digraph.DiGraph):
-    # Here we need to be careful for if we're starting the graph or if the term is a function
-    # If the term is a funciton, we need to only transfer the function name to the graph,
-    # that way we can satisfy each symbol being unique
-    # If this is the first term in the graph, we call add_node, otherwise add_edge
-    if isinstance(term, Function):
-        if last_term is None:
-            dag.add_node(Function(term.symbol))
+    def _appendTermDAG(self, last_term : Optional[Term], term : Term, dag : nx.classes.digraph.DiGraph):
+        # Here we need to be careful for if we're starting the graph or if the term is a function
+        # If the term is a funciton, we need to only transfer the function name to the graph,
+        # that way we can satisfy each symbol being unique
+        # If this is the first term in the graph, we call add_node, otherwise add_edge
+        if isinstance(term, Function):
+            if last_term is None:
+                dag.add_node(Function(term.symbol))
+            else:
+                dag.add_edge(last_term, Function(term.symbol))
+            # Go through each of the function arguments and add a directed edge to it
+            for t in term.arguments:
+                self._appendTermDAG(Function(term.symbol), t, dag)
         else:
-            dag.add_edge(last_term, Function(term.symbol))
-        # Go through each of the function arguments and add a directed edge to it
-        for t in term.arguments:
-            appendTermDAG(Function(term.symbol), t, dag)
-    else:
-        if last_term is None:
-            dag.add_node(term)
-        else:
-            dag.add_edge(last_term, term)
-    return dag
+            if last_term is None:
+                dag.add_node(term)
+            else:
+                dag.add_edge(last_term, term)
 
-def showDAG(dag : nx.classes.digraph.DiGraph):
-    nx.draw(dag, with_labels = True)
-    plt.show()
+    def show(self):
+        nx.draw(self.dag, with_labels = True)
+        plt.show()
 
 #
 ## Equation
