@@ -28,37 +28,34 @@ class Variable:
     def __hash__(self):
         return hash(self.symbol)
 
+
 class Function:
-    # Should be Union[Function, Constant, Variable] instead of Any
-    # but recursive types aren't supported
-    # https://github.com/python/mypy/issues/731
-    def __init__(self, symbol : str, *args : Any): 
+    def __init__(self, symbol : str, arity : int):
+        assert arity > 0
         self.symbol = symbol
-        self.arity = len(args)
-        self.arguments = args
-    # If the function doesn't have arguments we'll just display the name of the function
-    # Otherwise we'll show function_name(arg1,arg2,...,argn)
+        self.arity = arity
+    def __call__(self, *args):
+        return FuncTerm(self, args)
     def __repr__(self):
-        if self.arity == 0: return self.symbol
-        return self.symbol + "(" + ", ".join(map(str, self.arguments)) + ")"
+        return self.symbol
+    def __hash__(self):
+        return hash(self.symbol)
+    def __eq__(self, x):
+        return x is not None and self.symbol == x.symbol
+
+class FuncTerm:
+    def __init__(self, function : Function, args): 
+        self.function = function
+        assert len(args) == self.function.arity
+        self.arguments = args
+    def __repr__(self):
+        return self.function.symbol + "(" + ", ".join(map(str, self.arguments)) + ")"
     # Hash needed for network library
     def __hash__(self):
-        return hash((self.symbol, self.arguments))
-    # Equality here is implemented for the network library
-    # Since for the DAG we only care about the function name...
-    # I left it to default behavior for the usual usage
-    def __eq__(self, x):
-        # If the arity is 0 and the symbols are the same, we say it's equal
-        if self.arity == 0:
-            if x == None:
-                return False
-            else:
-                return self.symbol == x.symbol
-        else:
-            return self == x
+        return hash((self.function, self.arguments))
 
 # New Type to clean up future annotations
-Term = Union[Function, Constant, Variable]
+Term = Union[FuncTerm, Constant, Variable]
 
 #
 ## Directed Acyclic Graphs
@@ -67,27 +64,22 @@ Term = Union[Function, Constant, Variable]
 class TermDAG:
     def __init__(self, term: Term):
         self.dag = nx.DiGraph()
-        last_term = None
-        self._appendTermDAG(last_term, term, self.dag)
+        if isinstance(term, FuncTerm):
+            self.dag.add_node(term.function)
+            for t in term.arguments:
+                self._appendTermDAG(term.function, t, self.dag)
+        else:
+            self.dag.add_node(term)
+        
 
-    def _appendTermDAG(self, last_term : Optional[Term], term : Term, dag : nx.classes.digraph.DiGraph):
-        # Here we need to be careful for if we're starting the graph or if the term is a function
-        # If the term is a funciton, we need to only transfer the function name to the graph,
-        # that way we can satisfy each symbol being unique
-        # If this is the first term in the graph, we call add_node, otherwise add_edge
-        if isinstance(term, Function):
-            if last_term is None:
-                dag.add_node(Function(term.symbol))
-            else:
-                dag.add_edge(last_term, Function(term.symbol))
+    def _appendTermDAG(self, last_term : Term, term : Term, dag : nx.classes.digraph.DiGraph):
+        if isinstance(term, FuncTerm):
+            dag.add_edge(last_term, term.function)
             # Go through each of the function arguments and add a directed edge to it
             for t in term.arguments:
-                self._appendTermDAG(Function(term.symbol), t, dag)
+                self._appendTermDAG(term.function, t, dag)
         else:
-            if last_term is None:
-                dag.add_node(term)
-            else:
-                dag.add_edge(last_term, term)
+            dag.add_edge(last_term, term)
 
     def show(self):
         nx.draw(self.dag, with_labels = True)

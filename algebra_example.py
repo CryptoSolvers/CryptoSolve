@@ -6,13 +6,17 @@ from algebra import *
 #
 
 # Simple Equation Printing
-e1 = Equation(Variable("X"), Constant("a"))
-e2 = Equation(Function("F", Constant("1"), Constant("2"), Constant("1")), Constant("4"))
+f = Function("f", 2)
+x = Variable("X")
+a = Constant("a")
+e1 = Equation(x, a)
+e2 = Equation(f("2", "2"), Constant("4"))
 print(e1)
 print(e2)
 
 # Directed Acyclic Graphs
 # From page 16
 # F(g(x, a), g(x,a))
-dag = TermDAG(Function("f",Function("g", Variable("x"), Constant("a")), Function("g", Variable("x"), Constant("a"))))
+g = Function("g", 2)
+dag = TermDAG(f(g(x, a), g(x, a)))
 dag.show()
