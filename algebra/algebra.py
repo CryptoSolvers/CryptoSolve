@@ -64,6 +64,8 @@ Term = Union[FuncTerm, Constant, Variable]
 class TermDAG:
     def __init__(self, term: Term):
         self.dag = nx.DiGraph()
+        self.term = term
+        self.edge_labels = {}
         if isinstance(term, FuncTerm):
             self.dag.add_node(term.function)
             for t in term.arguments:
@@ -72,17 +74,23 @@ class TermDAG:
             self.dag.add_node(term)
         
 
-    def _appendTermDAG(self, last_term : Term, term : Term, dag : nx.classes.digraph.DiGraph):
+    def _appendTermDAG(self, last_term : Term, term : Term, dag : nx.classes.digraph.DiGraph, label = ""):
         if isinstance(term, FuncTerm):
+            self.edge_labels[(last_term, term.function)] = label
             dag.add_edge(last_term, term.function)
             # Go through each of the function arguments and add a directed edge to it
-            for t in term.arguments:
-                self._appendTermDAG(term.function, t, dag)
+            for index, t in enumerate(term.arguments):
+                self._appendTermDAG(term.function, t, dag, label = str(index))
         else:
+            self.edge_labels[(last_term, term)] = label
             dag.add_edge(last_term, term)
 
     def show(self):
-        nx.draw(self.dag, with_labels = True)
+        fig = plt.figure()
+        pos = nx.spring_layout(self.dag)
+        nx.draw(self.dag, pos, with_labels = True)
+        nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=self.edge_labels)
+        fig.suptitle(self.term)
         plt.show()
 
 #
