@@ -14,7 +14,7 @@ class Constant:
     def __repr__(self):
         return self.symbol
     def __eq__(self, x):
-        return self.symbol == x.symbol
+        return isinstance(x, Constant) and self.symbol == x.symbol
     def __hash__(self):
         return hash(self.symbol)
 
@@ -24,7 +24,7 @@ class Variable:
     def __repr__(self):
         return self.symbol
     def __eq__(self, x):
-        return self.symbol == x.symbol
+        return isinstance(x, Variable) and self.symbol == x.symbol
     def __hash__(self):
         return hash(self.symbol)
 
@@ -41,7 +41,7 @@ class Function:
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
-        return x is not None and self.symbol == x.symbol
+        return isinstance(x, Function) and self.symbol == x.symbol
 
 class FuncTerm:
     def __init__(self, function : Function, args): 
@@ -78,6 +78,7 @@ class TermDAG:
             self.node_labels[term] = term
 
     def _appendTermDAG(self, last_term : Term, term : Term, dag : nx.classes.digraph.DiGraph, label = ""):
+        # Annotate edges with argument number
         if (last_term, term) in self.edge_labels and self.edge_labels[(last_term, term)] != label:
             self.edge_labels[(last_term, term)] = self.edge_labels[(last_term, term)] + ", " + label
         else:
@@ -100,7 +101,17 @@ class TermDAG:
         nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=self.edge_labels)
         fig.suptitle(self.term)
         plt.show()
-
+    
+    # Depth First Traversal
+    def df_edge_traversal(self):
+        return nx.dfs_edges(self.dag, source = list(self.dag.node)[0])
+    def df_node_traversal(self):
+        return nx.dfs_tree(self.dag, source = list(self.dag.node)[0])
+    # Breadth First Traversal
+    def bs_edge_traversal(self):
+        return nx.bfs_edges(self.dag, source = list(self.dag.node)[0])
+    def bs_node_traversal(self):
+        return nx.bfs_tree(self.dag, source = list(self.dag.node)[0])
 #
 ## Equation
 #
@@ -112,4 +123,43 @@ class Equation:
     
     def __repr__(self):
         return str(self.left_side) + " = " + str(self.right_side)
+
+#
+##
+### Substitution Class
+## Purpose: To hold substitutions and be able to apply them on a term
+#
+
+class Substitution:
+    def __init__(self):
+        self.subs = [] # Tuple of (Variable, TermDAG)
+    def add_substitution(self, variable, term):
+        assert isinstance(variable, Variable)
+        assert isinstance(term, Term) or isinstance(term, TermDAG)
+        
+        td = None
+        if isinstance(term, Term):
+            td = TermDAG(term)
+        else:
+            td = term
+        
+        self.subs.append((variable, td))
+
+    def apply_substitution(self, termdag):
+        new_dag = nx.OrderedDiGraph()
+        new_nodes = []
+        new_edges = []
+        ## Need to think of a way to handle substitutions so that
+        ## entire parts of a tree can be replaced
+        # nodes = termdag.df_node_traversal()
+        # variables, terms = zip(*self.subs)
+        # for (i, node) in enumerate(nodes):
+        #     if node in variables:
+        #         replacement = terms[variables.index(node)]
+        #         nodes[i] = replacement
+        new_dag.update(new_edges, new_nodes)
+        return new_dag
+
+
+
 
