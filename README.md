@@ -2,6 +2,12 @@
 
 To get started you should make sure that your environment is setup.
 
+<u>Clone the repository</u>
+```bash
+git clone https://<username>@bitbucket.org/marshall_am/umw_crypto.git
+cd umw_crypto
+```
+
 <u>Create a virtual environment</u>
 
 ```bash
