@@ -112,6 +112,12 @@ class TermDAG:
         return nx.bfs_edges(self.dag, source = list(self.dag.node)[0])
     def bs_node_traversal(self):
         return nx.bfs_tree(self.dag, source = list(self.dag.node)[0])
+    
+    def parents(self, term):
+        if term in self.dag.node:
+            return self.dag.predecessors(term)
+        else:
+            return []
 #
 ## Equation
 #
