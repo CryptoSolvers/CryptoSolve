@@ -65,7 +65,7 @@ Term = Union[FuncTerm, Constant, Variable]
 
 class TermDAG:
     def __init__(self, term: Term):
-        self.dag = nx.OrderedDiGraph()
+        self.dag = nx.OrderedMultiGraph()
         self.term = term
         self.edge_labels = {}
         self.node_labels = {}
