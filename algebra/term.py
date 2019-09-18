@@ -22,16 +22,6 @@ class Function:
     def __eq__(self, x):
         return isinstance(x, Function) and self.symbol == x.symbol
 
-class Constant(Function):
-    def __init__(self, symbol : str):
-        super(Constant, self).__init__(symbol, 0)
-    def __call__(self, *args):
-        raise TypeError("'%s' object is not callable" % type(self).__name__)
-    def __hash__(self):
-        return hash(self.symbol)
-    def __eq__(self, x):
-        return isinstance(x, Constant) and self.symbol == x.symbol
-
 class Variable: 
     def __init__(self, symbol : str):
         self.symbol = symbol
@@ -48,6 +38,8 @@ class FuncTerm:
         assert len(args) == self.function.arity
         self.arguments = args
     def __repr__(self):
+        if self.function.arity == 0:
+            return self.function.symbol
         return self.function.symbol + "(" + ", ".join(map(str, self.arguments)) + ")"
     # Hash needed for network library
     def __hash__(self):
@@ -62,6 +54,14 @@ class FuncTerm:
             else:
                 inside = inside or (term == arg)
         return inside
+
+class Constant(FuncTerm):
+    def __init__(self, symbol : str):
+        super(Constant, self).__init__(Function(symbol, 0), ())
+    def __hash__(self):
+        return hash(self.function.symbol)
+    def __eq__(self, x):
+        return isinstance(x, Constant) and self.function.symbol == x.function.symbol
 
 
 # New Type to clean up future annotations
