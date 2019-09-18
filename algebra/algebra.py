@@ -9,30 +9,9 @@ from copy import deepcopy
 ## Basic Types
 #
 
-class Constant:
-    def __init__(self, symbol : str):
-        self.symbol = symbol
-    def __repr__(self):
-        return self.symbol
-    def __eq__(self, x):
-        return isinstance(x, Constant) and self.symbol == x.symbol
-    def __hash__(self):
-        return hash(self.symbol)
-
-class Variable: 
-    def __init__(self, symbol : str):
-        self.symbol = symbol
-    def __repr__(self):
-        return self.symbol
-    def __eq__(self, x):
-        return isinstance(x, Variable) and self.symbol == x.symbol
-    def __hash__(self):
-        return hash(self.symbol)
-
-
 class Function:
     def __init__(self, symbol : str, arity : int):
-        assert arity > 0
+        assert arity >= 0
         self.symbol = symbol
         self.arity = arity
     def __call__(self, *args):
@@ -43,6 +22,26 @@ class Function:
         return hash(self.symbol)
     def __eq__(self, x):
         return isinstance(x, Function) and self.symbol == x.symbol
+
+
+class Constant(Function):
+    def __init__(self, symbol : str):
+        super(Constant, self).__init__(symbol, 0)
+    def __call__(self, *args):
+        raise TypeError("'%s' object is not callable" % type(self).__name__)
+    def __eq__(self, x):
+        return isinstance(x, Constant) and self.symbol == x.symbol
+
+
+class Variable: 
+    def __init__(self, symbol : str):
+        self.symbol = symbol
+    def __repr__(self):
+        return self.symbol
+    def __eq__(self, x):
+        return isinstance(x, Variable) and self.symbol == x.symbol
+    def __hash__(self):
+        return hash(self.symbol)
 
 class FuncTerm:
     def __init__(self, function : Function, args): 
