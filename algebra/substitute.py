@@ -14,6 +14,20 @@ class SubstituteTerm:
             if variable in v and term != t[v.index(variable)]:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
+    
+    def remove(self, variable):
+        if len(self.subs) > 0:
+            v, t = zip(*self.subs)
+            term = t[v.index(variable)]
+            x = set()
+            x.add((variable, term))
+            self.subs = self.subs - x
+    
+    def replace(self, variable, term):
+        assert isinstance(variable, Variable)
+        assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
+        self.remove(variable)
+        self.subs.add((variable, term))
 
     def __str__(self):
         if len(self.subs) == 0:
