@@ -56,6 +56,14 @@ class FuncTerm:
         return hash((self.function, self.arguments))
     def __eq__(self, x):
         return isinstance(x, FuncTerm) and self.function == x.function and self.arguments == x.arguments
+    def __contains__(self, term):
+        inside = False
+        for arg in self.arguments:
+            if isinstance(arg, FuncTerm):
+                inside = inside or (term in arg)
+            else:
+                inside = inside or (term == arg)
+        return inside
 
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
