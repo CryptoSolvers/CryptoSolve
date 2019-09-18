@@ -1,9 +1,8 @@
-from algebra import *
+from .term import *
 
 #
 ## Directed Acyclic Graphs
 #
-
 class TermDAG:
     def __init__(self, term: Term):
         self.dag = nx.OrderedMultiGraph()

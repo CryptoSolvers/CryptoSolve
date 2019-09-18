@@ -1,3 +1,3 @@
-from .algebra import *
+from .term import *
 from .dag import *
 from .substitute import *

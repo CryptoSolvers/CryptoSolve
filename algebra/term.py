@@ -8,7 +8,6 @@ from copy import deepcopy
 #
 ## Basic Types
 #
-
 class Function:
     def __init__(self, symbol : str, arity : int):
         assert arity >= 0
@@ -23,7 +22,6 @@ class Function:
     def __eq__(self, x):
         return isinstance(x, Function) and self.symbol == x.symbol
 
-
 class Constant(Function):
     def __init__(self, symbol : str):
         super(Constant, self).__init__(symbol, 0)
@@ -33,7 +31,6 @@ class Constant(Function):
         return hash(self.symbol)
     def __eq__(self, x):
         return isinstance(x, Constant) and self.symbol == x.symbol
-
 
 class Variable: 
     def __init__(self, symbol : str):
@@ -66,6 +63,7 @@ class FuncTerm:
                 inside = inside or (term == arg)
         return inside
 
+
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
 
@@ -73,7 +71,6 @@ Term = Union[FuncTerm, Constant, Variable]
 #
 ## Equation
 #
-
 class Equation:
     def __init__(self, l : Term, r : Term):
         self.left_side = l

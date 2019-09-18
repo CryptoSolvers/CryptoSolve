@@ -1,40 +1,5 @@
-from algebra import *
-# #
-# ##
-# ### Substitution Class
-# ## Purpose: To hold substitutions and be able to apply them on a term
-# #
-
-# class Substitution:
-#     def __init__(self):
-#         self.subs = [] # Tuple of (Variable, TermDAG)
-#     def add_substitution(self, variable, term):
-#         assert isinstance(variable, Variable)
-#         assert isinstance(term, Term) or isinstance(term, TermDAG)
-        
-#         td = None
-#         if isinstance(term, Term):
-#             td = TermDAG(term)
-#         else:
-#             td = term
-        
-#         self.subs.append((variable, td))
-
-#     def apply_substitution(self, termdag):
-#         new_dag = nx.OrderedDiGraph()
-#         new_nodes = []
-#         new_edges = []
-#         ## Need to think of a way to handle substitutions so that
-#         ## entire parts of a tree can be replaced
-#         # nodes = termdag.df_node_traversal()
-#         # variables, terms = zip(*self.subs)
-#         # for (i, node) in enumerate(nodes):
-#         #     if node in variables:
-#         #         replacement = terms[variables.index(node)]
-#         #         nodes[i] = replacement
-#         new_dag.update(new_edges, new_nodes)
-#         return new_dag
-
+from .term import *
+from .dag import TermDAG
 
 class SubstituteTerm:
     def __init__(self):
@@ -66,7 +31,26 @@ class SubstituteTerm:
         return return_value
 
 
-# def termDAGSubstitute(dag, variable, replacement_term):
-#     root = list(dag.dag.node)[0]
-#     new_root = termSubstitute(root, variable, replacement_term)
-#     return TermDAG(new_root)
+def termSubstituteHelper(term, variable, replacement_term):
+    return_value = None
+    if term == variable:
+        return_value = replacement_term
+    elif isinstance(term, FuncTerm):
+        term.arguments = list(term.arguments)
+        for i, t in enumerate(term.arguments):
+            term.arguments[i] = termSubstituteHelper(t, variable, replacement_term)
+            term.arguments = tuple(term.arguments)
+            return_value = term
+    else:
+        return_value = term
+    return return_value
+
+def termSubstitute(term, variable, replacement_term):
+    new_term = deepcopy(term)
+    new_term = termSubstituteHelper(term, variable, replacement_term)
+    return new_term
+
+def termDAGSubstitute(dag, variable, replacement_term):
+    root = list(dag.dag.node)[0]
+    new_root = termSubstitute(root, variable, replacement_term)
+    return TermDAG(new_root)
