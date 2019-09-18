@@ -185,7 +185,7 @@ class SubstituteTerm:
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.subs.append((variable, term))
 
-    def __mul__(self, term):
+    def __rmul__(self, term):
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(term)
         return new_term
