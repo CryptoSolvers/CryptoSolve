@@ -20,3 +20,10 @@ print(e2)
 g = Function("g", 2)
 dag = TermDAG(f(g(x, a), g(x, a)))
 dag.show()
+
+## Substitutions
+sigma = SubstituteTerm()
+# Add the mapping x -> a
+sigma.add_substitution(x, a)
+# Apply the substitution to the term f(x)b
+sigma * f(x, b)
