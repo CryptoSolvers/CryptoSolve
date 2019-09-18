@@ -25,6 +25,8 @@ dag.show()
 ## Substitutions
 sigma = SubstituteTerm()
 # Add the mapping x -> a
-sigma.add_substitution(x, a)
+sigma.add(x, a)
+print(f(x, b))
+print("Substitutions: " + str(sigma))
 # Apply the substitution to the term f(x)b
-f(x, b) * sigma
+print(f(x, b) * sigma)

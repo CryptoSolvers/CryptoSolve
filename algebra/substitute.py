@@ -3,12 +3,30 @@ from .dag import TermDAG
 
 class SubstituteTerm:
     def __init__(self):
-        self.subs = [] # Tuple of (Variable, Term)
+        self.subs = set() # Tuple of (Variable, Term)
 
-    def add_substitution(self, variable, term):
+    def add(self, variable, term):
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
-        self.subs.append((variable, term))
+        self.subs.add((variable, term))
+
+    def __str__(self):
+        if len(self.subs) == 0:
+            return "{}"
+        if len(self.subs) == 1:
+            variable, term = self.subs.pop()
+            self.subs.add((variable, term))
+            return "{ %s ↦ %s }" % (str(variable), str(term))
+        str_repr = "{\n"
+        i = 1
+        for variable, term in self.subs:
+            str_repr += "  " + str(variable) + "↦" + str(term)
+            if i < len(self.subs):
+                str_repr += ",\n"
+            i += 1
+        str_repr += "\n}"
+        return str_repr
+
 
     def __rmul__(self, term):
         new_term = deepcopy(term)
