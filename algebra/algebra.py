@@ -206,7 +206,7 @@ class SubstituteTerm:
         return return_value
 
 
-def termDAGSubstitute(dag, variable, replacement_term):
-    root = list(dag.dag.node)[0]
-    new_root = termSubstitute(root, variable, replacement_term)
-    return TermDAG(new_root)
+# def termDAGSubstitute(dag, variable, replacement_term):
+#     root = list(dag.dag.node)[0]
+#     new_root = termSubstitute(root, variable, replacement_term)
+#     return TermDAG(new_root)
