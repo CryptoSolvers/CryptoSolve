@@ -8,6 +8,11 @@ class SubstituteTerm:
     def add(self, variable, term):
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
+        if len(self.subs) > 0:
+            v, t = zip(*self.subs)
+            # If we're adding something that's already in the set then we'll just ignore it
+            if variable in v and term != t[v.index(variable)]:
+                raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
 
     def __str__(self):
