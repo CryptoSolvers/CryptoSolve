@@ -9,6 +9,7 @@ from algebra import *
 f = Function("f", 2)
 x = Variable("X")
 a = Constant("a")
+b = Constant("b")
 e1 = Equation(x, a)
 e2 = Equation(f("2", "2"), Constant("4"))
 print(e1)
@@ -26,4 +27,4 @@ sigma = SubstituteTerm()
 # Add the mapping x -> a
 sigma.add_substitution(x, a)
 # Apply the substitution to the term f(x)b
-sigma * f(x, b)
+f(x, b) * sigma
