@@ -4,7 +4,7 @@ from .dag import TermDAG
 class SubstituteTerm:
     def __init__(self):
         self.subs = set() # Tuple of (Variable, Term)
-
+    
     def add(self, variable, term):
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
@@ -28,6 +28,20 @@ class SubstituteTerm:
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.remove(variable)
         self.subs.add((variable, term))
+    
+    def domain(self):
+        if len(self.subs) > 0:
+            v, _ = zip(*self.subs)
+            return v
+        else:
+            return []
+    
+    def range(self):
+        if len(self.subs) > 0:
+            _, t = zip(*self.subs)
+            return t
+        else:
+            return []
 
     def __str__(self):
         if len(self.subs) == 0:
@@ -46,11 +60,16 @@ class SubstituteTerm:
         str_repr += "\n}"
         return str_repr
 
-
-    def __rmul__(self, term):
+    def _applysub(self, term):
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(term)
         return new_term
+
+    def __rmul__(self, term):
+        return self._applysub(term)
+    
+    def __call__(self, term):
+        return self._applysub(term)
     
     def _termSubstituteHelper(self, term):
         return_value = None
