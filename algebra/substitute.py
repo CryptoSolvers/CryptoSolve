@@ -61,12 +61,26 @@ class SubstituteTerm:
         return str_repr
 
     def _applysub(self, term):
+        assert isinstance(term, (Constant, Variable, FuncTerm))
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(term)
         return new_term
 
     def __rmul__(self, term):
         return self._applysub(term)
+    
+    def __mul__(self, sub):
+        if not isinstance(sub, SubstituteTerm):
+            raise ValueError("Expected a substitution to the right of *, perhaps you meant to apply substitution on a term? If so, swap the arguments.")
+        if len(self.subs) > 0:
+            v, t = zip(*self.subs)
+            t = tuple(map(sub, t))
+            s = SubstituteTerm()
+            # Union the substitution sets
+            s.subs = set(zip(v, t)) | sub.subs
+            return s
+        else:
+            return sub
     
     def __call__(self, term):
         return self._applysub(term)
