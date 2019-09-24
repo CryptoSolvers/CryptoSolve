@@ -1,25 +1,7 @@
+#Slow syntactic unification
+
 #!/usr/bin/env python3
 from algebra import *
-
-def get_var(l):
-	V = set()
-	if not l:
-		return {}
-	
-	for t in l:
-		if isinstance(t, Variable):
-			V=V.union({t})
-			l.remove(t)
-		if isinstance(t, Constant):
-			l.remove(t)	
-	
-	L = []
-	for t in l:
-		if isinstance(t, FuncTerm):
-			for x in t.arguments:
-				L = L + [x]
-
-	return V.union(get_var(L))			
 	
 
 def unif(l: Term, r: Term):
@@ -31,8 +13,7 @@ def unif(l: Term, r: Term):
 		#Occurs Check
 		for i, e in U.items():
 			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
-				V = get_var(list(e.right_side.arguments))
-				if e.left_side in V:
+				if e.left_side in e.right_side:
 					print('Occurs Check')
 					return set()
 		
@@ -44,11 +25,19 @@ def unif(l: Term, r: Term):
 					return {}
 								
 		#Check for solved equations and remove
-		#Need to add variable replacement by using Brandon's new method
 		for i in list(U):
-			if isinstance(U[i].left_side, Variable):
-				solve = solve.union({U[i]})
+			if isinstance(U[i].left_side, Variable) and (isinstance(U[i].right_side, FuncTerm) or isinstance(U[i].right_side, Constant)):
+				e = U[i]
 				del U[i]
+				sigma = SubstituteTerm()
+				sigma.add(e.left_side, e.right_side) 
+				for j in list(U):
+					if (isinstance(U[j].left_side, FuncTerm) or isinstance(U[j].left_side, Variable)):
+						U[j].left_side = U[j].left_side * sigma
+					if (isinstance(U[j].right_side, FuncTerm) or isinstance(U[j].right_side, Variable)):
+						U[j].right_side = U[j].right_side * sigma
+				solve = solve.union({e})
+				break
 						
 		
 		#Orient
@@ -68,7 +57,9 @@ def unif(l: Term, r: Term):
 						U[z] = i
 						z += 1
 						
-		
-								
+	delta = SubstituteTerm()	
+	for e in solve:
+		delta.add(e.left_side, e.right_side)
+	print(delta)								
 	return solve
 										
