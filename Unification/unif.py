@@ -9,7 +9,7 @@ def unif(l: Term, r: Term):
 	U = dict([(z, Equation(l, r))])
 	solve = set()
 	while bool(U):
-		
+		print('hello')
 		#Occurs Check
 		for i, e in U.items():
 			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
@@ -26,8 +26,9 @@ def unif(l: Term, r: Term):
 								
 		#Check for solved equations and remove
 		for i in list(U):
-			if isinstance(U[i].left_side, Variable) and (isinstance(U[i].right_side, FuncTerm) or isinstance(U[i].right_side, Constant)):
+			if isinstance(U[i].left_side, Variable) and (isinstance(U[i].right_side, FuncTerm) or isinstance(U[i].right_side, Constant) or isinstance(U[i].right_side, Variable)):
 				e = U[i]
+				print(e)
 				del U[i]
 				sigma = SubstituteTerm()
 				sigma.add(e.left_side, e.right_side) 
@@ -41,7 +42,7 @@ def unif(l: Term, r: Term):
 							
 		#Orient
 		for i, e in U.items():
-			if isinstance(e.right_side, Variable):
+			if (isinstance(e.right_side, Variable) and isinstance(e.left_side, FuncTerm)):
 				temp = e.right_side
 				e.right_side = e.left_side
 				e.left_side = temp
