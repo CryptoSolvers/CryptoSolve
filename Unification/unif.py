@@ -9,7 +9,6 @@ def unif(l: Term, r: Term):
 	U = dict([(z, Equation(l, r))])
 	solve = set()
 	while bool(U):
-		print('hello')
 		#Occurs Check
 		for i, e in U.items():
 			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
