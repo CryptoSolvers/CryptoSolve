@@ -67,6 +67,16 @@ class Constant(FuncTerm):
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
 
+def get_vars(t: Term, unique = False):
+	if isinstance(t, Variable): 
+		return [t]
+	
+	l=[]
+	if isinstance(t, FuncTerm):
+		for i in t.arguments:
+			l = l + get_vars(i)
+	
+	return set(l) if unique else l
 
 #
 ## Equation
