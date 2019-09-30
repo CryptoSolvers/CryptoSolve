@@ -2,9 +2,12 @@ cycler==0.10.0
 decorator==4.4.0
 kiwisolver==1.1.0
 matplotlib==3.1.1
+mpmath==1.1.0
 networkx==2.3
 numpy==1.17.2
 pkg-resources==0.0.0
 pyparsing==2.4.2
 python-dateutil==2.8.0
+scipy==1.3.1
 six==1.12.0
+sympy==1.4
