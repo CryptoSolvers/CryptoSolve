@@ -3,3 +3,4 @@ algebra/__pycache__/
 .vscode/
 __pycache__/
 .ipynb_checkpoints/
+examples/.ipynb_checkpoints/
