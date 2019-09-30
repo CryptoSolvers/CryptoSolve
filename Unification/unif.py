@@ -14,20 +14,20 @@ def unif(l: Term, r: Term):
 			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 				if e.left_side in e.right_side:
 					print('Occurs Check')
-					return set()
+					return SubstituteTerm()
 		
 		#check for function clash
 		for i, e in U.items():
 			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 				if e.left_side.function.symbol != e.right_side.function.symbol:
 					print('Function Clash')
-					return {}
+					return SubstituteTerm()
 								
 		#Check for solved equations and remove
 		for i in list(U):
 			if isinstance(U[i].left_side, Variable) and (isinstance(U[i].right_side, FuncTerm) or isinstance(U[i].right_side, Constant) or isinstance(U[i].right_side, Variable)):
 				e = U[i]
-				print(e)
+				# print(e)
 				del U[i]
 				sigma = SubstituteTerm()
 				sigma.add(e.left_side, e.right_side) 
@@ -59,6 +59,6 @@ def unif(l: Term, r: Term):
 	delta = SubstituteTerm()	
 	for e in solve:
 		delta.add(e.left_side, e.right_side)
-	print(delta)								
-	return solve
+	# print(delta)								
+	return delta
 										

@@ -43,6 +43,9 @@ class SubstituteTerm:
         else:
             return []
 
+    def __len__(self):
+        return len(self.subs)
+    
     def __str__(self):
         if len(self.subs) == 0:
             return "{}"
@@ -87,19 +90,22 @@ class SubstituteTerm:
     
     def _termSubstituteHelper(self, term):
         return_value = None
-        sub_vars, sub_terms = zip(*self.subs)
-        if term in sub_vars:
-            return_value = sub_terms[sub_vars.index(term)]
-        elif isinstance(term, FuncTerm):
-            term.arguments = list(term.arguments)
-            for i, t in enumerate(term.arguments):
-                term.arguments[i] = self._termSubstituteHelper(t)
-            term.arguments = tuple(term.arguments)
-            return_value = term
-        else:
-            return_value = term
+        if len(self.subs) > 0:
+            sub_vars, sub_terms = zip(*self.subs)
+            if term in sub_vars:
+                return_value = sub_terms[sub_vars.index(term)]
+            elif isinstance(term, FuncTerm):
+                term.arguments = list(term.arguments)
+                for i, t in enumerate(term.arguments):
+                    term.arguments[i] = self._termSubstituteHelper(t)
+                term.arguments = tuple(term.arguments)
+                return_value = term
+            else:
+                return_value = term
         return return_value
 
+
+# Below is legacy code to support termDAGSubstitute until a new DagSubstitute class is written
 
 def termSubstituteHelper(term, variable, replacement_term):
     return_value = None
