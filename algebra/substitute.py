@@ -66,7 +66,7 @@ class SubstituteTerm:
     def _applysub(self, term):
         assert isinstance(term, (Constant, Variable, FuncTerm))
         new_term = deepcopy(term)
-        new_term = self._termSubstituteHelper(term)
+        new_term = self._termSubstituteHelper(new_term)
         return new_term
 
     def __rmul__(self, term):
