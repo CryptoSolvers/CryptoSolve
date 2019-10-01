@@ -1,4 +1,4 @@
-#Elementary AC-unification
+#Elementary ACU-unification
 
 #!/usr/bin/env python3
 from algebra import *
@@ -14,11 +14,11 @@ from collections import Counter
 #Constuct the system of linear
 #diophantine equations and use the 
 #SymPy lib
-def matrix_solve(vll: list, vlr: list, symbol: str):
+def matrix_solve(vll: list, vlr: list):
 	#get the count for the vars
 	var_count = Counter(vll)
 	var_count.subtract(Counter(vlr))
-	print(var_count)
+	#print(var_count)
 	#use the count to create the linear diophantine equation
 	#first the variables
 	i=0
@@ -29,13 +29,13 @@ def matrix_solve(vll: list, vlr: list, symbol: str):
 		i += 1
 		e = e + str(x) +"*"+ temp + (" + " if i < len(var_count) else "")
 		temp = symbols(temp, integer=True)
-	#print(e)
+	
 	e = parse_expr(e)
-	#print(e)
+	
 	
 	#solve the equation
 	sol = diop_solve(e)
-	print(sol) 		
+	#print(sol) 		
 
 	#convert back to a substitution
 	j = 0 
@@ -48,10 +48,7 @@ def matrix_solve(vll: list, vlr: list, symbol: str):
 			delta.add(x, y)
 			j+= 1
 	
-	print(delta)		
-			
-
-	return var_count
+	return delta
 
 
 #Assumes currently that we have a single AC-symbol
@@ -77,4 +74,6 @@ def ac_unify(l: Term, r: Term):
 	#Create the variable lists and send it to matrix solve
 	vll = get_vars(l)
 	vlr = get_vars(r)
-	matrix_solve(vll, vlr, l.function.symbol)
+	delta = SubstituteTerm()
+	delta=matrix_solve(vll, vlr)
+	print(delta)
