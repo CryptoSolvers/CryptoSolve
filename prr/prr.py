@@ -33,11 +33,11 @@ class PRR:
         self.cipher_texts[session_id] = []
     
     def send(self, session_id, encrypted_block):
-        return Frame(session_id, deepcopy(self.plain_texts[-1]), deepcopy(encrypted_block) )
+        return Frame(session_id, deepcopy(self.plain_texts[session_id][-1]), deepcopy(encrypted_block) )
     
     def rcv_stop(self, session_id):
         if self.schedule == "end":
-            self.send(session_id, self.subs[session_id])
+            return self.send(session_id, self.subs[session_id])
         # Remove information about the session from PRR
         del self.subs[session_id]
         del self.iteration[session_id]
@@ -45,23 +45,23 @@ class PRR:
         del self.cipher_texts[session_id]
 
     def rcv_block(self, session_id, message):
-        self.iteration += 1
+        self.iteration[session_id] += 1
         self.plain_texts[session_id].append(message)
-        if self.iteration == 1:
+        if self.iteration[session_id] == 1:
             self.subs[session_id].add(Variable("y_1"), message)
         else:
-            encrypted_block = self.chaining_function(self, self.iteration)
+            encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
             self.cipher_texts[session_id].append(encrypted_block)
-            self.subs[session_id].add(Variable("y_" + str(self.iteration)), encrypted_block)
+            self.subs[session_id].add(Variable("y_" + str(self.iteration[session_id])), encrypted_block)
             if self.schedule == "every":
-                self.send(session_id, self.subs[session_id])
+                return self.send(session_id, self.subs[session_id])
     
-    def assertIteration(self, iteration):
-        assert iteration <= len(self.plain_texts) and iteration <= len(self.cipher_texts) and iteration >= 0
+    def assertIteration(self, session_id, iteration):
+        assert iteration <= len(self.plain_texts[session_id]) and iteration >= 0
 
 
 def CipherBlockChaining(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     P = prr.plain_texts[session_id]
     C = prr.cipher_texts[session_id]
     f = Function("f", 1)
@@ -71,12 +71,12 @@ def CipherBlockChaining(prr, session_id, iteration):
             xor(P[1], P[0])
         )
     return f(
-        xor(P[i], C[i-1])
+        xor(P[i], C[i-2])
     )
 
 
 def PropogatingCBC(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     P = prr.plain_texts[session_id]
     C = prr.cipher_texts[session_id]
     f = Function("f", 1)
@@ -89,13 +89,13 @@ def PropogatingCBC(prr, session_id, iteration):
         xor(
             P[i],
             P[i - 1],
-            C[i - 1]
+            C[i - 2]
         )
     )
 
 
 def CipherFeedback(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     P = prr.plain_texts[session_id]
     C = prr.cipher_texts[session_id]
     i = iteration - 1
@@ -103,13 +103,13 @@ def CipherFeedback(prr, session_id, iteration):
     if i == 1:
         return f(P[0])
     return xor(
-        f(C[i-1]), 
+        f(C[i-2]), 
         P[i]
     )
 
 # Questionable implementations...
 # def OutputFeedback(prr, session_id, iteration):
-#     prr.assertIteration(iteration)
+#     prr.assertIteration(session_id, iteration)
 #     P = prr.plain_texts[session_id]
 #     i = iteration - 1
 #     xor = Function("xor", 2)
@@ -120,7 +120,7 @@ def CipherFeedback(prr, session_id, iteration):
 #     )
 
 # def CounterMode(prr, session_id, iteration):
-#     prr.assertIteration(iteration)
+#     prr.assertIteration(session_id, iteration)
 #     P = prr.plain_texts[session_id]
 #     C = prr.cipher_texts[session_id]
 #     i = iteration - 1
@@ -128,7 +128,7 @@ def CipherFeedback(prr, session_id, iteration):
 #     f = Function("f", 1)
 #     return xor(
 #         f(
-#             xor(P[i], C[i])
+#             xor(P[i], C[i-1])
 #         ),
 #         P[i - 1]
 #     )
@@ -148,7 +148,7 @@ def _calcQ(prr, session_id, i):
     )
 
 def AccumulatedBlockCiper(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     C = prr.cipher_texts[session_id]
     f = Function("f", 1)
     i = iteration - 1
@@ -157,14 +157,14 @@ def AccumulatedBlockCiper(prr, session_id, iteration):
     Q[i-1] = _calcQ(prr, session_id, i - 1)
     return xor(
         f(
-            xor(Q[i], C[i - 1])
+            xor(Q[i], C[i - 2])
         ),
         Q[i - 1]
     )
 
 
 def HashCBC(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     P = prr.plain_texts[session_id]
     C = prr.cipher_texts[session_id]
     f = Function("f", 1)
@@ -179,13 +179,13 @@ def HashCBC(prr, session_id, iteration):
         )
     return f(
         xor(
-            h(C[i - 1]),
+            h(C[i - 2]),
             P[i]
         )
     )
 
 def DoubleHashCBC(prr, session_id, iteration):
-    prr.assertIteration(iteration)
+    prr.assertIteration(session_id, iteration)
     P = prr.plain_texts[session_id]
     C = prr.cipher_texts[session_id]
     f = Function("f", 1)
@@ -197,7 +197,7 @@ def DoubleHashCBC(prr, session_id, iteration):
         )
     return f(
         xor(
-            h(C[i-1]),
+            h(C[i-2]),
             P[i]
         )
     )
@@ -206,6 +206,7 @@ def DoubleHashCBC(prr, session_id, iteration):
 def PRRInteraction(chaining_function, num_interactions):
     p = PRR(chaining_function, schedule="end")
     p.rcv_start(1)
+    p.rcv_block(1, Constant("r"))
     for i in range(1, num_interactions + 1):
         p.rcv_block(1, Variable("x_" + str(i)))
     return p.rcv_stop(1)

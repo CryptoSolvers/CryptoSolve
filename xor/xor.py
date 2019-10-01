@@ -16,9 +16,9 @@ class Xor(Function):
             if count % 2 == 1:
                 new_args += [term]
         # Create simplified term
-        term = FuncTerm(self, [new_args[0], new_args[1]])
+        term = FuncTerm(self, (new_args[0], new_args[1]))
         for t in new_args[2:]:
-            term = FuncTerm(self, [term, t])
+            term = FuncTerm(self, (term, t))
         return term
 
 xor = Xor()
