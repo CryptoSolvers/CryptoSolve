@@ -10,9 +10,10 @@ s = Constant("s")
 x = Variable("x")
 
 print("One interaction with oracle example")
-p = PRR(1, r, CipherBlockChaining)
-print(p.send(x))
+p = PRR(CipherBlockChaining)
+p.rcv_start(1)
+print(p.rcv_block(1, x))
 
 # Simulate 10 interactions
 print("Simulating a 10 frame interaction with an oracle")
-print(PRRInteraction(2, s, CipherBlockChaining, 10))
+print(PRRInteraction(CipherBlockChaining, 10))
