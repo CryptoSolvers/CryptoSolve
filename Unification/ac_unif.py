@@ -14,7 +14,7 @@ from collections import Counter
 #Constuct the system of linear
 #diophantine equations and use the 
 #SymPy lib
-def matrix_solve(vll: list, vlr: list):
+def matrix_solve(vll: list, vlr: list, symbol: str):
 	#get the count for the vars
 	var_count = Counter(vll)
 	var_count.subtract(Counter(vlr))
@@ -38,7 +38,18 @@ def matrix_solve(vll: list, vlr: list):
 	print(sol) 		
 
 	#convert back to a substitution
+	j = 0 
+	delta = SubstituteTerm()
+	for x in var_count:
+		if var_count[x] == 0:
+			delta.add(x, x)
+		else:
+			y = Variable(str(sol[j]))
+			delta.add(x, y)
+			j+= 1
 	
+	print(delta)		
+			
 
 	return var_count
 
@@ -66,4 +77,4 @@ def ac_unify(l: Term, r: Term):
 	#Create the variable lists and send it to matrix solve
 	vll = get_vars(l)
 	vlr = get_vars(r)
-	matrix_solve(vll, vlr)
+	matrix_solve(vll, vlr, l.function.symbol)
