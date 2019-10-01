@@ -89,7 +89,7 @@ class SubstituteTerm:
         return self._applysub(term)
     
     def _termSubstituteHelper(self, term):
-        return_value = None
+        return_value = term
         if len(self.subs) > 0:
             sub_vars, sub_terms = zip(*self.subs)
             if term in sub_vars:
