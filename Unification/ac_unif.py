@@ -7,6 +7,7 @@ from scipy import linalg
 from sympy.solvers.diophantine import diophantine
 from sympy import symbols
 from sympy.solvers.diophantine import diop_solve
+from sympy.solvers.solveset import linsolve
 from sympy.parsing.sympy_parser import parse_expr
 from collections import Counter
 
@@ -16,36 +17,48 @@ from collections import Counter
 #SymPy lib
 def matrix_solve(vll: list, vlr: list):
 	#get the count for the vars
-	var_count = Counter(vll)
-	var_count.subtract(Counter(vlr))
-	#print(var_count)
+	var_countl = Counter(vll)
+	var_countr= Counter(vlr)
+
+	
+	vars_total = list(set(vll)) + list((set(vlr) - set(vll)))
+	var_count = dict()
+	for j in vars_total:
+		var_count[j] = var_countl[j] - var_countr[j]
+
 	#use the count to create the linear diophantine equation
 	#first the variables
 	i=0
 	e=""
 	variables = list()
-	for x in var_count.values():
-		temp = "x_" + str(i)
+	row = list()
+	for x in var_count:
+		#temp = "x_" + str(i)
+		temp = str(x)
 		i += 1
-		e = e + str(x) +"*"+ temp + (" + " if i < len(var_count) else "")
+		e = e + str(var_count[x]) +"*"+ temp + (" + " if i < len(var_count) else "")
 		temp = symbols(temp, integer=True)
-	
+		variables.append(temp)
+		row.append(var_count[x])
+
 	e = parse_expr(e)
-	
-	
 	#solve the equation
 	sol = diop_solve(e)
-	#print(sol) 		
+
+	#matrix form
+	#will add this soon 		
 
 	#convert back to a substitution
 	j = 0 
 	delta = SubstituteTerm()
-	for x in var_count:
-		if var_count[x] == 0:
-			delta.add(x, x)
+	for x in range(0, len(variables)):
+		if row[x] == 0:
+			temp = Variable(str(variables[x]))
+			delta.add(temp, temp)
 		else:
 			y = Variable(str(sol[j]))
-			delta.add(x, y)
+			z= Variable(str(variables[x]))
+			delta.add(z, y)
 			j+= 1
 	
 	return delta
