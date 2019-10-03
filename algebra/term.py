@@ -90,6 +90,17 @@ def get_constants(t: Term, unique = False):
 	return set(l) if unique else l
 
 
+def get_vars_or_constants(t: Term, unique = False):
+    if isinstance(t, Constant) or isinstance(t, Variable): 
+        return [t]
+    
+    l=[]
+    if isinstance(t, FuncTerm):
+        for i in t.arguments:
+            l = l + get_vars_or_constants(i)
+    
+    return set(l) if unique else l
+
 #
 ## Equation
 #
