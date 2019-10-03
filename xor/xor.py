@@ -16,9 +16,23 @@ class Xor(Function):
         else:
             new_args = args
         # Create simplified term
-        term = FuncTerm(self, (new_args[0], new_args[1]))
+        term = XorTerm(self, (new_args[0], new_args[1]))
         for t in new_args[2:]:
-            term = FuncTerm(self, (term, t))
+            term = XorTerm(self, (term, t))
         return term
 
 xor = Xor()
+class XorTerm(FuncTerm):
+    def __init___(self, *args):
+        super(XorTerm, self).__init__(xor, args)
+    
+    def __str__(self):
+        result = ""
+        for i, t in enumerate(self.arguments):
+            if isinstance(t, XorTerm):
+                result += " ⊕ ".join(map(lambda t: str(t), t.arguments))
+            else:
+                result += str(t)
+            result += " ⊕ " if i < len(self.arguments) - 1 else ""
+        return result
+
