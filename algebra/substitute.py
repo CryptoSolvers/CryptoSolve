@@ -55,10 +55,10 @@ class SubstituteTerm:
             return "{ %s ↦ %s }" % (str(variable), str(term))
         str_repr = "{\n"
         i = 1
-        for variable, term in self.subs:
+        sorted_subs = sorted(self.subs, key = lambda k: k[0].symbol)
+        for variable, term in sorted_subs:
             str_repr += "  " + str(variable) + "↦" + str(term)
-            if i < len(self.subs):
-                str_repr += ",\n"
+            str_repr += ",\n" if i < len(self.subs) else ""
             i += 1
         str_repr += "\n}"
         return str_repr
