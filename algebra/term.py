@@ -40,6 +40,10 @@ class FuncTerm:
     def __repr__(self):
         if self.function.arity == 0:
             return self.function.symbol
+        return self.function.symbol + "(" + ", ".join(map(repr, self.arguments)) + ")"
+    def __str__(self):
+        if self.function.arity == 0:
+            return self.function.symbol
         return self.function.symbol + "(" + ", ".join(map(str, self.arguments)) + ")"
     # Hash needed for network library
     def __hash__(self):
