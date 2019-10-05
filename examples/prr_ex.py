@@ -5,14 +5,12 @@ sys.path.append("..")
 from prr import *
 
 # Setting up terms
-r = Constant("r")
 s = Constant("s")
 x = Variable("x")
 
 print("One interaction with oracle example")
 p = PRR(PropogatingCBC)
 p.rcv_start(1)
-p.rcv_block(1, r)
 print(p.rcv_block(1, x))
 
 # Simulate 10 interactions
