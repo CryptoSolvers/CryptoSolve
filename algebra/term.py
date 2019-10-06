@@ -72,17 +72,17 @@ class AssocFunction(Function):
         super(AssocFunction, self).__init__(symbol, arity)
     def __call__(self, *args, simplify = True):
         term = AssocTerm(self, tuple(args[:self.arity]))
-        for t in args[self.arity:]:
-            term = AssocTerm(self, (term, t))
+        for i in range(self.arity, len(args), self.arity):
+            l = args[i:(i + self.arity - 1)]
+            term = AssocTerm(self, (term, *l))
         return term
-    
 
 class AssocTerm(FuncTerm):
     def __init__(self, function : Function, args):
         super(AssocTerm, self).__init__(function, args)
     def flatten(self):
         terms = []
-        for i, t in enumerate(self.arguments):
+        for t in self.arguments:
             if isinstance(t, AssocTerm):
                 terms += map(lambda t: t.flatten() if isinstance(t, AssocTerm) else t, t.arguments)
             else:
