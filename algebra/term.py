@@ -67,6 +67,27 @@ class Constant(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, Constant) and self.function.symbol == x.function.symbol
 
+class AssocFunction(Function):
+    def __init__(self, symbol : str, arity : int):
+        super(AssocFunction, self).__init__(symbol, arity)
+    def __call__(self, *args, simplify = True):
+        term = AssocTerm(self, tuple(args[:self.arity]))
+        for t in args[self.arity:]:
+            term = AssocTerm(self, (term, t))
+        return term
+    
+
+class AssocTerm(FuncTerm):
+    def __init__(self, function : Function, args):
+        super(AssocTerm, self).__init__(function, args)
+    def flatten(self):
+        terms = []
+        for i, t in enumerate(self.arguments):
+            if isinstance(t, AssocTerm):
+                terms += map(lambda t: t.flatten() if isinstance(t, AssocTerm) else t, t.arguments)
+            else:
+                terms += [t]
+        return terms
 
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
