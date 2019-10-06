@@ -1,6 +1,6 @@
 from algebra import *
 from collections import Counter
-class Xor(Function):
+class Xor(AssocFunction):
     def __init__(self):
         super(Xor, self).__init__("xor", 2)
 
@@ -22,7 +22,7 @@ class Xor(Function):
         return term
 
 xor = Xor()
-class XorTerm(FuncTerm):
+class XorTerm(AssocTerm):
     def __init___(self, *args):
         super(XorTerm, self).__init__(xor, args)
     
