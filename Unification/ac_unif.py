@@ -1,13 +1,11 @@
-#Elementary ACU-unification
+#Elementary ACU-unification for single term pair
 
 #!/usr/bin/env python3
 from algebra import *
 import numpy as np
-from scipy import linalg
 from sympy.solvers.diophantine import diophantine
 from sympy import symbols
-from sympy.solvers.diophantine import diop_solve
-from sympy.solvers.solveset import linsolve
+from sympy.solvers.diophantine import diop_linear
 from sympy.parsing.sympy_parser import parse_expr
 from collections import Counter
 
@@ -42,11 +40,14 @@ def matrix_solve(vll: list, vlr: list):
 		row.append(var_count[x])
 
 	e = parse_expr(e)
+	print(e)
 	#solve the equation
-	sol = diop_solve(e)
+	sol = diop_linear(e)
+	print(sol)
 
 	#matrix form
-	#will add this soon 		
+	#need a new Diophantine solver to 
+	#solve more than a single equation		
 
 	#convert back to a substitution
 	j = 0 
