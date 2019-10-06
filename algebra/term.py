@@ -77,14 +77,25 @@ class AssocFunction(Function):
             term = AssocTerm(self, (term, *l))
         return term
 
+import itertools
 class AssocTerm(FuncTerm):
     def __init__(self, function : Function, args):
         super(AssocTerm, self).__init__(function, args)
     def flatten(self):
         terms = []
+        # [TODO] Move this function as a helper somewhere else
+        def flatten_sublists(l):
+            new_list = []
+            for li in l:
+                if hasattr(li, '__iter__'):
+                    new_list.extend(li)
+                else:
+                    new_list.append(li)
+            return new_list
         for t in self.arguments:
             if isinstance(t, AssocTerm):
-                terms += map(lambda t: t.flatten() if isinstance(t, AssocTerm) else t, t.arguments)
+                sublist = list(map(lambda t: t.flatten() if isinstance(t, AssocTerm) else t, t.arguments))
+                terms += flatten_sublists(sublist)
             else:
                 terms += [t]
         return terms
