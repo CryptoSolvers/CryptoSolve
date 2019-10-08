@@ -3,7 +3,7 @@ from algebra import *
 # x + x = 0
 # x * x = x
 
-class BoolRingZero(GenericTerm):
+class BoolRingZero(Constant):
     def __init__(self):
         super().__init__("0")
     def __add__(self, x):
