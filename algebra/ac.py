@@ -12,7 +12,7 @@ from collections import Counter
 class AFunction(Function):
     def __init__(self, symbol : str, arity : int):
         assert arity > 0
-        super(AFunction, self).__init__(symbol, arity)
+        super().__init__(symbol, arity)
     def __call__(self, *args, simplify = True):
         term = ATerm(self, tuple(args[:self.arity]))
         for i in range(self.arity, len(args), self.arity - 1):
@@ -30,7 +30,7 @@ def _flatten_sublist(l):
 
 class ATerm(FuncTerm):
     def __init__(self, function : Function, args):
-        super(ATerm, self).__init__(function, args)
+        super().__init__(function, args)
     def flatten(self):
         terms = []
         for t in self.arguments:
@@ -42,6 +42,8 @@ class ATerm(FuncTerm):
         return terms
     def __eq__(self, x):
         return isinstance(x, ATerm) and self.function == x.function and self.flatten() == x.flatten()
+    def __hash__(self):
+        return super().__hash__()
 
 
 #
@@ -50,16 +52,18 @@ class ATerm(FuncTerm):
 
 class CFunction(Function):
     def __init__(self, symbol : str, arity : int):
-        super(CFunction, self).__init__(symbol, arity)
+        super().__init__(symbol, arity)
     def __call__(self, *args):
         return CTerm(self, args)
 
 
 class CTerm(FuncTerm):
     def __init__(self, function : Function, args):
-        super(CTerm, self).__init__(function, args)
+        super().__init__(function, args)
     def __eq__(self, x):
         return isinstance(x, CTerm) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
+    def __hash__(self):
+        return super().__hash__()
 
 #
 ## Associative-Commutative Functions
@@ -67,7 +71,7 @@ class CTerm(FuncTerm):
 
 class ACFunction(AFunction, CFunction):
     def __init__(self, symbol : str, arity : int):
-        super(ACFunction, self).__init__(symbol, arity)
+        super().__init__(symbol, arity)
     def __call__(self, *args):
         term = ACTerm(self, tuple(args[:self.arity]))
         for i in range(self.arity, len(args), self.arity - 1):
@@ -78,6 +82,8 @@ class ACFunction(AFunction, CFunction):
 
 class ACTerm(ATerm, CTerm):
     def __init__(self, function : Function, args):
-        super(ACTerm, self).__init__(function, args)
+        super().__init__(function, args)
     def __eq__(self, x):
         return isinstance(x, ACTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
+    def __hash__(self):
+        return super().__hash__()

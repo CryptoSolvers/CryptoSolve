@@ -2,7 +2,7 @@ from algebra import *
 from collections import Counter
 class Xor(ACFunction):
     def __init__(self):
-        super(Xor, self).__init__("xor", 2)
+        super().__init__("xor", 2)
 
     def __call__(self, *args, simplify = True):
         term = XorTerm(self, (args[0], args[1]))
@@ -23,7 +23,7 @@ class Xor(ACFunction):
 xor = Xor()
 class XorTerm(ACTerm):
     def __init___(self, *args):
-        super(XorTerm, self).__init__(xor, args)
+        super().__init__(xor, args)
     
     def __str__(self):
         result = ""

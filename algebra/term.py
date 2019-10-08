@@ -6,32 +6,30 @@ from copy import deepcopy
 #
 ## Basic Types
 #
-class Function:
-    def __init__(self, symbol : str, arity : int):
-        assert arity >= 0
+
+class GenericTerm:
+    def __init__(self, symbol : str):
         self.symbol = symbol
-        self.arity = arity
-    def __call__(self, *args):
-        return FuncTerm(self, args)
     def __repr__(self):
         return self.symbol
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
         return type(self) is type(x) and self.symbol == x.symbol
+class Function(GenericTerm):
+    def __init__(self, symbol : str, arity : int):
+        super().__init__(symbol)
+        assert arity >= 0
+        self.arity = arity
+    def __call__(self, *args):
+        return FuncTerm(self, args)
 
-class Variable: 
+class Variable(GenericTerm): 
     def __init__(self, symbol : str):
-        self.symbol = symbol
-    def __repr__(self):
-        return self.symbol
-    def __eq__(self, x):
-        return isinstance(x, Variable) and self.symbol == x.symbol
-    def __hash__(self):
-        return hash(self.symbol)
-
-class FuncTerm:
+        super().__init__(symbol)
+class FuncTerm(GenericTerm):
     def __init__(self, function : Function, args): 
+        super().__init__(function.symbol)
         self.function = function
         assert len(args) == self.function.arity
         self.arguments = args
@@ -47,7 +45,7 @@ class FuncTerm:
     def __hash__(self):
         return hash((self.function, self.arguments))
     def __eq__(self, x):
-        return isinstance(x, FuncTerm) and self.function == x.function and self.arguments == x.arguments
+        return type(self) is type(x) and self.function == x.function and self.arguments == x.arguments
     def __contains__(self, term):
         inside = False
         for arg in self.arguments:
@@ -59,11 +57,7 @@ class FuncTerm:
 
 class Constant(FuncTerm):
     def __init__(self, symbol : str):
-        super(Constant, self).__init__(Function(symbol, 0), ())
-    def __hash__(self):
-        return hash(self.function.symbol)
-    def __eq__(self, x):
-        return isinstance(x, Constant) and self.function.symbol == x.function.symbol
+        super().__init__(Function(symbol, 0), ())
 
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
