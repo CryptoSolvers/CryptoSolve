@@ -3,17 +3,24 @@ import typing
 from typing import Union, Any, Optional
 from copy import deepcopy
 from .term import *
+from collections import Counter
 
-class AssocFunction(Function):
+#
+## Associative Functions
+#
+
+class aFunction(Function):
     def __init__(self, symbol : str, arity : int):
         assert arity > 0
-        super(AssocFunction, self).__init__(symbol, arity)
+        super(aFunction, self).__init__(symbol, arity)
     def __call__(self, *args, simplify = True):
-        term = AssocTerm(self, tuple(args[:self.arity]))
+        term = aTerm(self, tuple(args[:self.arity]))
         for i in range(self.arity, len(args), self.arity - 1):
             l = args[i:(i + self.arity - 1)]
-            term = AssocTerm(self, (term, *l))
+            term = aTerm(self, (term, *l))
         return term
+    def __eq__(self, x):
+        return isinstance(x, aFunction) and self.symbol == x.symbol
 
 def _flatten_sublist(l):
     new_list = []
@@ -23,15 +30,61 @@ def _flatten_sublist(l):
         else:
             new_list.append(li)
     return new_list
-class AssocTerm(FuncTerm):
+
+class aTerm(FuncTerm):
     def __init__(self, function : Function, args):
-        super(AssocTerm, self).__init__(function, args)
+        super(aTerm, self).__init__(function, args)
     def flatten(self):
         terms = []
         for t in self.arguments:
-            if isinstance(t, AssocTerm) and t.function == self.function:
-                sublist = list(map(lambda t: t.flatten() if isinstance(t, AssocTerm) else t, t.arguments))
+            if isinstance(t, aTerm) and t.function == self.function:
+                sublist = list(map(lambda t: t.flatten() if isinstance(t, aTerm) else t, t.arguments))
                 terms += _flatten_sublist(sublist)
             else:
                 terms += [t]
         return terms
+    def __eq__(self, x):
+        return isinstance(x, aTerm) and self.function == x.function and self.flatten() == x.flatten()
+
+
+#
+## Commutative Functions
+#
+
+class cFunction(Function):
+    def __init__(self, symbol : str, arity : int):
+        super(cFunction, self).__init__(symbol, arity)
+    def __call__(self, *args):
+        return cTerm(self, args)
+    def __eq__(self, x):
+        return isinstance(x, cFunction) and self.symbol == x.symbol
+
+
+class cTerm(FuncTerm):
+    def __init__(self, function : Function, args):
+        super(cTerm, self).__init__(function, args)
+    def __eq__(self, x):
+        return isinstance(x, cTerm) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
+
+#
+## Associative-Commutative Functions
+#
+
+class acFunction(aFunction, cFunction):
+    def __init__(self, symbol : str, arity : int):
+        super(acFunction, self).__init__(symbol, arity)
+    def __call__(self, *args):
+        term = acTerm(self, tuple(args[:self.arity]))
+        for i in range(self.arity, len(args), self.arity - 1):
+            l = args[i:(i + self.arity - 1)]
+            term = acTerm(self, (term, *l))
+        return term
+    def __eq__(self, x):
+        return isinstance(x, acFunction) and self.symbol == x.symbol
+
+
+class acTerm(aTerm, cTerm):
+    def __init__(self, function : Function, args):
+        super(acTerm, self).__init__(function, args)
+    def __eq__(self, x):
+        return isinstance(x, acTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
