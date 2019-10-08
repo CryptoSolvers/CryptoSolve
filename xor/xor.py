@@ -1,5 +1,6 @@
 from algebra import *
 from collections import Counter
+from .structure import *
 class Xor(ACFunction):
     def __init__(self):
         super().__init__("xor", 2)
@@ -16,7 +17,10 @@ class Xor(ACFunction):
             for term, count in var_constant_counts.items():
                 if count % 2 == 1:
                     new_args += [term]
-            term = self(*new_args, simplify = False) if len(new_args) > 1 else new_args[0]
+            if len(new_args) > 1:
+                term = self(*new_args, simplify = False)
+            else:
+                term = Zero() if len(new_args) == 0 else new_args[0]
         
         return term
 
