@@ -1,28 +1,27 @@
 from algebra import *
 from collections import Counter
-class Xor(AssocFunction):
+class Xor(ACFunction):
     def __init__(self):
         super(Xor, self).__init__("xor", 2)
 
     def __call__(self, *args, simplify = True):
-        new_args = []
+        term = XorTerm(self, (args[0], args[1]))
+        for t in args[2:]:
+            term = XorTerm(self, (term, t))
+        
+        # Simplify using rewrite rule xor(a,a) = identity if set
         if simplify:
-            # Apply xor(a,a) = identity
-            var_constant_counts = Counter(args)
+            var_constant_counts = Counter(term.flatten())
             new_args = []
             for term, count in var_constant_counts.items():
                 if count % 2 == 1:
                     new_args += [term]
-        else:
-            new_args = args
-        # Create simplified term
-        term = XorTerm(self, (new_args[0], new_args[1]))
-        for t in new_args[2:]:
-            term = XorTerm(self, (term, t))
+            term = self(*new_args, simplify = False) if len(new_args) > 1 else new_args[0]
+        
         return term
 
 xor = Xor()
-class XorTerm(AssocTerm):
+class XorTerm(ACTerm):
     def __init___(self, *args):
         super(XorTerm, self).__init__(xor, args)
     
