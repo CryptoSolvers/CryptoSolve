@@ -43,7 +43,7 @@ class FuncTerm(GenericTerm):
         return self.function.symbol + "(" + ", ".join(map(str, self.arguments)) + ")"
     # Hash needed for network library
     def __hash__(self):
-        return hash((self.function, self.arguments))
+        return hash((self.function, tuple(self.arguments)))
     def __eq__(self, x):
         return type(self) is type(x) and self.function == x.function and self.arguments == x.arguments
     def __contains__(self, term):
