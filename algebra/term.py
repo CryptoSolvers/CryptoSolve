@@ -51,7 +51,7 @@ class FuncTerm:
     def __contains__(self, term):
         inside = False
         for arg in self.arguments:
-            if isinstance(arg, FuncTerm):
+            if isinstance(arg, FuncTerm) and arg.function.arity > 0:
                 inside = inside or (term in arg)
             else:
                 inside = inside or (term == arg)
