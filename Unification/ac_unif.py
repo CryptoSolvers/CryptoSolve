@@ -41,7 +41,8 @@ def matrix_solve(vll: list, vlr: list, func: str):
 
 	e = parse_expr(e)
 	#solve the equation
-	print(sol)
+	sol = diop_linear(e)
+
 
 	#matrix form
 	#need a new Diophantine solver to 
