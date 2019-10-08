@@ -1,4 +1,6 @@
-from .term import *
+from .term import Term, FuncTerm
+import matplotlib.pyplot as plt
+import networkx as nx
 
 #
 ## Directed Acyclic Graphs
