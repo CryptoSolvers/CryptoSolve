@@ -18,7 +18,7 @@ class Function:
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
-        return isinstance(x, Function) and self.symbol == x.symbol
+        return type(self) is type(x) and self.symbol == x.symbol
 
 class Variable: 
     def __init__(self, symbol : str):
