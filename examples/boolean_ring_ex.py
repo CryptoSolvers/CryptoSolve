@@ -7,7 +7,7 @@ from theories import *
 
 a = BooleanRingElement("a")
 b = BooleanRingElement("b")
-zero = BoolRingZero()
+zero = BooleanRing.zero
 
 print("a ⊕ a =", str(a + a))
 print("a ⊗ a =", str(a * a))
