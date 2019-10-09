@@ -1,4 +1,5 @@
 from algebra import *
+from .ac import *
 # Addition and multiplication are AC
 # x + x = 0
 # x * x = x

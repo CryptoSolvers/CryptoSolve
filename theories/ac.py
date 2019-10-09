@@ -2,8 +2,9 @@
 import typing
 from typing import Union, Any, Optional
 from copy import deepcopy
-from .term import *
+from algebra import *
 from collections import Counter
+from rewrite import *
 
 #
 ## Associative Functions
@@ -19,6 +20,8 @@ class AFunction(Function):
             l = args[i:(i + self.arity - 1)]
             term = ATerm(self, (term, *l))
         return term
+
+
 def _flatten_sublist(l):
     new_list = []
     for li in l:
@@ -85,5 +88,28 @@ class ACTerm(ATerm, CTerm):
         super().__init__(function, args)
     def __eq__(self, x):
         return isinstance(x, ACTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
+    def __hash__(self):
+        return super().__hash__()
+
+# 
+## Idempotence Functions
+#
+
+class IFunction(Function):
+    def __init__(self, symbol : str, arity : int):
+        super().__init__(symbol, arity)
+    def __call__(self, *args):
+        term = ITerm(self, args)
+        x = Variable("x")
+        f = Function(self.symbol, self.arity)
+        r = RewriteRule(f(x,x), x)
+        return r.apply(term)
+
+
+class ITerm(FuncTerm):
+    def __init__(self, function : Function, args):
+        super().__init__(function, args)
+    def __eq__(self, x):
+        return isinstance(x, ITerm) and self.function == x.function and self.arguments == x.arguments
     def __hash__(self):
         return super().__hash__()
