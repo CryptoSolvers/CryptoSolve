@@ -27,26 +27,23 @@ class GroupElement(GenericTerm):
         return hash((self.group.name, self.symbol))
     def __eq__(self, x):
         return type(self) is type(x) and self.group == x.group and self.symbol == x.symbol
+    # Properties of multiplication return (True, result) if one matches otherwise (false, None)
+    def _mulprops(self, x):
+        if x == self.group.identity:
+            return (True, deepcopy(self))
+        if self == self.group.identity:
+            return (True, deepcopy(x))
+        if self.group.inv(self) == x:
+            return (True, deepcopy(self.group.identity))
+        if self == self.group.inv(x):
+            return (True, deepcopy(self.group.identity))
+        return (False, None)
     def __mul__(self, x):
-        if x == self.group.identity:
-            return deepcopy(self)
-        if self == self.group.identity:
-            return deepcopy(x)
-        if self.group.inv(self) == x:
-            return deepcopy(self.group.identity)
-        if self == self.group.inv(x):
-            return deepcopy(self.group.identity)
-        return self.group.op(self, x)
+        matched, term = self._mulprops(x)
+        return self.group.op(self, x) if not matched else term
     def __rmul__(self, x):
-        if x == self.group.identity:
-            return deepcopy(self)
-        if self == self.group.identity:
-            return deepcopy(x)
-        if self.group.inv(self) == x:
-            return deepcopy(self.group.identity)
-        if self == self.group.inv(x):
-            return deepcopy(self.group.identity)
-        return self.group.op(x, self)
+        matched, term = self._mulprops(x)
+        return self.group.op(x, self) if not matched else term
 
 class AbelianGroup(Group):
     def __init__(self, name : str, operation : ACFunction, inv = None):
