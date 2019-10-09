@@ -64,7 +64,7 @@ Term = Union[FuncTerm, Constant, Variable]
 
 def get_vars(t: Term, unique = False):
 	if isinstance(t, Variable): 
-		return [t]
+		return {t} if unique else [t]
 	
 	l=[]
 	if isinstance(t, FuncTerm):
@@ -75,7 +75,7 @@ def get_vars(t: Term, unique = False):
 
 def get_constants(t: Term, unique = False):
 	if isinstance(t, Constant): 
-		return [t]
+		return {t} if unique else [t]
 	
 	l=[]
 	if isinstance(t, FuncTerm):
@@ -87,7 +87,7 @@ def get_constants(t: Term, unique = False):
 
 def get_vars_or_constants(t: Term, unique = False):
     if isinstance(t, Constant) or isinstance(t, Variable): 
-        return [t]
+        return {t} if unique else [t]
     
     l=[]
     if isinstance(t, FuncTerm):
