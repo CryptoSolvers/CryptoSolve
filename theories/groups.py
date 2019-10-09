@@ -1,15 +1,22 @@
 from algebra import *
 from .ac import *
+from copy import deepcopy
 
-
+class ParityFunction(Function):
+    def __init__(self, symbol : str):
+        super().__init__(symbol, 1)
+    def __call__(self, x):
+        if isinstance(x, FuncTerm) and isinstance(x.function, ParityFunction):
+            return x.arguments[0]
+        return FuncTerm(self, (x,))
 
 class Group:
-    def __init__(self, name : str, operation : AFunction, inv = None):
+    def __init__(self, name : str, operation : AFunction, inv = None, identity_symbol = "e"):
         if not isinstance(operation, AFunction):
             raise ValueError("operation must be associative (AFunction)")
         self.name = name
-        self.identity = GroupIdentity(self)
-        self.inv = Function(name + "_inv", 1) if inv is None else inv
+        self.identity = GroupElement(self, identity_symbol)
+        self.inv = ParityFunction(name + "_inv") if inv is None else inv
         self.op = operation
 
 class GroupElement(GenericTerm):
@@ -19,17 +26,27 @@ class GroupElement(GenericTerm):
     def __hash__(self):
         return hash((self.group.name, self.symbol))
     def __eq__(self, x):
-        return self.group == x.group and self.symbol == x.symbol
+        return type(self) is type(x) and self.group == x.group and self.symbol == x.symbol
     def __mul__(self, x):
+        if x == self.group.identity:
+            return deepcopy(self)
+        if self == self.group.identity:
+            return deepcopy(x)
+        if self.group.inv(self) == x:
+            return deepcopy(self.group.identity)
+        if self == self.group.inv(x):
+            return deepcopy(self.group.identity)
         return self.group.op(self, x)
-
-class GroupIdentity(GroupElement):
-    def __init__(self, g : Group):
-        super().__init__(g, "e")
-    def __mul__(self, x):
-        return x
     def __rmul__(self, x):
-        return x
+        if x == self.group.identity:
+            return deepcopy(self)
+        if self == self.group.identity:
+            return deepcopy(x)
+        if self.group.inv(self) == x:
+            return deepcopy(self.group.identity)
+        if self == self.group.inv(x):
+            return deepcopy(self.group.identity)
+        return self.group.op(x, self)
 
 class AbelianGroup(Group):
     def __init__(self, name : str, operation : ACFunction, inv = None):
