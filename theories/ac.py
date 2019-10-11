@@ -46,7 +46,7 @@ class ATerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, ATerm) and self.function == x.function and self.flatten() == x.flatten()
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 
 #
@@ -66,7 +66,7 @@ class CTerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, CTerm) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 #
 ## Associative-Commutative Functions
@@ -89,7 +89,7 @@ class ACTerm(ATerm, CTerm):
     def __eq__(self, x):
         return isinstance(x, ACTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 # 
 ## Idempotence Functions
@@ -112,4 +112,4 @@ class ITerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, ITerm) and self.function == x.function and self.arguments == x.arguments
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)

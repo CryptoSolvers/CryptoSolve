@@ -1,108 +1,70 @@
 from algebra import *
 from .ac import *
+from .rings import *
+from copy import deepcopy
+
+BoolRingAdd = ACFunction("bool_add", 2)
+BoolRingMul = ACFunction("bool_mul", 2)
+BooleanRing = Ring("BooleanRing", BoolRingAdd, BoolRingMul)
+
+class BoolRingFunction(Function):
+    def __init__(self, r : Ring, f : Function):
+        super().__init__(f.symbol, f.arity)
+        self.ring = r
+        self.function = f
+    def __call__(self, *args):
+        return RingFuncTerm(self.ring, self.function(*args))
+
+
+def simplify_boolean_term(term : Term):
+    if not isinstance(term, FuncTerm) or term.function not in [BoolRingMul, BoolRingAdd]:
+        return deepcopy(term)
+    args = term.flatten()
+    new_args = []
+    for arg in args:
+        new_args.append(simplify_boolean_term(arg))
+    if term.function == BoolRingMul:
+        # Apply x * x -> x
+        # [TODO] Ensure this is an appropriate technique by confirming that * is commutative
+        new_args = list(set(new_args))
+    elif term.function == BoolRingAdd:
+        # Apply x + x -> 0
+        var_constant_counts = Counter(new_args)
+        new_args = []
+        for t, count in var_constant_counts.items():
+            if count % 2 == 1:
+                new_args += [t]
+    if len(new_args) > 1:
+        term = term.function(*new_args)
+    elif len(new_args) == 1:
+        term = new_args[0]
+    else:
+        term = BooleanRing.zero
+    return term
+
 # Addition and multiplication are AC
-# x + x = 0
-# x * x = x
-
-class BoolRingZero(Constant):
-    def __init__(self):
-        super().__init__("0")
+class BooleanRingElement(RingElement):
+    def __init__(self, symbol):
+        RingElement.__init__(self, BooleanRing)
+    # x + x = 0
     def __add__(self, x):
-        return x
+        if self == x:
+            return deepcopy(self.ring.zero)
+        # x = simplify_boolean_term(x)
+        return super().__add__(x)
+    def __radd__(self, x):
+        if self == x:
+            return deepcopy(self.ring.zero)
+        x = simplify_boolean_term(x)
+        return super().__radd__(x)
+    # x * x = x
     def __mul__(self, x):
-        return BoolRingZero()
-
-class BoolRingAdd(ACFunction):
-    def __init__(self):
-        super().__init__("add", 2)
-
-    def __call__(self, *args, simplify = True):
-        # Remove zero elements
-        args = [x for x in args if x != BoolRingZero()]
-        if len(args) == 1:
-            return args[0]
-        elif len(args) == 0:
-            return BoolRingZero()
-
-        # Begin term
-        term = BoolRingAddTerm(self, (args[0], args[1]))
-        for t in args[2:]:
-            term = BoolRingAddTerm(self, (term, t))
-        
-        # Simplify using rewrite rule add(a,a) = zero if set
-        if simplify:
-            var_constant_counts = Counter(term.flatten())
-            new_args = []
-            for term, count in var_constant_counts.items():
-                if count % 2 == 1:
-                    new_args += [term]
-            if len(new_args) > 1:
-                term = self(*new_args, simplify = False)
-            else:
-                term = BoolRingZero() if len(new_args) == 0 else new_args[0]
-        
-        return term
-
-
-class BoolRingAddTerm(ACTerm):
-    def __init___(self, *args):
-        super().__init__(BoolRingAdd(), args)
-    
-    def __str__(self):
-        result = ""
-        for i, t in enumerate(self.arguments):
-            if isinstance(t, BoolRingAddTerm):
-                result += " ⊕ ".join(map(lambda t: str(t), t.arguments))
-            else:
-                result += str(t)
-            result += " ⊕ " if i < len(self.arguments) - 1 else ""
-        return result
-
-class BoolRingMul(ACFunction):
-    def __init__(self):
-        super().__init__("add", 2)
-
-    def __call__(self, *args, simplify = True):
-        # Anything multiplied by zero is zero
-        if BoolRingZero() in args:
-            return BoolRingZero()
-        
-        term = BoolRingMulTerm(self, (args[0], args[1]))
-        for t in args[2:]:
-            term = BoolRingMulTerm(self, (term, t))
-        
-        # Simplify using rewrite rule mul(a,a) = a if set
-        if simplify:
-            new_args = list(set(term.flatten())) # Rewrite rule makes it so that only one instance of a var/constant appears
-            if len(new_args) > 1:
-                term = self(*new_args, simplify = False)
-            else:
-                term = BoolRingZero() if len(new_args) == 0 else new_args[0]
-        
-        return term
-
-
-class BoolRingMulTerm(ACTerm):
-    def __init___(self, *args):
-        super().__init__(BoolRingMul(), args)
-    
-    def __str__(self):
-        result = ""
-        for i, t in enumerate(self.arguments):
-            if isinstance(t, BoolRingMulTerm):
-                result += " ⊗ ".join(map(lambda t: str(t), t.arguments))
-            else:
-                result += str(t)
-            result += " ⊗ " if i < len(self.arguments) - 1 else ""
-        return result
-
-
-class BooleanRingElement(GenericTerm):
-    def __init__(self, symbol : str):
-        super().__init__(symbol)
-    def __add__(self, x):
-        add = BoolRingAdd()
-        return add(self, x)
-    def __mul__(self, x):
-        mul = BoolRingMul()
-        return mul(self, x)
+        if self == x:
+            return deepcopy(x)
+        x = simplify_boolean_term(x)
+        return super().__mul__(x)
+    def __rmul__(self, x):
+        if self == x:
+            return deepcopy(x)
+        x = simplify_boolean_term(x)
+        return super().__rmul__(x)
