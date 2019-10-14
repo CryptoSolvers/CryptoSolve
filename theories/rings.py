@@ -28,6 +28,8 @@ class Ring:
         return type(self) is type(x) and self.name == x.name and self.add == x.add and self.mul == x.mul
     def __hash__(self):
         return hash(self.name)
+    def has_unity(self):
+        return self.unity is not None
 
 class RingFunction(AFunction):
     def __init__(self, r : Ring, f : Function):
@@ -90,9 +92,9 @@ class RingElement(GroupElement):
     def _ringmulprops(self, x):
         if x == self.ring.zero or self == self.ring.zero:
             return (True, deepcopy(self.ring.zero))
-        if self.ring.unity is not None and x == self.ring.unity:
+        if self.ring.has_unity() and x == self.ring.unity:
             return (True, deepcopy(self))
-        if self.ring.unity is not None and self == self.ring.unity:
+        if self.ring.has_unity() and self == self.ring.unity:
             return (True, deepcopy(x))
         return (False, None)
     def __mul__(self, x):
