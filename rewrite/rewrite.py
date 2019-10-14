@@ -11,10 +11,10 @@ def freeze(term : Term):
     if isinstance(term, Variable):
         return Constant(term.symbol)
     elif isinstance(term, FuncTerm):
-        term.arguments = list(term.arguments)
-        for i,t in enumerate(term.arguments):
-            term.arguments[i] = freeze(t)
-        term.arguments = tuple(term.arguments)
+        arguments = list(term.arguments)
+        for i,t in enumerate(arguments):
+            arguments[i] = freeze(t)
+        term.set_arguments(arguments)
     return term
 
 class RewriteRule:

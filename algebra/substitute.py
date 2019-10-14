@@ -95,10 +95,10 @@ class SubstituteTerm:
             if term in sub_vars:
                 return_value = sub_terms[sub_vars.index(term)]
             elif isinstance(term, FuncTerm):
-                term.arguments = list(term.arguments)
-                for i, t in enumerate(term.arguments):
-                    term.arguments[i] = self._termSubstituteHelper(t)
-                term.arguments = tuple(term.arguments)
+                arguments = list(term.arguments)
+                for i, t in enumerate(arguments):
+                    arguments[i] = self._termSubstituteHelper(t)
+                term.set_arguments(arguments)
                 return_value = term
             else:
                 return_value = term
@@ -112,10 +112,10 @@ def termSubstituteHelper(term, variable, replacement_term):
     if term == variable:
         return_value = replacement_term
     elif isinstance(term, FuncTerm):
-        term.arguments = list(term.arguments)
-        for i, t in enumerate(term.arguments):
-            term.arguments[i] = termSubstituteHelper(t, variable, replacement_term)
-            term.arguments = tuple(term.arguments)
+        arguments = list(term.arguments)
+        for i, t in enumerate(arguments):
+            arguments[i] = termSubstituteHelper(t, variable, replacement_term)
+            term.set_arguments(arguments)
             return_value = term
     else:
         return_value = term

@@ -46,7 +46,7 @@ class ATerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, ATerm) and self.function == x.function and self.flatten() == x.flatten()
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 
 #
@@ -66,7 +66,7 @@ class CTerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, CTerm) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 #
 ## Associative-Commutative Functions
@@ -89,7 +89,7 @@ class ACTerm(ATerm, CTerm):
     def __eq__(self, x):
         return isinstance(x, ACTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
 
 # 
 ## Idempotence Functions
@@ -112,4 +112,32 @@ class ITerm(FuncTerm):
     def __eq__(self, x):
         return isinstance(x, ITerm) and self.function == x.function and self.arguments == x.arguments
     def __hash__(self):
-        return super().__hash__()
+        return FuncTerm.__hash__(self)
+
+#
+## ACI
+#
+
+class ACIFunction(ACFunction, IFunction):
+    def __init__(self, symbol : str, arity : int):
+        super().__init__(symbol, arity)
+    def __call__(self, *args):
+        # Apply I equational theory
+        args = list(set(args))
+        if len(args) == 1:
+            return deepcopy(args[0])
+        # Construct AC Term
+        term = ACITerm(self, tuple(args[:self.arity]))
+        for i in range(self.arity, len(args), self.arity - 1):
+            l = args[i:(i + self.arity - 1)]
+            term = ACITerm(self, (term, *l))
+        return term
+
+class ACITerm(ACTerm, ITerm):
+    def __init__(self, function : Function, args):
+        ACTerm.__init__(self, function, args)
+        ITerm.__init__(self, function, args)
+    def __eq__(self, x):
+        return ACTerm.__eq__(self, x)
+    def __hash__(self):
+        return FuncTerm.__hash__(self)
