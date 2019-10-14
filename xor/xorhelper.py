@@ -396,6 +396,10 @@ class Rule_Decompose(XOR_Rule):
         unifier = unif(first_term, second_term)
         #equations1.append(Equation(xor(first_term.arg, second_term.arg), Zero()))
 
+        if((first_term == second_term) or (unifier.domain() != [])):
+            unifiable = True
+        else:
+            unifiable = False
 
         disequations1 = disequations
         disequations2 = deepcopy(disequations)
@@ -404,7 +408,7 @@ class Rule_Decompose(XOR_Rule):
 
         state1 = XOR_proof_state(apply_sub_to_equations(Equations(equations1), unifier), apply_sub_to_disequations(Disequations(disequations1), unifier), substs * unifier)
         state2 = XOR_proof_state(Equations(equations2), Disequations(disequations2), substs)
-        return (state1, state2)
+        return (unifiable, state1, state2)
 
 def xor_unification_helper(state):
     #Returns a list of substitutions
@@ -439,8 +443,11 @@ def xor_unification_helper(state):
         new_state = subst_rule.apply(state)
         return xor_unification_helper(new_state)
     elif(decompose_applicable):
-        (state1, state2) = decompose_rule.apply(state)
-        return xor_unification_helper(state1) + xor_unification_helper(state2)
+        (unifiable, state1, state2) = decompose_rule.apply(state)
+        if(unifiable):
+            return xor_unification_helper(state1) + xor_unification_helper(state2)
+        else:
+            return xor_unification_helper(state2)
 
 def xor_unification(eqs):
     equations = purify_equations(eqs)
