@@ -35,6 +35,8 @@ class FuncTerm(GenericTerm):
         self.arguments = args
     def set_arguments(self, args):
         self.arguments = tuple(args)
+    def set_function(self, function : Function):
+        self.function = function
     def __repr__(self):
         if self.function.arity == 0:
             return self.function.symbol

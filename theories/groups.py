@@ -47,8 +47,7 @@ class GroupFunction(Function):
         if not isinstance(term, FuncTerm) or term.function.arity == 0:
             return deepcopy(term)
         result = GroupFuncTerm(self.group, term)
-        result.function = self
-        result.term.function = self
+        result.set_function(self)
         return result
 
 # Class that describes an element of the group.
@@ -100,6 +99,9 @@ class GroupFuncTerm(GroupElement, FuncTerm):
     def set_arguments(self, args):
         self.term.arguments = tuple(args)
         self.arguments = tuple(args)
+    def set_function(self, function : Function):
+        self.function = function
+        self.term.function = function
     def __hash__(self):
         return hash((self.group, self.term))
     def __repr__(self):

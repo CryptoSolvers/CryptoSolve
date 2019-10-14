@@ -17,9 +17,8 @@ class Ring:
             raise ValueError("multiplication must be associative (AFunction)")
         self.name = name
         self.group = AbelianGroup(name, add_operation, inv_symbol = name + "_neg")
-        self.zero = RingConstant(self, zero_symbol)
         self.unity = RingConstant(self, unity_symbol) if unity_symbol is not None else None
-        self.group.identity = self.zero # Turns GroupConstant into RingConstant
+        self.set_zero(RingConstant(self, zero_symbol))
         self.neg = self.group.inv
         self.add = RingFunction(self, add_operation)
         self.mul = RingFunction(self, mul_operation)
@@ -30,6 +29,9 @@ class Ring:
         return hash(self.name)
     def has_unity(self):
         return self.unity is not None
+    def set_zero(self, x):
+        self.zero = x
+        self.group.identity = x
 
 class RingFunction(AFunction):
     def __init__(self, r : Ring, f : Function):
@@ -42,8 +44,7 @@ class RingFunction(AFunction):
         if not isinstance(term, FuncTerm) or term.function.arity == 0:
             return deepcopy(term)
         result = RingFuncTerm(self.ring, term)
-        result.function = self
-        result.term.function = self
+        result.set_function(self)
         return result
 
 def _left_distributivity(r : Ring, term):
@@ -130,6 +131,9 @@ class RingFuncTerm(RingElement, ATerm):
     def set_arguments(self, args):
         self.term.arguments = tuple(args)
         self.arguments = tuple(args)
+    def set_function(self, function : Function):
+        self.function = function
+        self.term.function = function
     def __hash__(self):
         return hash((self.ring, self.term))
     def __eq__(self, x):
