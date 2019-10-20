@@ -14,14 +14,16 @@ def unif(l: Term, r: Term):
 			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 				if e.left_side in e.right_side:
 					print('Occurs Check')
-					return SubstituteTerm()
+					#We could think of an improved method for errors
+					return False
 		
 		#check for function clash
 		for i, e in U.items():
 			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 				if e.left_side.function.symbol != e.right_side.function.symbol:
 					print('Function Clash')
-					return SubstituteTerm()
+					#Fix the return false
+					return False
 								
 		#Check for solved equations and remove
 		for i in list(U):

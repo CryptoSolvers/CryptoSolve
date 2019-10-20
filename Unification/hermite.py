@@ -15,7 +15,7 @@ from collections import Counter
 
 
 
-def hermite(A, m: int, n: int):
+def hnf1(A, m: int, n: int):
 
 	#The Hermite normal form matrix
 	W = zeros(m, n)
@@ -88,7 +88,87 @@ def RowTest(A, i: int, k: int):
 		
 			
 	 
+def hnf2(A, r: int, c: int):
+	#initialize
+	W = zeros(r, c)
+	i = r - 1
+	j = c - 1
+	k = c - 1
 	
+	if r <= c:
+		l = 1
+	else:
+		l = r - c + 1
+	done = False
+	while not done:
+		if j != 1:
+			j = j-1
+			if A[i, j] != 0:
+				g, u, v, mu, mv = egcd(A[i,k], A[i,j])
+				B = mu * A[:,k] + mv * A[:,j]
+				A[:,j] = (A[i,k] / g) * A[:,j] - (A[i,j]/g)*A[:,k]
+				A[:,k] = B
+		else:	
+			#step 4
+			b = A[i,k]
+			if b < 0:
+				A[:,k] = -A[:,k]
+				b = -b
+			if b == 0:
+				k = k + 1
+			else:
+				for j in range(k+1, c):
+					q = math.floor(A[i,j]/b)
+					A[:,j] = A[:,j] - q*A[:,k]
+			if i == l:
+				done = True
+			else:
+				i = i - 1
+				k = k - 1
+				j = k
+	for j in range(0, (c - k + 1)):
+		W[:,j] = A[:, (j+k-1)]
+	return W
 	
-	
+
+def egcd(a: int, b: int):
+	#for min
+	md, mu, mv = a, 0, 1
+	#initialize
+	u = 1
+	gcd = a
+	if b == 0:
+		v = 0
+		return gcd, u, v
+	else:
+		v1 = 0
+		v3 = b
+	while v3 != 0:
+		q = math.floor(gcd/v3)
+		t3 = gcd%v3
+		t1 = u - q*v1
+		u = v1
+		gcd = v3
+		v1 = t1
+		v3 = t3
+		#test min
+		v = (gcd - a * u) // b
+		sv = v * sign(b)
+		su = u * sign(a)
+		x = -(abs(a)//gcd)
+		y = abs(b)//gcd
+		if( (sv > x and sv <= 0) and (su >= 1 and su <= y) and math.gcd(a,b) == gcd):
+			mu = u
+			mv = ((gcd - a * u) // b)
+			md = gcd
+	v = (gcd - a * u) // b
+	return gcd, u, v, mu, mv    
+    
+def sign(x: int):
+	if x == 0:
+		return 0
+	if x < 0:
+		return -1
+	else:
+		return 1	  
 	
