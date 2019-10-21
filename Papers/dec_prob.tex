@@ -1,0 +1,214 @@
+\documentclass{llncs}
+
+\usepackage{amssymb}
+\usepackage{proof}
+%\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{latexsym, graphics, graphicx}
+\usepackage{color}
+\usepackage{epsfig, amssymb}
+\usepackage{yfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{float}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\usepackage{marginnote}
+\usepackage{mathtools}
+
+
+
+\newtheorem{assumption}{Assumption}
+
+\newcommand{\pa}{{\bf Pair}}
+\newcommand{\enc}{{\bf Enc}}
+\newcommand{\eq}{\mathcal{EQ}}
+\newcommand{\bphi}{\ovr{\phi}}
+\newcommand{\bh}{\ovr{h}}
+\newcommand{\tdh}{\tilde{h}}
+\newcommand{\ignore}[1]{}
+\newcommand*\rfrac[2]{{}^{#1}\!/_{#2}}
+
+%\newcommand{\ISFULL}
+
+\ifdefined\ISFULL
+\newcommand{\FULL}[1]{#1}
+\newcommand{\SHORT}[1]{}
+\else
+\newcommand{\FULL}[1]{}
+\newcommand{\SHORT}[1]{#1}
+\fi
+
+
+
+\title{ $MOE$ Decision Problems}
+
+
+\pagestyle{empty}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+The $MOE_{\oplus}$ decision problem. 
+
+\end{abstract}
+
+\section{Definitions}
+
+\begin{definition}
+	$MOE$-terms: Given a first-order signature $\Sigma=\{
+	\oplus, 0, f\}$, a countable set of (free) constants (names) $N$, such that $\Sigma \cap N =\emptyset$, and a (countable) set of variables $X$, the set of $MOE$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$. 
+\end{definition}
+
+
+
+\begin{definition}
+	$MOE$-Program: Is an interaction between the 
+	the adversary and the oracle consisting of the following actions
+	and orders. Let $c$ be a name representing a session identifier.
+	\begin{enumerate}
+		\item $start(c)$. The start of a session $c$, sent from the
+		adversary to oracle.
+		\item $stop(c)$. The end of session $c$.
+		\item $block(c, x)$. A new block in session $c$ sent from
+		the adversary to the oracle. This is to be encrypted by the 
+		oracle. This variable, $x$, represents possible messages, via
+		instantiation, that the adversary could send during a program
+		run. 
+		\item $send(c, m)$. The oracle send a $MOE$-term, $m$, back
+		to the adversary. The variables of $m$ must have been 
+		previously contained in a received $block(c, x)$ message
+		that occurred before the $send(c, m)$ message.
+	\end{enumerate} 
+\end{definition}
+This ordering in the last item will be important to the decision 
+problems. We can more compactly represent the sequence of messages
+in a $MOE$-program as a frame. 
+
+\begin{definition}
+		$MOE$-frame:  $\phi = \nu \tilde{n}.\sigma$, where
+		$\tilde{n}$ is a set of names representing non-free variables such as random nonces. $\sigma$ is a substitution
+		such that $Dom(\sigma) = \{ y_1, y_2, \ldots, y_n\}$,
+		$Dom(\sigma) \cap \tilde{n} = \emptyset$, and
+		$Ran(\sigma)$ are $MOE$-terms.  
+\end{definition}
+
+A $MOE$-frame models a trace of a $MOE$ program in the following way:
+if the $i$th action of the challenger in the trace is 
+$Rcv\_Block(t)$ or $Send(t)$, where $t$ is a $MOE$-term, 
+then there is a variable $y_i \in Dom(\sigma)$ and 
+$y_i \sigma \mapsto t$. Random variables such as the IV are 
+modeled as names and placed in $\tilde{n}$.
+
+The terms of the frame are further restricted depending on the mode of encryption being modeled and the schedule used by the oracle to
+return cipher blocks to the adversary. These restrictions have
+the following impact on the $MOE$-frames:
+\begin{itemize}
+	\item $MOE$: The mode of encryption dictates how the oracle 
+	constructs cypher blocks. For example, in a CyberBlock Chaining,
+	$CBC$, $MOE$ the ith block of cipher text, $C_i$, is modeled by
+	the $y_i \mapsto f(C_{i-1} \oplus x_i)$, where $\oplus$ is
+	the xor function.
+	\item Schedule: The oracle can either return the 
+	cipher blocks immediately or at the end of the session.  
+\end{itemize}
+
+The adversary has the ability to execute multiple simultaneous session with the oracle. In this case the initial name, the IV, will be fresh for each session. Each session can then be modeled by it's own frame. 
+
+
+%\begin{definition}
+%	Let 
+%\end{definition}
+
+
+\section{$MOE$ Decision Problems}
+
+We model a potential attack via a decision problem involving unification. 
+
+First we need a new definition of unification which includes the 
+constraint on term orders imposed by the $MOE$-program. This 
+ordering can be enforeced using a relation $\prec_{\mathcal{P}}$, defined 
+as follows. 
+
+\begin{definition}
+	Let $\mathcal{P}$ be a $MOE$-program and $\phi = \nu \tilde{n}.\sigma$ the corresponding frame. We define a relation, 
+	$\prec_{\mathcal{P}}$, by:
+	\begin{itemize}
+		\item $t \prec_{\mathcal{P}} x$,
+		$y_i \mapsto x, ~y_j \mapsto t ~ \in \sigma$, and
+		$ i < j$.
+		\item $x_i \prec_{\mathcal{P}} x_j$ iff 
+		 $y_i \mapsto x_i, ~y_j \mapsto x_j ~ \in \sigma$, and
+		 $ i < j$.
+		 \item If $\bar{t} \prec_{\mathcal{P}} x$, then 
+		 $f(\bar{t}) \prec_{\mathcal{P}} x$, where $f \in \Sigma$.
+		 \item $t \not \prec_{\mathcal{P}} x$ iff $t \prec_{\mathcal{P}} x$ does not hold.
+	\end{itemize}
+\end{definition}
+
+We can now define the $MOE$ unification problem.
+
+\begin{definition}
+	Let $\mathcal{P}$ be a $MOE$-program and $\phi = \nu \tilde{n}.\sigma$ the corresponding frame. Let $t_1$ and $t_2$
+	be two $MOE$-terms appearing in $\mathcal{P}$. $t_1$ and $t_2$
+	are $\mathcal{P}$-unifiable iff there exists some substitution
+	$\delta$ s.t.
+	\begin{itemize}
+		\item $\forall x \in Dom(\delta), ~x\delta \prec_{\mathcal{P}} x$.
+		\item $t_1 \delta =_E t_2\delta$.
+	\end{itemize}
+\end{definition}
+
+
+\begin{definition}
+	Decision Problem: We model an attack by the adversary being able
+	to learn a designated term $sec$. Add an additional rewrite rule 
+	$unif(x, x) \rightarrow sec$ to $E$. If there exists a frame 
+	$\phi$ modeling a session, two cypher blocks, 
+	$C_i$ and $C_j$ in $Ran(\sigma)$ such that 
+	$unif(C_i, C_j) \rightarrow sec$, then the adversary has found a
+	successful attack.  
+\end{definition}
+
+Now that the general decision problem is defined, we can define several
+instances of the problem based on the combination of the following factors:
+\begin{itemize}
+	\item The equational Theory $E$.
+	\item The $MOE$.
+	\item The Schedule.
+	\item Bounds on the session length and number of sessions.  
+\end{itemize}
+
+We consider several of these possibilities in what follows.
+
+First, we will consider the $E=xor$ equational theory and we 
+will consider the following $MOE$:
+\begin{itemize}
+	\item $CBC:$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block, the IV, is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
+	term $f(C_{i-1} \oplus x_i)$.
+	\item $CFB:$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
+	term $f(C_{i-1}) \oplus x_i$.  
+\end{itemize} 
+
+\subsection{$MOE_{\oplus}$ Decision Problems}
+We will first consider the xor equational theory. We can therefore refine the definition of $MOE$-term 
+ 
+\begin{definition}
+	$MOE_{\oplus}$-terms: Given a first-order signature $\Sigma=\{
+	\oplus, 0, f\}$, a countable set of (free) constants (names) $N$, such that $\Sigma \cap N =\emptyset$, and a (countable) set of variables $X$, the set of $MOE_{\oplus}$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$. 
+\end{definition}
+
+\subsubsection{Finite Sessions of Finite Length}
+The first decision problem to consider is the $MOE_{\oplus}$
+problem with a finite bound on both the number of sessions and
+the sessions lengths. 
+For both schedules and both $MOE$s, $CBC$ and $CFB$, the problem
+reduces to the $MOE$-unification problem for $E=xor$. This problem
+has been solved in the positive in [].
+
+\subsubsection{Finite Sessions of Arbitrary Length}
+\subsubsection{Arbitrary Sessions of Arbitrary Length} 
+\end{document}
