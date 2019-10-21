@@ -93,10 +93,16 @@ class RingElement(GroupElement):
     def _ringmulprops(self, x):
         if x == self.ring.zero or self == self.ring.zero:
             return (True, deepcopy(self.ring.zero))
-        if self.ring.has_unity() and x == self.ring.unity:
-            return (True, deepcopy(self))
-        if self.ring.has_unity() and self == self.ring.unity:
-            return (True, deepcopy(x))
+        if self.ring.has_unity():
+            if x == self.ring.unity:
+                return (True, deepcopy(self))
+            if self == self.ring.unity:
+                return (True, deepcopy(x))
+        if not self.ring.has_unity():
+            if x == self.ring.unity:
+                raise ValueError("The ring " + self.ring.name + " does not have a unity")
+            if self == self.ring.unity:
+                raise ValueError("The ring " + self.ring.name + " does not have a unity")
         return (False, None)
     def __mul__(self, x):
         # To get around the problem of syntax sharing with SubstituteTerms
