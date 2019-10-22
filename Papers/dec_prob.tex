@@ -184,12 +184,16 @@ instances of the problem based on the combination of the following factors:
 We consider several of these possibilities in what follows.
 
 First, we will consider the $E=xor$ equational theory and we 
-will consider the following $MOE$:
+will consider the following $MOE$. In these modes of encryption 
+$\Sigma ={\oplus, 0, f}$, where $\oplus$ is xor and $f=enc(K,\_)$.
+$IV$ is the initialization vector, the first block sent. 
 \begin{itemize}
-	\item $CBC:$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block, the IV, is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
+	\item Cipher Block Chaining $(CBC):$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block, the IV, is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
 	term $f(C_{i-1} \oplus x_i)$.
-	\item $CFB:$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
+	\item Cipher Feedback $(CFB):$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
 	term $f(C_{i-1}) \oplus x_i$.  
+	\item Propagating Cipher Block Chaining ($PCBC$): 
+	$C_1 = f(P_1 \oplus IV)$, $C_i = f(P_i \oplus P_{i-1} \oplus C_{i-1})$.
 \end{itemize} 
 
 \subsection{$MOE_{\oplus}$ Decision Problems}
@@ -206,8 +210,14 @@ problem with a finite bound on both the number of sessions and
 the sessions lengths. 
 For both schedules and both $MOE$s, $CBC$ and $CFB$, the problem
 reduces to the $MOE$-unification problem for $E=xor$. This problem
-has been solved in the positive in [].
+has been solved in the positive [Chris and Hia Paper].
 
 \subsubsection{Finite Sessions of Arbitrary Length}
+The next decision problems to consider are for $MOE_{\oplus}$ terms,
+both an immediate and a delayed schedule, $CBC$ and $CFB$ modes, a
+finite number of interleaved sessions, and arbitrary long individual
+sessions.    
+ 
+
 \subsubsection{Arbitrary Sessions of Arbitrary Length} 
 \end{document}
