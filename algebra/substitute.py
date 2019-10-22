@@ -72,18 +72,34 @@ class SubstituteTerm:
     def __rmul__(self, term):
         return self._applysub(term)
     
-    def __mul__(self, sub):
-        if not isinstance(sub, SubstituteTerm):
+    def __mul__(self, theta):
+        if not isinstance(theta, SubstituteTerm):
             raise ValueError("Expected a substitution to the right of *, perhaps you meant to apply substitution on a term? If so, swap the arguments.")
         if len(self.subs) > 0:
             v, t = zip(*self.subs)
-            t = tuple(map(sub, t))
-            s = SubstituteTerm()
-            # Union the substitution sets
-            s.subs = set(zip(v, t)) | sub.subs
-            return s
+            # Apply theta to every term in its range
+            t = tuple(map(theta, t))
+            sigma1 = SubstituteTerm()
+            sigma1.subs = set(zip(v, t)) 
+
+            # Remove any binding x->t where x in Dom(sigma)
+            theta1 = deepcopy(theta)
+            theta_dom = theta1.domain()
+            for vt in v:
+                if vt in theta_dom:
+                    theta1.remove(vt)
+
+            # Remove trival bindings
+            for vt, tt in zip(v, t):
+                if vt == tt:
+                    sigma1.remove(vt)
+            
+            # Union the two substitution sets
+            result = SubstituteTerm()
+            result.subs = sigma1.subs | theta1.subs
+            return result
         else:
-            return sub
+            return theta
     
     def __call__(self, term):
         return self._applysub(term)
