@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import typing
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, List
 from copy import deepcopy
 from algebra import *
 from collections import Counter
@@ -14,7 +14,7 @@ class AFunction(Function):
     def __init__(self, symbol : str, arity : int):
         assert arity > 0
         super().__init__(symbol, arity)
-    def __call__(self, *args, simplify = True):
+    def __call__(self, *args, simplify = True) -> FuncTerm:
         term = ATerm(self, tuple(args[:self.arity]))
         for i in range(self.arity, len(args), self.arity - 1):
             l = args[i:(i + self.arity - 1)]
@@ -22,8 +22,8 @@ class AFunction(Function):
         return term
 
 
-def _flatten_sublist(l):
-    new_list = []
+def _flatten_sublist(l : List[Any]) -> List[Any]:
+    new_list : List[Any] = []
     for li in l:
         if hasattr(li, '__iter__'):
             new_list.extend(li)
@@ -34,8 +34,8 @@ def _flatten_sublist(l):
 class ATerm(FuncTerm):
     def __init__(self, function : Function, args):
         super().__init__(function, args)
-    def flatten(self):
-        terms = []
+    def flatten(self) -> List[Term]:
+        terms : List[Term] = []
         for t in self.arguments:
             if isinstance(t, ATerm) and t.function == self.function:
                 sublist = list(map(lambda t: t.flatten() if isinstance(t, ATerm) else t, t.arguments))
@@ -56,7 +56,7 @@ class ATerm(FuncTerm):
 class CFunction(Function):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol, arity)
-    def __call__(self, *args):
+    def __call__(self, *args) -> FuncTerm:
         return CTerm(self, args)
 
 
@@ -75,7 +75,8 @@ class CTerm(FuncTerm):
 class ACFunction(AFunction, CFunction):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol, arity)
-    def __call__(self, *args):
+    # __call__ violates Liskov Substitution Principle?
+    def __call__(self, *args) -> FuncTerm: # type: ignore
         term = ACTerm(self, tuple(args[:self.arity]))
         for i in range(self.arity, len(args), self.arity - 1):
             l = args[i:(i + self.arity - 1)]
@@ -98,7 +99,7 @@ class ACTerm(ATerm, CTerm):
 class IFunction(Function):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol, arity)
-    def __call__(self, *args):
+    def __call__(self, *args) -> FuncTerm:
         term = ITerm(self, args)
         x = Variable("x")
         f = Function(self.symbol, self.arity)
@@ -121,13 +122,14 @@ class ITerm(FuncTerm):
 class ACIFunction(ACFunction, IFunction):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol, arity)
-    def __call__(self, *args):
+    # __call__ violates Liskov Substitution Principle?
+    def __call__(self, *args) -> FuncTerm: # type: ignore
         # Apply I equational theory
-        args = list(set(args))
+        args = tuple(set(args))
         if len(args) == 1:
             return deepcopy(args[0])
         # Construct AC Term
-        term = ACITerm(self, tuple(args[:self.arity]))
+        term = ACITerm(self, args[:self.arity])
         for i in range(self.arity, len(args), self.arity - 1):
             l = args[i:(i + self.arity - 1)]
             term = ACITerm(self, (term, *l))

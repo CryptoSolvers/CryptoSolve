@@ -1,6 +1,7 @@
-from .term import Term, FuncTerm
-import matplotlib.pyplot as plt
-import networkx as nx
+from .term import Term, FuncTerm, Function, Variable
+import matplotlib.pyplot as plt # type: ignore
+import networkx as nx # type: ignore
+from typing import Dict, Tuple, Union
 
 #
 ## Directed Acyclic Graphs
@@ -9,8 +10,8 @@ class TermDAG:
     def __init__(self, term: Term):
         self.dag = nx.OrderedMultiGraph()
         self.term = term
-        self.edge_labels = {}
-        self.node_labels = {}
+        self.edge_labels : Dict[Tuple[Term, Term], str] = {}
+        self.node_labels : Dict[Term, Union[Variable, Function]] = {}
         self.dag.add_node(term)
         if isinstance(term, FuncTerm):
             self.node_labels[term] = term.function

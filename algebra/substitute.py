@@ -5,7 +5,7 @@ class SubstituteTerm:
     def __init__(self):
         self.subs = set() # Tuple of (Variable, Term)
     
-    def add(self, variable, term):
+    def add(self, variable : Variable, term : Term):
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         if len(self.subs) > 0:
@@ -15,7 +15,7 @@ class SubstituteTerm:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
     
-    def remove(self, variable):
+    def remove(self, variable : Variable):
         if len(self.subs) > 0:
             v, t = zip(*self.subs)
             term = t[v.index(variable)]
@@ -23,25 +23,25 @@ class SubstituteTerm:
             x.add((variable, term))
             self.subs = self.subs - x
     
-    def replace(self, variable, term):
+    def replace(self, variable : Variable, term : Term):
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.remove(variable)
         self.subs.add((variable, term))
     
-    def domain(self):
+    def domain(self) -> List[Variable]:
         if len(self.subs) > 0:
             v, _ = zip(*self.subs)
             return v
         else:
-            return []
+            return list()
     
-    def range(self):
+    def range(self) -> List[Term]:
         if len(self.subs) > 0:
             _, t = zip(*self.subs)
             return t
         else:
-            return []
+            return list()
 
     def __len__(self):
         return len(self.subs)
@@ -63,7 +63,7 @@ class SubstituteTerm:
         str_repr += "\n}"
         return str_repr
 
-    def _applysub(self, term):
+    def _applysub(self, term : Term) -> Term:
         assert isinstance(term, (Constant, Variable, FuncTerm))
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(new_term)
@@ -71,7 +71,7 @@ class SubstituteTerm:
 
     def __rmul__(self, term):
         return self._applysub(term)
-    
+    # TODO: Create a signature referencing: https://stackoverflow.com/questions/44640479/mypy-annotation-for-classmethod-returning-instance
     def __mul__(self, theta):
         if not isinstance(theta, SubstituteTerm):
             raise ValueError("Expected a substitution to the right of *, perhaps you meant to apply substitution on a term? If so, swap the arguments.")
@@ -104,7 +104,7 @@ class SubstituteTerm:
     def __call__(self, term):
         return self._applysub(term)
     
-    def _termSubstituteHelper(self, term):
+    def _termSubstituteHelper(self, term : Term) -> Term:
         return_value = term
         if len(self.subs) > 0:
             sub_vars, sub_terms = zip(*self.subs)
