@@ -3,7 +3,7 @@
 #!/usr/bin/env python3
 from algebra import *
 	
-
+# Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 def unif(l: Term, r: Term):
 	z = 1
 	U = dict([(z, Equation(l, r))])

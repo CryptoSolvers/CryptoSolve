@@ -1,8 +1,7 @@
-#Slow-Fast syntactic unification
-
 #!/usr/bin/env python3
 from algebra import *
 
+# Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 def decomposable(term : Term):
 	return isinstance(term, FuncTerm) and term.function.arity > 0
 
