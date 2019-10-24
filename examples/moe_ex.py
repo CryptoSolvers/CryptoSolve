@@ -9,7 +9,7 @@ s = Constant("s")
 x = Variable("x")
 
 print("One interaction with oracle example")
-p = MOE(PropogatingCBC)
+p = MOESession(PropogatingCBC)
 p.rcv_start(1)
 print(p.rcv_block(1, x))
 

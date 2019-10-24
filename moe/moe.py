@@ -13,7 +13,7 @@ class Frame:
     def __str__(self):
         return "[" + str(self.session_id) + ", " + str(self.message) + ", " + str(self.subs) + "]"
 
-class MOE:
+class MOESession:
     def __init__(self, chaining_function, schedule = "every"):
         self.chaining_function = chaining_function
         self.schedule = schedule
@@ -215,7 +215,7 @@ def HashCBC(moe, session_id, iteration):
 
 
 def MOEInteraction(chaining_function, num_interactions):
-    p = MOE(chaining_function, schedule="end")
+    p = MOESession(chaining_function, schedule="end")
     p.rcv_start(1)
     for i in range(0, num_interactions - 1):
         p.rcv_block(1, Variable("x_" + str(i + 1)))
