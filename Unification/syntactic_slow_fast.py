@@ -1,12 +1,12 @@
-#Slow-Fast syntactic unification
-
 #!/usr/bin/env python3
 from algebra import *
 from typing import List
 
+
 def decomposable(term : Term) -> bool:
 	return isinstance(term, FuncTerm) and term.function.arity > 0
 
+# Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 def syntactic_unif(l: Term, r: Term) -> Union[bool, SubstituteTerm]:
 	U = [Equation(l, r)]
 	solve : List[Equation] = []

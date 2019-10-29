@@ -4,7 +4,7 @@ To get started you should make sure that your environment is setup.
 
 <u>Clone the repository</u>
 ```bash
-git clone https://<username>@bitbucket.org/marshall_am/umw_crypto.git
+git clone https://<username>@bitbucket.org/marshall_am/moe_code.git
 cd umw_crypto
 ```
 

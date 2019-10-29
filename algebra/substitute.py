@@ -72,6 +72,7 @@ class SubstituteTerm:
     def __rmul__(self, term):
         return self._applysub(term)
     # TODO: Create a signature referencing: https://stackoverflow.com/questions/44640479/mypy-annotation-for-classmethod-returning-instance
+    # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
     def __mul__(self, theta):
         if not isinstance(theta, SubstituteTerm):
             raise ValueError("Expected a substitution to the right of *, perhaps you meant to apply substitution on a term? If so, swap the arguments.")

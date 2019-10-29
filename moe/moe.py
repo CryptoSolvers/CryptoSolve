@@ -13,7 +13,7 @@ class Frame:
     def __str__(self):
         return "[" + str(self.session_id) + ", " + str(self.message) + ", " + str(self.subs) + "]"
 
-class PRR:
+class MOESession:
     def __init__(self, chaining_function, schedule = "every"):
         self.chaining_function = chaining_function
         self.schedule = schedule
@@ -40,7 +40,7 @@ class PRR:
     def rcv_stop(self, session_id):
         if self.schedule == "end":
             return self.send(session_id, self.subs[session_id])
-        # Remove information about the session from PRR
+        # Remove information about the session from MOE
         del self.subs[session_id]
         del self.iteration[session_id]
         del self.plain_texts[session_id]
@@ -60,11 +60,11 @@ class PRR:
         assert iteration <= len(self.plain_texts[session_id]) + 1 and iteration >= 0
 
 
-def CipherBlockChaining(prr, session_id, iteration):
-    prr.assertIteration(session_id, iteration)
-    P = prr.plain_texts[session_id]
-    C = prr.cipher_texts[session_id]
-    IV = prr.IV[session_id]
+def CipherBlockChaining(moe, session_id, iteration):
+    moe.assertIteration(session_id, iteration)
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
+    IV = moe.IV[session_id]
     f = Function("f", 1)
     i = iteration - 1
     if i == 0:
@@ -76,11 +76,11 @@ def CipherBlockChaining(prr, session_id, iteration):
     )
 
 
-def PropogatingCBC(prr, session_id, iteration):
-    prr.assertIteration(session_id, iteration)
-    P = prr.plain_texts[session_id]
-    C = prr.cipher_texts[session_id]
-    IV = prr.IV[session_id]
+def PropogatingCBC(moe, session_id, iteration):
+    moe.assertIteration(session_id, iteration)
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
+    IV = moe.IV[session_id]
     f = Function("f", 1)
     i = iteration - 1
     if i == 0:
@@ -96,11 +96,11 @@ def PropogatingCBC(prr, session_id, iteration):
     )
 
 
-def CipherFeedback(prr, session_id, iteration):
-    prr.assertIteration(session_id, iteration)
-    P = prr.plain_texts[session_id]
-    C = prr.cipher_texts[session_id]
-    IV = prr.IV[session_id]
+def CipherFeedback(moe, session_id, iteration):
+    moe.assertIteration(session_id, iteration)
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
+    IV = moe.IV[session_id]
     i = iteration - 1
     f = Function("f", 1)
     if i == 0:
@@ -111,21 +111,21 @@ def CipherFeedback(prr, session_id, iteration):
     )
 
 # Questionable implementations...
-# def OutputFeedback(prr, session_id, iteration):
-#     prr.assertIteration(session_id, iteration)
-#     P = prr.plain_texts[session_id]
+# def OutputFeedback(moe, session_id, iteration):
+#     moe.assertIteration(session_id, iteration)
+#     P = moe.plain_texts[session_id]
 #     i = iteration - 1
 #     xor = Function("xor", 2)
 #     f = Function("f", 1)
 #     return xor(
-#         f(OutputFeedback(prr, session_id, iteration - 1)), 
+#         f(OutputFeedback(moe, session_id, iteration - 1)), 
 #         P[i]
 #     )
 
-# def CounterMode(prr, session_id, iteration):
-#     prr.assertIteration(session_id, iteration)
-#     P = prr.plain_texts[session_id]
-#     C = prr.cipher_texts[session_id]
+# def CounterMode(moe, session_id, iteration):
+#     moe.assertIteration(session_id, iteration)
+#     P = moe.plain_texts[session_id]
+#     C = moe.cipher_texts[session_id]
 #     i = iteration - 1
 #     xor = Function("xor", 2)
 #     f = Function("f", 1)
@@ -137,9 +137,9 @@ def CipherFeedback(prr, session_id, iteration):
 #     )
 
 # Helper function for AccumulatedBlockCiper
-def _calcQ(prr, session_id, i):
-    P = prr.plain_texts[session_id]
-    IV = prr.IV[session_id]
+def _calcQ(moe, session_id, i):
+    P = moe.plain_texts[session_id]
+    IV = moe.IV[session_id]
     h = Function("h", 1)
     if i == 0:
         return xor(
@@ -148,18 +148,18 @@ def _calcQ(prr, session_id, i):
         )
     return xor(
         P[i], 
-        h(_calcQ(prr, session_id, i - 1))
+        h(_calcQ(moe, session_id, i - 1))
     )
 
 # C1 isn't defined yet
-# def AccumulatedBlockCiper(prr, session_id, iteration):
-#     prr.assertIteration(session_id, iteration)
-#     C = prr.cipher_texts[session_id]
+# def AccumulatedBlockCiper(moe, session_id, iteration):
+#     moe.assertIteration(session_id, iteration)
+#     C = moe.cipher_texts[session_id]
 #     f = Function("f", 1)
 #     i = iteration - 2
 #     Q = {}
-#     Q[i] = _calcQ(prr, session_id, i)
-#     Q[i-1] = _calcQ(prr, session_id, i - 1)
+#     Q[i] = _calcQ(moe, session_id, i)
+#     Q[i-1] = _calcQ(moe, session_id, i - 1)
 #     return xor(
 #         f(
 #             xor(Q[i], C[i - 1])
@@ -168,11 +168,11 @@ def _calcQ(prr, session_id, i):
 #     )
 
 
-def HashCBC(prr, session_id, iteration):
-    prr.assertIteration(session_id, iteration)
-    IV = prr.IV[session_id]
-    P = prr.plain_texts[session_id]
-    C = prr.cipher_texts[session_id]
+def HashCBC(moe, session_id, iteration):
+    moe.assertIteration(session_id, iteration)
+    IV = moe.IV[session_id]
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
     f = Function("f", 1)
     h = Function("h", 1)
     i = iteration - 1
@@ -191,11 +191,11 @@ def HashCBC(prr, session_id, iteration):
     )
 
 # # Don't understand what the || symbol means
-# def DoubleHashCBC(prr, session_id, iteration):
-#     prr.assertIteration(session_id, iteration)
-#     IV = prr.IV[session_id]
-#     P = prr.plain_texts[session_id]
-#     C = prr.cipher_texts[session_id]
+# def DoubleHashCBC(moe, session_id, iteration):
+#     moe.assertIteration(session_id, iteration)
+#     IV = moe.IV[session_id]
+#     P = moe.plain_texts[session_id]
+#     C = moe.cipher_texts[session_id]
 #     f = Function("f", 1)
 #     h = Function("h", 1)
 #     i = iteration - 2
@@ -214,8 +214,8 @@ def HashCBC(prr, session_id, iteration):
 #     )
 
 
-def PRRInteraction(chaining_function, num_interactions):
-    p = PRR(chaining_function, schedule="end")
+def MOEInteraction(chaining_function, num_interactions):
+    p = MOESession(chaining_function, schedule="end")
     p.rcv_start(1)
     for i in range(0, num_interactions - 1):
         p.rcv_block(1, Variable("x_" + str(i + 1)))
