@@ -69,9 +69,9 @@ class SubstituteTerm:
         new_term = self._termSubstituteHelper(new_term)
         return new_term
 
-    def __rmul__(self, term):
+    def __rmul__(self, term : Term) -> Term:
         return self._applysub(term)
-    # TODO: Create a signature referencing: https://stackoverflow.com/questions/44640479/mypy-annotation-for-classmethod-returning-instance
+    
     # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
     def __mul__(self, theta):
         if not isinstance(theta, SubstituteTerm):
@@ -102,7 +102,7 @@ class SubstituteTerm:
         else:
             return theta
     
-    def __call__(self, term):
+    def __call__(self, term : Term) -> Term:
         return self._applysub(term)
     
     def _termSubstituteHelper(self, term : Term) -> Term:

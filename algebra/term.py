@@ -70,70 +70,83 @@ Term = Union[FuncTerm, Constant, Variable]
 #
 ## get_vars Section
 #
+
 @overload
 def get_vars(t: Term, unique: Literal[False]) -> List[Variable]:
-	if isinstance(t, Variable): 
-		return list([t])
-	
-	l : List[Variable] = []
-	if isinstance(t, FuncTerm):
-		for i in t.arguments:
-			l = l + get_vars(i, False)
-	
-	return l
+	""""""
 
 @overload
 def get_vars(t: Term, unique : Literal[True]) -> Set[Variable]:
-	return set(get_vars(t, False))
+    """"""
+@overload
+def get_vars(t: Term) -> List[Variable]:
+    """"""
 
-def get_vars(t: Term, unique : bool = False) -> Union[List[Variable], Set[Variable]]:
-    return get_vars(t, unique)
+def get_vars(t, unique = False):
+    if isinstance(t, Variable): 
+        return {t} if unique else [t]
+	
+    l : List[Variable] =[]
+    if isinstance(t, FuncTerm):
+        for i in t.arguments:
+            l = l + get_vars(i, False)
+    
+    return set(l) if unique else l
 
 
 #
 ## get_constants Section
 #
 @overload
-def get_constants(t: Term, unique : Literal[False]) -> List[Constant]:
-	if isinstance(t, Constant): 
-		return list([t])
-	
-	l : List[Constant] = []
-	if isinstance(t, FuncTerm):
-		for i in t.arguments:
-			l = l + get_constants(i, False)
-	
-	return l
+def get_constants(t: Term, unique: Literal[False]) -> List[Constant]:
+    """"""
 
 @overload
-def get_constants(t: Term, unique : Literal[True]) -> Set[Constant]:
-	return set(get_constants(t, False))
+def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
+    """"""
 
-def get_constants(t: Term, unique = False) -> Union[List[Constant], Set[Constant]]:
-	return get_constants(t, unique)
+@overload
+def get_constants(t: Term) -> List[Constant]:
+    """"""
+
+def get_constants(t, unique = False):
+    if isinstance(t, Constant): 
+        return {t} if unique else [t]
+	
+    l : List[Constant] =[]
+    if isinstance(t, FuncTerm):
+        for i in t.arguments:
+            l = l + get_constants(i, False)
+    
+    return set(l) if unique else l
 
 
 #
 ## get_vars_or_constants Section
 #
 @overload
-def get_vars_or_constants(t: Term, unique : Literal[False]) -> List[Union[Variable, Constant]]:
+def get_vars_or_constants(t: Term, unique: Literal[False]) -> List[Union[Variable, Constant]]:
+    """"""
+
+@overload
+def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable, Constant]]:
+    """"""
+
+@overload
+def get_vars_or_constants(t: Term) -> List[Union[Variable, Constant]]:
+    """"""
+
+def get_vars_or_constants(t, unique = False):
     if isinstance(t, Constant) or isinstance(t, Variable): 
-        return list([t])
+        return [t]
     
     l : List[Union[Variable, Constant]] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
             l = l + get_vars_or_constants(i, False)
     
-    return l
+    return set(l) if unique else l
 
-@overload
-def get_vars_or_constants(t: Term, unique : Literal[True]) -> Set[Union[Variable, Constant]]:
-    return set(get_vars_or_constants(t, False))
-
-def get_vars_or_constants(t: Term, unique = False) -> Union[Set[Union[Variable, Constant]], List[Union[Variable, Constant]]]:
-    return get_vars_or_constants(t, unique)
 
 #
 ## Equation

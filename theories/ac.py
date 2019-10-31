@@ -99,7 +99,7 @@ class ACTerm(ATerm, CTerm):
 class IFunction(Function):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol, arity)
-    def __call__(self, *args) -> FuncTerm:
+    def __call__(self, *args) -> Term:
         term = ITerm(self, args)
         x = Variable("x")
         f = Function(self.symbol, self.arity)
