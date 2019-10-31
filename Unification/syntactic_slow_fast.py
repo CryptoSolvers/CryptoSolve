@@ -1,19 +1,20 @@
-#Slow-Fast syntactic unification
-
 #!/usr/bin/env python3
 from algebra import *
+from typing import List
 
-def decomposable(term : Term):
+
+def decomposable(term : Term) -> bool:
 	return isinstance(term, FuncTerm) and term.function.arity > 0
 
-def syntactic_unif(l: Term, r: Term):
+# Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
+def syntactic_unif(l: Term, r: Term) -> Union[bool, SubstituteTerm]:
 	U = [Equation(l, r)]
-	solve = set()
+	solve : List[Equation] = []
 	while bool(U):
-		equations_to_remove = []
+		equations_to_remove : List[int] = []
 		apply_sigma = False
 		sigma = SubstituteTerm()
-		decomposed_equations = []
+		decomposed_equations : List[Equation] = []
 		for i, e in enumerate(U):
 			#Trival
 			if e.left_side == e.right_side:
@@ -68,17 +69,15 @@ def syntactic_unif(l: Term, r: Term):
 				U[i].left_side *= sigma
 				U[i].right_side *= sigma
 			# Apply substitutions to solve set
-			solve = list(solve)
 			for i, e in enumerate(solve):
 				solve[i].left_side *= sigma
 				solve[i].right_side *= sigma
-			solve = set(solve)
 			# Add equation from substitution to solve
-			solve |= {Equation(*(sigma.subs.pop()))}
+			solve += [Equation(*(sigma.subs.pop()))]
 
 	
 	delta = SubstituteTerm()	
-	for e in solve:
+	for e in set(solve):
 		delta.add(e.left_side, e.right_side)
 	print(delta)								
 	return delta

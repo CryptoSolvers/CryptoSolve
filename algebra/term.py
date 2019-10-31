@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import typing
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, List, Set, overload
+from typing_extensions import Literal
 from copy import deepcopy
 
 #
@@ -66,39 +67,86 @@ class Constant(FuncTerm):
 # New Type to clean up future annotations
 Term = Union[FuncTerm, Constant, Variable]
 
-def get_vars(t: Term, unique = False):
-	if isinstance(t, Variable): 
-		return {t} if unique else [t]
-	
-	l=[]
-	if isinstance(t, FuncTerm):
-		for i in t.arguments:
-			l = l + get_vars(i)
-	
-	return set(l) if unique else l
+#
+## get_vars Section
+#
 
-def get_constants(t: Term, unique = False):
-	if isinstance(t, Constant): 
-		return {t} if unique else [t]
+@overload
+def get_vars(t: Term, unique: Literal[False]) -> List[Variable]:
+	""""""
+
+@overload
+def get_vars(t: Term, unique : Literal[True]) -> Set[Variable]:
+    """"""
+@overload
+def get_vars(t: Term) -> List[Variable]:
+    """"""
+
+def get_vars(t, unique = False):
+    if isinstance(t, Variable): 
+        return {t} if unique else [t]
 	
-	l=[]
-	if isinstance(t, FuncTerm):
-		for i in t.arguments:
-			l = l + get_constants(i)
-	
-	return set(l) if unique else l
+    l : List[Variable] =[]
+    if isinstance(t, FuncTerm):
+        for i in t.arguments:
+            l = l + get_vars(i, False)
+    
+    return set(l) if unique else l
 
 
-def get_vars_or_constants(t: Term, unique = False):
+#
+## get_constants Section
+#
+@overload
+def get_constants(t: Term, unique: Literal[False]) -> List[Constant]:
+    """"""
+
+@overload
+def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
+    """"""
+
+@overload
+def get_constants(t: Term) -> List[Constant]:
+    """"""
+
+def get_constants(t, unique = False):
+    if isinstance(t, Constant): 
+        return {t} if unique else [t]
+	
+    l : List[Constant] =[]
+    if isinstance(t, FuncTerm):
+        for i in t.arguments:
+            l = l + get_constants(i, False)
+    
+    return set(l) if unique else l
+
+
+#
+## get_vars_or_constants Section
+#
+@overload
+def get_vars_or_constants(t: Term, unique: Literal[False]) -> List[Union[Variable, Constant]]:
+    """"""
+
+@overload
+def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable, Constant]]:
+    """"""
+
+@overload
+def get_vars_or_constants(t: Term) -> List[Union[Variable, Constant]]:
+    """"""
+
+def get_vars_or_constants(t, unique = False):
     if isinstance(t, Constant) or isinstance(t, Variable): 
         return {t} if unique else [t]
     
-    l=[]
+    l : List[Union[Variable, Constant]] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
-            l = l + get_vars_or_constants(i)
+            l = l + get_vars_or_constants(i, False)
     
     return set(l) if unique else l
+
 
 #
 ## Equation

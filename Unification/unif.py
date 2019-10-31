@@ -2,12 +2,13 @@
 
 #!/usr/bin/env python3
 from algebra import *
+from typing import Dict, Set
 	
-
+# Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 def unif(l: Term, r: Term):
 	z = 1
-	U = dict([(z, Equation(l, r))])
-	solve = set()
+	U : Dict[int, Equation] = dict([(z, Equation(l, r))])
+	solve : Set[Equation] = set()
 	while bool(U):
 		#Occurs Check
 		for i, e in U.items():
@@ -54,8 +55,8 @@ def unif(l: Term, r: Term):
 				if U[i].left_side.function.symbol == U[i].right_side.function.symbol:
 					dec = map(lambda t1, t2: Equation(t1, t2), list(U[i].left_side.arguments), list(U[i].right_side.arguments))
 					del U[i]
-					for i in dec:
-						U[z] = i
+					for d in dec:
+						U[z] = d
 						z += 1
 						
 	delta = SubstituteTerm()	

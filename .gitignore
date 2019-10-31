@@ -3,3 +3,4 @@ senv/
 *__pycache__/
 *.ipynb_checkpoints/
 *.pyc
+.mypy_cache/
