@@ -138,7 +138,7 @@ def get_vars_or_constants(t: Term) -> List[Union[Variable, Constant]]:
 
 def get_vars_or_constants(t, unique = False):
     if isinstance(t, Constant) or isinstance(t, Variable): 
-        return [t]
+        return {t} if unique else [t]
     
     l : List[Union[Variable, Constant]] = []
     if isinstance(t, FuncTerm):
