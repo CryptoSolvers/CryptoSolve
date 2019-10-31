@@ -16,4 +16,18 @@ b = Constant("b")
 t = f(x, x)
 s = f(f(y, y), x)
 
-ac_unify(t, s)
+
+v = f(y,y)
+w = f(z,z)
+e1 = Equation(s,t)
+e2 = Equation(v,w)
+U = set()
+U.add(e1)
+U.add(e2)
+U2=set()
+U2.add(e1)
+
+ac_unify(U)
+
+ac_unify(U2)
+
