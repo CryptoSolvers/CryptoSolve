@@ -65,6 +65,29 @@ def help(argument):
         print("Argument '%s' is not an argument of MOE" % argument)
         print("Arguments of MOE: unif, chaining, schedule, length_bound, session_bound")
 
+def pairwise(xs):
+    result = []
+    for i, x in enumerate(xs):
+        for y in xs[(i+1):]:
+            result.append((x, y))
+    return result
 
 def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1):
-    print("MOE is currently not implemented, put an implementation in moe/moe_program.py")
+    m = MOESession(chaining, schedule=schedule)
+    sid = 0
+    m.rcv_start(sid)
+    for i in range(length_bound):
+        x = Variable("x_" + str(i))
+        result = m.rcv_block(sid, x)
+        if schedule is "every":
+            for l, r in pairwise(result.subs.range()):
+                unifiers = unif(l, r)
+                if unifiers is not False:
+                    return unifiers
+    result = m.rcv_stop(sid)
+    if schedule is "end":
+        for l, r in pairwise(result.subs.range()):
+            unifiers = unif(l, r)
+            if unifiers is not False:
+                return unifiers
+    print("No unifiers found.")
