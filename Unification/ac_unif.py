@@ -10,48 +10,53 @@ from sympy.parsing.sympy_parser import parse_expr
 from collections import Counter
 
 
-#Constuct the system of linear
-#diophantine equations and use the 
-#SymPy lib
-def matrix_solve(vll: list, vlr: list, func: str):
-	#get the count for the vars
-	var_countl = Counter(vll)
-	var_countr= Counter(vlr)
-
-	
-	vars_total = list(set(vll)) + list((set(vlr) - set(vll)))
-	var_count = dict()
-	for j in vars_total:
-		var_count[j] = var_countl[j] - var_countr[j]
-
-	#use the count to create the linear diophantine equation
-	#first the variables
+#convert a set of term equations into a single
+#linear homogeneous diophantine equation
+def convert_eq(U: set, func: str):
+	var_count=dict()
+	first=True
+	for e in U:
+		LS=get_vars(e.left_side)
+		RS=get_vars(e.right_side)
+		for x in list(LS):
+			num = LS.count(x) - RS.count(x)
+			if x in var_count:
+				if first:
+					var_count[x] = var_count[x] + num
+				else:
+					var_count[x] = var_count[x] - num
+			else:
+				if first:
+					var_count[x] = num
+				else: 
+					var_count[x] = -num
+			LS[:] = [y for y in LS if y != x]
+			RS[:] = [y for y in RS if y != x]
+		if len(RS) != 0:
+			for x in RS:
+				var_count[x] = -RS.count(x)
+				RS[:] = [y for y in RS if y != x]
+		first=False
+	#convert to an equation
 	i=0
-	e=""
+	e = ""
 	variables = list()
 	row = list()
 	for x in var_count:
-		#temp = "x_" + str(i)
 		temp = str(x)
 		i += 1
 		e = e + str(var_count[x]) +"*"+ temp + (" + " if i < len(var_count) else "")
 		temp = symbols(temp, integer=True)
 		variables.append(temp)
 		row.append(var_count[x])
-
 	e = parse_expr(e)
-	#solve the equation
+	
 	sol = diop_linear(e)
-
-
-	#matrix form
-	#need a new Diophantine solver to 
-	#solve more than a single equation		
-
-	#convert back to a substitution
+	
 	F = deepcopy(func)
 	j = 0 
 	delta = SubstituteTerm()
+	print(variables)
 	for x in range(0, len(variables)):
 		
 		if row[x] == 0:
@@ -93,31 +98,40 @@ def matrix_solve(vll: list, vlr: list, func: str):
 			j+= 1
 	
 	return delta
-
+	
+	
+		
 
 #Assumes currently that we have a single AC-symbol
 #need to update to allow other function symbols and cons 
-def ac_unify(l: Term, r: Term):
+def ac_unify(U: set):
 	
 	#Check if they are the same term
-	if l == r:
+	for e in list(U):
+		if e.right_side == e.left_side:
+			U.remove(e)
+	if U == set():
 		return set()
 	
 	#Occurs Check
-	if isinstance(l, Variable) and isinstance(r, FuncTerm):
-		if l in r:
-			print('Occurs Check')
-			return set()
+	for e in U:
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+			if e.left_side in e.right_side:
+				print('Occurs Check')
+				return False
+		if isinstance(e.right_side, Variable) and isinstance(e.left_side, FuncTerm):
+			if e.right_side in e.left_side:
+				print('Occurs Check')
+				return False
 				
 	#Function Clash
-	if isinstance(l, FuncTerm) and isinstance(r, FuncTerm):
-		if l.function.symbol != r.function.symbol:
-			print('Function Clash')
-			return {}
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+			if e.left_side.function.symbol != e.right_side.function.symbol:
+				print('Function Clash')
+				return False
 					
 	#Create the variable lists and send it to matrix solve
-	vll = get_vars(l)
-	vlr = get_vars(r)
 	delta = SubstituteTerm()
-	delta=matrix_solve(vll, vlr, l.function.symbol)
+	delta=convert_eq(U, e.left_side.function.symbol)
 	print(delta)
