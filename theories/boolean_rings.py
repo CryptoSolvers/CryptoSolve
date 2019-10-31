@@ -5,7 +5,7 @@ from copy import deepcopy
 
 BooleanRing = Ring("BooleanRing", ACFunction("bool_add", 2), ACIFunction("bool_mul", 2), "0")
 
-def simplify_boolean_term(term : Term):
+def simplify_boolean_term(term : Term) -> Term:
     # A simplification can only occur if we're working with a RingFuncTerm
     if not isinstance(term, RingFuncTerm) or term.ring != BooleanRing:
         return deepcopy(term)

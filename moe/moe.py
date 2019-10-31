@@ -6,7 +6,7 @@ from xor import xor
 from copy import deepcopy
 
 class Frame:
-    def __init__(self, session_id, message, subs):
+    def __init__(self, session_id : int, message : Term, subs):
         self.session_id = session_id
         self.message = message
         self.subs = subs
@@ -14,17 +14,17 @@ class Frame:
         return "[" + str(self.session_id) + ", " + str(self.message) + ", " + str(self.subs) + "]"
 
 class MOESession:
-    def __init__(self, chaining_function, schedule = "every"):
+    def __init__(self, chaining_function, schedule : str = "every"):
         self.chaining_function = chaining_function
-        self.schedule = schedule
-        self.sessions = []
-        self.subs = {}
-        self.iteration = {}
-        self.IV = {}
-        self.plain_texts = {}
-        self.cipher_texts = {}
+        self.schedule : str = schedule
+        self.sessions : List[int] = []
+        self.subs : Dict[int, SubstituteTerm] = {}
+        self.iteration : Dict[int, int] = {}
+        self.IV : Dict[int, Constant] = {}
+        self.plain_texts : Dict[int, List[Term]] = {}
+        self.cipher_texts : Dict[int, List[Term]] = {}
     
-    def rcv_start(self, session_id):
+    def rcv_start(self, session_id : int):
         if session_id in self.sessions:
             raise ValueError("Session id %s already started" % (str(session_id)))
         self.sessions.append(session_id)
@@ -34,10 +34,10 @@ class MOESession:
         self.cipher_texts[session_id] = []
         self.IV[session_id] = Constant("r")
     
-    def send(self, session_id, encrypted_block):
+    def send(self, session_id : int, encrypted_block : SubstituteTerm) -> Frame:
         return Frame(session_id, deepcopy(self.plain_texts[session_id][-1]), deepcopy(encrypted_block) )
     
-    def rcv_stop(self, session_id):
+    def rcv_stop(self, session_id : int) -> Optional[Frame]:
         if self.schedule == "end":
             return self.send(session_id, self.subs[session_id])
         # Remove information about the session from MOE
@@ -45,8 +45,9 @@ class MOESession:
         del self.iteration[session_id]
         del self.plain_texts[session_id]
         del self.cipher_texts[session_id]
+        return None
 
-    def rcv_block(self, session_id, message):
+    def rcv_block(self, session_id : int, message : Term) -> Optional[Frame]:
         self.iteration[session_id] += 1
         self.plain_texts[session_id].append(message)
         encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
@@ -55,8 +56,9 @@ class MOESession:
         self.cipher_texts[session_id].append(sub_var)
         if self.schedule == "every":
             return self.send(session_id, self.subs[session_id])
+        return None
     
-    def assertIteration(self, session_id, iteration):
+    def assertIteration(self, session_id : int, iteration : int):
         assert iteration <= len(self.plain_texts[session_id]) + 1 and iteration >= 0
 
 

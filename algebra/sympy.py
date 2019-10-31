@@ -1,7 +1,21 @@
-import sympy
+import sympy # type: ignore
 from .term import *
 
-def termToSympy(term: Term):
+@overload
+def termToSympy(term : Constant) -> sympy.Symbol:
+    """"""
+@overload
+def termToSympy(term : Variable) -> sympy.Symbol:
+    """"""
+@overload
+def termToSympy(term : Function) -> sympy.FunctionClass:
+    """"""
+
+@overload
+def termToSympy(term : FuncTerm) -> sympy.Function:
+    """"""
+
+def termToSympy(term):
     if isinstance(term, Constant):
         return sympy.Symbol(term.symbol + "_constant")
     if isinstance(term, Variable):
@@ -15,6 +29,18 @@ def termToSympy(term: Term):
     function_handle = termToSympy(term.function)
     return function_handle(*args)
 
+
+@overload
+def sympyToTerm(symterm : sympy.Symbol) -> Union[Variable, Constant]:
+    """"""
+
+@overload
+def sympyToTerm(symterm : sympy.FunctionClass) -> Function:
+    """"""
+
+@overload
+def sympyToTerm(symterm : sympy.Function) -> FuncTerm:
+    """"""
 
 def sympyToTerm(symterm):
     if isinstance(symterm, sympy.Symbol):

@@ -4,13 +4,13 @@
 
 #!/usr/bin/env python3
 from algebra import *
-import numpy as np
+import numpy as np # type: ignore
 import math
-from sympy.solvers.diophantine import diophantine
-from sympy import symbols
-from sympy.matrices import *
-from sympy.solvers.diophantine import diop_linear
-from sympy.parsing.sympy_parser import parse_expr
+from sympy.solvers.diophantine import diophantine # type: ignore
+from sympy import symbols # type: ignore
+from sympy.matrices import * # type: ignore
+from sympy.solvers.diophantine import diop_linear # type: ignore
+from sympy.parsing.sympy_parser import parse_expr # type: ignore
 from collections import Counter
 
 

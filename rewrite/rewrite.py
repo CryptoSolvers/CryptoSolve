@@ -6,7 +6,20 @@ from Unification import unif
 from copy import deepcopy
 
 # Turn Variables into Constants
-def freeze(term : Term):
+@overload
+def freeze(term: Variable) -> Constant:
+    """"""
+@overload
+def freeze(term: Constant) -> Constant:
+    """"""
+@overload
+def freeze(term: Function) -> Function:
+    """"""
+@overload
+def freeze(term: FuncTerm) -> FuncTerm:
+    """"""
+
+def freeze(term):
     term = deepcopy(term)
     if isinstance(term, Variable):
         return Constant(term.symbol)
@@ -22,7 +35,7 @@ class RewriteRule:
         self.hypothesis = hypothesis
         self.conclusion = conclusion
     # Applies term if possible otherwise return unchanged
-    def apply(self, term : Term):
+    def apply(self, term : Term) -> Term:
         # Change common variables in RewriteRule if they exist
         overlaping_vars = self._getOverlapVars(term)
         while overlaping_vars:
@@ -34,13 +47,13 @@ class RewriteRule:
         return self.conclusion * sigma if sigma else deepcopy(term)
     def __repr__(self):
         return str(self.hypothesis) + " → " + str(self.conclusion)
-    def _getOverlapVars(self, term):
+    def _getOverlapVars(self, term) -> List[Variable]:
         rewrite_vars = get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
         term_vars = get_vars(term, unique = True)
         return list(rewrite_vars & term_vars)
-    def _changeVars(self, overlaping_vars, term):
+    def _changeVars(self, overlaping_vars : List[Variable], term : Term):
         all_vars = get_vars(term, unique = True) | get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
-        new_vars = []
+        new_vars : List[Variable] = []
         # Go through all the variables that share the same symbol between the term and rewrite rule
         # and change the variables in the rewrite rule
         for v in overlaping_vars:
@@ -56,7 +69,7 @@ class RewriteRule:
         self.hypothesis *= s
         self.conclusion *= s
 
-def converse(rule : RewriteRule):
+def converse(rule : RewriteRule) -> RewriteRule:
     new_rule = deepcopy(rule)
     # Flip Hypothesis and Conclusion
     temp = new_rule.hypothesis
