@@ -2,8 +2,9 @@
 from moe import *
 from Unification import *
 
-
-
+##
+### Welcome Message
+##
 print("Welcome to the MOE Tool")
 print("We've exposed the MOE function for you to use\n")
 
@@ -20,19 +21,9 @@ print("For help, type help(argument_name) where argument_name is a string")
 print("Ex: help('unif')")
 
 
-###
-# CipherBlockChaining(moe, session_id, iteration):
-# PropogatingCBC(moe, session_id, iteration):
-# CipherFeedback(moe, session_id, iteration):
-# HashCBC(moe, session_id, iteration):
-# OutputFeedback(moe, session_id, iteration): NOT IMPLEMENTED
-# CounterMode(moe, session_id, iteration): NOT IMPLEMENTED
-# AccumulatedBlockCiper(moe, session_id, iteration): NOT IMPLEMENTED
-# DoubleHashCBC(moe, session_id, iteration): NOT IMPLEMENTED
-###
-
-
-
+##
+### Help Function
+##
 def help(argument):
     if argument == 'unif':
         print("Available unification algorithms:")
@@ -65,29 +56,62 @@ def help(argument):
         print("Argument '%s' is not an argument of MOE" % argument)
         print("Arguments of MOE: unif, chaining, schedule, length_bound, session_bound")
 
+
+##
+### Begin Tool
+##
+
+from xor.xorhelper import *
+from xor.structure import *
+from Unification.p_unif import p_unif
+
 def pairwise(xs):
     result = []
     for i, x in enumerate(xs):
         for y in xs[(i+1):]:
-            result.append((x, y))
+            print(Equation(x, y))
+            result.append(Equation(x, y))
     return result
+
+def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
+    """Searches a list of unifiers to see if any of them have an entry"""
+    for u in unifiers:
+        if len(u) > 0:
+            return True
+    return False
 
 def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1):
     m = MOESession(chaining, schedule=schedule)
     sid = 0
     m.rcv_start(sid)
-    for i in range(length_bound):
+    constraints = {}
+    xor_zero = Zero()
+
+    # Start interactions
+    for i in range(1, length_bound + 1):
         x = Variable("x_" + str(i))
+        # Update constraints
+        if i == 1:
+            constraints[x] = [m.IV[sid], xor_zero]
+        else:
+            last_x = Variable("x_" + str(i - 1))
+            constraints[x] = constraints[last_x] + [last_x] + m.cipher_texts[i - 2]
+        
         result = m.rcv_block(sid, x)
+
+        # Try to find unifiers if schedule is every
         if schedule is "every":
-            for l, r in pairwise(result.subs.range()):
-                unifiers = unif(l, r)
-                if unifiers is not False:
-                    return unifiers
-    result = m.rcv_stop(sid)
-    if schedule is "end":
-        for l, r in pairwise(result.subs.range()):
-            unifiers = unif(l, r)
-            if unifiers is not False:
+            unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
+            if any_unifiers(unifiers):
                 return unifiers
+    
+    # Stop Interaction
+    result = m.rcv_stop(sid)
+    # If schedule is end then try to find unifiers now
+    if schedule is "end":
+        unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
+        if any_unifiers(unifiers):
+                return unifiers
+
+    # If we got this far then no unifiers were found
     print("No unifiers found.")
