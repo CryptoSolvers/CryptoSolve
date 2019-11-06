@@ -7,7 +7,7 @@ def narrow(term : Term, goal_term : Term, rules : List[RewriteRule], bound : int
     if bound < 1:
         return False
     for rule in rules:
-        new_term = rule.apply(term)
+        new_term = rule.apply(term)[1]
         result = narrow(new_term, goal_term, rules, bound - 1, substitions + [rule])
         if result is not False:
             return result
