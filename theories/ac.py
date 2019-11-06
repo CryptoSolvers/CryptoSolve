@@ -104,7 +104,7 @@ class IFunction(Function):
         x = Variable("x")
         f = Function(self.symbol, self.arity)
         r = RewriteRule(f(x,x), x)
-        return r.apply(term)[1]
+        return r.apply(term)
 
 
 class ITerm(FuncTerm):

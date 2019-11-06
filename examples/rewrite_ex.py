@@ -16,9 +16,9 @@ r = RewriteRule(f(y, g(x, a)), g(y, a))
 
 term = f(b, g(c, a))
 print("Applying " + str(r) + " to " + str(term))
-print("Result:", r.apply(term)[1])
+print("Result:", r.apply(term))
 
 print("Now to show what happens when you can't apply a term...")
 term = f(a,b)
 print("Applying " + str(r) + " to " + str(term))
-print("Result:", r.apply(term)[1])
+print("Result:", r.apply(term))

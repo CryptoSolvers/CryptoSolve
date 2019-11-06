@@ -45,12 +45,8 @@ class RewriteRule:
         # Perform matching and substitution
         frozen_term = freeze(term)
         sigma = unif(self.hypothesis, frozen_term)
-        if sigma:
-            return sigma, self.conclusion * sigma
-        else:
-            return SubstituteTerm(), deepcopy(term)
         return self.conclusion * sigma if sigma else deepcopy(term)
-        
+    
     def __repr__(self):
         return str(self.hypothesis) + " → " + str(self.conclusion)
     

@@ -52,14 +52,14 @@ def _left_distributivity(r : Ring, term):
     y = Variable("y")
     z = Variable("z")
     rule = RewriteRule(r.mul(w, r.add(y, z)), r.add(r.mul(w, y), r.mul(w, z)))
-    return rule.apply(term)[1]
+    return rule.apply(term)
 
 def _right_distributivity(r : Ring,  term):
     w = Variable("w")
     y = Variable("y")
     z = Variable("z")
     rule = RewriteRule(r.mul(r.add(y, z), w), r.add(r.mul(y, w), r.mul(z, w)))
-    return rule.apply(term)[1]
+    return rule.apply(term)
 
 # Applies both right distributivity and left distributivity rules
 def _distributivity(r : Ring, term):
