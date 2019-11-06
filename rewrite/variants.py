@@ -12,3 +12,13 @@ def narrow(term : Term, goal_term : Term, rules : List[RewriteRule], bound : int
         if result is not False:
             return result
     return False
+
+
+class VariantsFromRule:
+    def __init__(self, term : Term, rule : RewriteRule):
+        self.current_term = term
+        self.rule = rule
+    def __iter__(self):
+        return self
+    def __next__(self):
+        return VariantsFromRule(self.rule.apply(self.current_term), self.rule)
