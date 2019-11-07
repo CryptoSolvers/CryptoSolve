@@ -34,6 +34,7 @@ class RewriteRule:
     def __init__(self, hypothesis : Term, conclusion : Term):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
+    
     # Applies term if possible otherwise return unchanged
     def apply(self, term : Term) -> Term:
         # Change common variables in RewriteRule if they exist
@@ -45,12 +46,15 @@ class RewriteRule:
         frozen_term = freeze(term)
         sigma = unif(self.hypothesis, frozen_term)
         return self.conclusion * sigma if sigma else deepcopy(term)
+    
     def __repr__(self):
         return str(self.hypothesis) + " → " + str(self.conclusion)
+    
     def _getOverlapVars(self, term) -> List[Variable]:
         rewrite_vars = get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
         term_vars = get_vars(term, unique = True)
         return list(rewrite_vars & term_vars)
+    
     def _changeVars(self, overlaping_vars : List[Variable], term : Term):
         all_vars = get_vars(term, unique = True) | get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
         new_vars : List[Variable] = []
