@@ -17,6 +17,7 @@
 \usepackage{hyperref}
 \usepackage{marginnote}
 \usepackage{mathtools}
+\usepackage{todonotes}
 
 
 
@@ -52,7 +53,7 @@
 
 \maketitle
 \begin{abstract}
-The $MOE_{\oplus}$ decision problem. 
+The $MOE$ decision problem. 
 
 \end{abstract}
 
@@ -162,14 +163,10 @@ We can now define the $MOE$ unification problem.
 \end{definition}
 
 
-\begin{definition}
+\begin{definition}\todo[inline]{Andrew: We need to improve this def}
 	Decision Problem: We model an attack by the adversary being able
-	to learn a designated term $sec$. Add an additional rewrite rule 
-	$unif(x, x) \rightarrow sec$ to $E$. If there exists a frame 
-	$\phi$ modeling a session, two cypher blocks, 
-	$C_i$ and $C_j$ in $Ran(\sigma)$ such that 
-	$unif(C_i, C_j) \rightarrow sec$, then the adversary has found a
-	successful attack.  
+	to unify two terms, either from the same frame of from different
+	frames.  
 \end{definition}
 
 Now that the general decision problem is defined, we can define several
@@ -194,7 +191,32 @@ $IV$ is the initialization vector, the first block sent.
 	term $f(C_{i-1}) \oplus x_i$.  
 	\item Propagating Cipher Block Chaining ($PCBC$): 
 	$C_1 = f(P_1 \oplus IV)$, $C_i = f(P_i \oplus P_{i-1} \oplus C_{i-1})$.
-\end{itemize} 
+\end{itemize}
+
+\subsection{$MOE_A$ Decision Problems} 
+\begin{conjecture}
+	Given a signature $\Sigma=\{
+	\oplus, f\}$, where $\oplus$ is associative, the $CBC$ MOE, the immediate  schedule, unbounded sessions, and unbounded session 
+	length.  The $MOE_A$ decision problem is undecidable.
+\end{conjecture}\todo[inline]{Andrew: This is really just a proof sketch and we will need to make sure there isn't a problem.}
+\begin{proof}
+	Reduction from the PCP. Since $\oplus$ is just $A$ we can directly
+	model string by chaining the symbols together via $\oplus$.
+	
+	For a PCP the adversary starts two classes of sessions. 
+	The first class consists of a session for each of the string
+	in the upper part of the PCP problem, $A_1, A_2, \ldots, A_n$.
+	The second class consists of a session for each of the strings
+	in the lower part of the PCP problems, $B_1, B_2, \ldots, B_n$.
+	
+	The adversary simulates each possible index (and thus possible PCP
+	solution) by creating a session for each index in each class, A and B. To ensure each session in A are only unified with index in B
+	the adversary uses a unique IV for each index in A that matches the same index in B. 
+	
+	Since there is in bound on the session length
+	or the number of sessions if there is a solution, the index of that
+	solution in the A set of index will be unified with the same index in the B set. Since unification is modulo $A$ there is then a solution to the PCP problem.  
+\end{proof}
 
 \subsection{$MOE_{\oplus}$ Decision Problems}
 We will first consider the xor equational theory. We can therefore refine the definition of $MOE$-term 
@@ -212,6 +234,58 @@ For both schedules and both $MOE$s, $CBC$ and $CFB$, the problem
 reduces to the $MOE$-unification problem for $E=xor$. This problem
 has been solved in the positive [Chris and Hia Paper].
 
+\subsubsection{Arbitrary Sessions of Arbitrary Length}
+The next problem to consider is the opposite extreme, that of unbounded
+number of sessions and an unbounded session length. 
+
+\begin{conjecture}
+The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
+sessions, unbounded session lengths, and immediate schedule. 
+\end{conjecture}
+
+\noindent
+\textbf{some proof ideas}:\\
+We would essentially like to reply the idea from the case where 
+$E = A$. However, the difficulty is that $\oplus$ is $AC$ and thus
+commutativity could result in false solutions. We can possibly 
+get around this problem by using repeated applications of $f()$
+to encode the position of a symbol in a string, i.e., 
+$f(f(f(f(a))))$ would represent the the fact that `a' is the 
+4th symbol in the string. 
+
+\begin{example}
+	consider the following PCP:
+	\[
+	(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
+	\]
+	The solution for this basic PCP problem is $1,3$.
+	The encoding for this index for the upper string of the PCP is
+	\begin{align}
+		c_1 &= f(f(b) \oplus IV_{1})\\
+		c_2 &= f(f(f(a)) \oplus c_1)\\
+		&\ldots\\
+		c_5 &= f(f^5(a) \oplus c_4)
+	\end{align}
+	and the corresponding index in the set of lower string is
+	\begin{align}
+	c_1 &= f(f(b) \oplus IV_{1})\\
+	c_2 &= f(f(f(a)) \oplus c_1)\\
+	&\ldots\\
+	c_5 &= f(f^5(a) \oplus c_4)
+	\end{align}
+	The same an thus are unifiable. However notice that the string 
+	for index $abaaa$ for index $2,3$, has the same number of symbols,
+	5, and the same makeup, a single `b' and four `a's. This string will not be unifiable with the solution $1,3$, since it's
+	encoding is $f^1(a)f^2(b)f^3(a)f^4(a)f^5(a)$ which is not
+	unifiable with $f^1(b)f^2(a)f^3(a)f^4(a)f^5(a)$. 
+\end{example}\todo[inline]{Andrew: This is the current idea, does it
+work or lead to other problems?}
+
+
+
+
+
+
 \subsubsection{Finite Sessions of Arbitrary Length}
 The next decision problems to consider are for $MOE_{\oplus}$ terms,
 both an immediate and a delayed schedule, $CBC$ and $CFB$ modes, a
@@ -219,7 +293,5 @@ finite number of interleaved sessions, and arbitrary long individual
 sessions.    
  
 
-\subsubsection{Arbitrary Sessions of Arbitrary Length}
-Finally consider the unbounded sessions and unbounded lengths problem
-for the various MOE and schedules.   
+
 \end{document}
