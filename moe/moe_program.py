@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from moe import *
-from Unification import *
 
-
-
+##
+### Welcome Message
+##
 print("Welcome to the MOE Tool")
 print("We've exposed the MOE function for you to use\n")
 
@@ -20,19 +20,9 @@ print("For help, type help(argument_name) where argument_name is a string")
 print("Ex: help('unif')")
 
 
-###
-# CipherBlockChaining(moe, session_id, iteration):
-# PropogatingCBC(moe, session_id, iteration):
-# CipherFeedback(moe, session_id, iteration):
-# HashCBC(moe, session_id, iteration):
-# OutputFeedback(moe, session_id, iteration): NOT IMPLEMENTED
-# CounterMode(moe, session_id, iteration): NOT IMPLEMENTED
-# AccumulatedBlockCiper(moe, session_id, iteration): NOT IMPLEMENTED
-# DoubleHashCBC(moe, session_id, iteration): NOT IMPLEMENTED
-###
-
-
-
+##
+### Help Function
+##
 def help(argument):
     if argument == 'unif':
         print("Available unification algorithms:")
@@ -66,5 +56,3 @@ def help(argument):
         print("Arguments of MOE: unif, chaining, schedule, length_bound, session_bound")
 
 
-def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1):
-    print("MOE is currently not implemented, put an implementation in moe/moe_program.py")
