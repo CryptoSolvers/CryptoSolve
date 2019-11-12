@@ -3,19 +3,18 @@ from moe import *
 from Unification import *
 from Unification.p_unif import p_unif
 from algebra import *
-from flask import request
+from flask import request, render_template
 
-with open('website/template.html', 'r') as html_file:
-    template = html_file.read()
+with open('website/footer.html') as footer_html:
+    footer = footer_html.read()
 
-with open('website/template.css','r') as css_file:
-    styles = "<style>" + css_file.read() + "</style>"
+with open('website/style.css','r') as css_file:
+    styles = css_file.read()
 
 def render_page(response):
-    header_form = template
-    response_block = "" if response == "" else "<div><code>" + response + "</code></div>"
-    print(response)
-    return styles + header_form + response_block + "</body></html>"
+    header =  render_template('header.html', title = "MOE Tool", styles = styles)
+    body = render_template('template.html', response = response)
+    return  header + body + footer
 
 def get_unif(x : str):
     if x == "unif":
