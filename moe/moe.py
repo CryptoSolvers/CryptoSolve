@@ -46,6 +46,7 @@ class MOESession:
         del self.iteration[session_id]
         del self.plain_texts[session_id]
         del self.cipher_texts[session_id]
+        self.sessions.remove(session_id)
         return None
 
     def rcv_block(self, session_id : int, message : Term) -> Optional[Frame]:

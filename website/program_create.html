@@ -1,0 +1,24 @@
+<form action='/program' method='POST'>
+	<table><tbody>
+		<tr>
+       		<td><label for='chaining'>Chaining Function:</label></td>
+       		<td><select id='chaining' name='chaining'>
+    			<option value='CipherBlockChaining'>Cipher Block Chaining</option>
+        		<option value='PropogatingCBC'>Propogating Cipher Block Chaining</option>
+        		<option value='CipherFeedback'>Cipher Feedback</option>
+        		<option value='HashCBC'>Hash Cipher Block Chaining</option>
+            	<!--<option value='OutputFeedback'>Output Feedback</option>-->
+            	<!--<option value='CounterMode'>Counter Mode</option>-->
+            	<!--<option value='AccumulatedBlockCiper'>Accumulated Block Cipher</option>-->
+            	<!--<option value='DoubleHashCBC'>Double Hash Cipher Block Chaining</option>-->
+            </select></tr>
+		<tr>
+        	<td><label for='schedule'>Schedule:</label></td>
+        	<td><select id='schedule' name='schedule'>
+        		<option value='every'>Every</option>
+        		<option value='end'>End</option>
+			</select></td>
+        </tr>
+	</tbody></table>
+	<input type='submit' value='Begin!'/>
+</form>
