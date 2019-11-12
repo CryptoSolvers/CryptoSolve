@@ -26,10 +26,10 @@ print("Ex: help('unif')")
 def help(argument):
     if argument == 'unif':
         print("Available unification algorithms:")
-        print("  'unif' for Syntactic Unification")
-        print("  'ac_unify' for AC Unification")
-        print("  'p_unif' for P Unification")
-        print("  'xor_unification' for XOR Unification")
+        print("  'p_syntactic' for P Syntactic Unification")
+        print("  'p_unif' for P XOR Unification")
+        print("Currently planned but not implemeneted unification algorithms:")
+        print("  'p_ac' for P-AC Unification")
     elif argument == "chaining":
         print("Note that no quotes are needed for chaining functions.")
         print("Available Chaining Functions:")

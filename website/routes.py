@@ -24,6 +24,8 @@ def get_unif(x : str):
         return ac_unify
     if x == "p_unif":
         return p_unif
+    if x == "p_syntactic":
+        return p_syntactic
     return None  
 
 def get_chaining(x: str):
