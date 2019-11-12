@@ -6,42 +6,43 @@
     <body>
         <h1>MOE Tool</h1>
         <form action='/' method='POST'>
-            <div>
-                <label for='unif'>Unification Algorithm:</label>
-                <select id='unif' name='unif'>
-                    <!--<option value='unif'>Syntactic</option>-->
-                    <!--<option value='ac_unify'>AC</option>-->
-                    <option value='p_unif'>Xor</option>
-                </select>
-            </div>
-            <div>
-                <label for='chaining'>Chaining Function:</label>
-                <select id='chaining' name='chaining'>
-                    <option value='CipherBlockChaining'>Cipher Block Chaining</option>
-                    <option value='PropogatingCBC'>Propogating Cipher Block Chaining</option>
-                    <option value='CipherFeedback'>Cipher Feedback</option>
-                    <option value='HashCBC'>Hash Cipher Block Chaining</option>
-                    <!--<option value='OutputFeedback'>Output Feedback</option>-->
-                    <!--<option value='CounterMode'>Counter Mode</option>-->
-                    <!--<option value='AccumulatedBlockCiper'>Accumulated Block Cipher</option>-->
-                    <!--<option value='DoubleHashCBC'>Double Hash Cipher Block Chaining</option>-->
-                </select>
-            </div>
-            <div>
-                <label for='schedule'>Schedule:</label>
-                <select id='schedule' name='schedule'>
-                    <option value='every'>Every</option>
-                    <option value='end'>End</option>
-                </select>
-            </div>
-            <div>
-                <label for='length_bound'>Session Length Bound</label>
-                <input type='number' min='1' max='10' name='length_bound' id='length_bound' required/>
-            </div>
-            <div>
-                <label for='session_bound'>Number of Sessions Bound</label>
-                <input type='number' min='1' max='10' name='session_bound' id='session_bound' required/>
-            </div>
+		<table><tbody>
+			<tr>
+				<td><label for='unif'>Unification Algorithm:</label></td>
+                		<td><select id='unif' name='unif'>
+                    			<!--<option value='unif'>Syntactic</option>-->
+                    			<!--<option value='ac_unify'>AC</option>-->
+                 	   		<option value='p_unif'>Xor</option>
+                		</select></td>
+			</tr>
+			<tr>
+                		<td><label for='chaining'>Chaining Function:</label></td>
+                		<td><select id='chaining' name='chaining'>
+                    			<option value='CipherBlockChaining'>Cipher Block Chaining</option>
+                    			<option value='PropogatingCBC'>Propogating Cipher Block Chaining</option>
+                    			<option value='CipherFeedback'>Cipher Feedback</option>
+                    			<option value='HashCBC'>Hash Cipher Block Chaining</option>
+                    			<!--<option value='OutputFeedback'>Output Feedback</option>-->
+                    			<!--<option value='CounterMode'>Counter Mode</option>-->
+                    			<!--<option value='AccumulatedBlockCiper'>Accumulated Block Cipher</option>-->
+                    			<!--<option value='DoubleHashCBC'>Double Hash Cipher Block Chaining</option>-->
+                		</select></tr>
+			<tr>
+                		<td><label for='schedule'>Schedule:</label></td>
+                		<td><select id='schedule' name='schedule'>
+                    			<option value='every'>Every</option>
+                    			<option value='end'>End</option>
+				</select></td>
+            		</tr>
+            		<tr>
+				<td><label for='length_bound'>Session Length Bound</label></td>
+                		<td><input type='number' min='1' max='100' name='length_bound' id='length_bound' required/></td>
+            		</tr>
+            		<tr>
+                		<td><label for='session_bound'>Number of Sessions Bound</label></td>
+                		<td><input type='number' min='1' max='10' name='session_bound' id='session_bound' required/></td>
+            		</tr>
+		</tbody></table>
             <input type='submit' value='Execute!'/>
         </form>
 

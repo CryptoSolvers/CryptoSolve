@@ -1,3 +1,9 @@
 form {
-	line-spacing: 2;
+	line-height: 2;
+}
+table {
+	margin-bottom: 1rem;
+}
+label {
+	margin-right: 2rem;
 }
