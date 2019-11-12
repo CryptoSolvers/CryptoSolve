@@ -5,56 +5,17 @@ from Unification.p_unif import p_unif
 from algebra import *
 from flask import request
 
+with open('website/template.html', 'r') as html_file:
+    template = html_file.read()
+
+with open('website/template.css','r') as css_file:
+    styles = "<style>" + css_file.read() + "</style>"
+
 def render_page(response):
-    header_form = """
-    <!DOCTYPE html>
-    <html>
-    <head><title>MOE Tool</title></head>
-    <body>
-        <h1>MOE Tool</h1>
-        <form action='/' method='POST'>
-            <div>
-                <label for='unif'>Unification Algorithm:</label>
-                <select id='unif' name='unif'>
-                    <!--<option value='unif'>Syntactic</option>-->
-                    <!--<option value='ac_unify'>AC</option>-->
-                    <option value='p_unif'>Xor</option>
-                </select>
-            </div>
-            <div>
-                <label for='chaining'>Chaining Function:</label>
-                <select id='chaining' name='chaining'>
-                    <option value='CipherBlockChaining'>Cipher Block Chaining</option>
-                    <option value='PropogatingCBC'>Propogating Cipher Block Chaining</option>
-                    <option value='CipherFeedback'>Cipher Feedback</option>
-                    <option value='HashCBC'>Hash Cipher Block Chaining</option>
-                    <!--<option value='OutputFeedback'>Output Feedback</option>-->
-                    <!--<option value='CounterMode'>Counter Mode</option>-->
-                    <!--<option value='AccumulatedBlockCiper'>Accumulated Block Cipher</option>-->
-                    <!--<option value='DoubleHashCBC'>Double Hash Cipher Block Chaining</option>-->
-                </select>
-            </div>
-            <div>
-                <label for='schedule'>Schedule:</label>
-                <select id='schedule' name='schedule'>
-                    <option value='every'>Every</option>
-                    <option value='end'>End</option>
-                </select>
-            </div>
-            <div>
-                <label for='length_bound'>Session Length Bound</label>
-                <input type='number' min='1' max='10' name='length_bound' id='length_bound' required/>
-            </div>
-            <div>
-                <label for='session_bound'>Number of Sessions Bound</label>
-                <input type='number' min='1' max='10' name='session_bound' id='session_bound' required/>
-            </div>
-            <input type='submit' value='Execute!'/>
-        </form>
-    """
-    response_block = "" if response is "" else "<div><code>" + response + "</code></div>"
+    header_form = template
+    response_block = "" if response == "" else "<div><code>" + response + "</code></div>"
     print(response)
-    return header_form + response_block + "</body></html>"
+    return styles + header_form + response_block + "</body></html>"
 
 def get_unif(x : str):
     if x == "unif":

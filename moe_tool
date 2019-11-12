@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
+source senv/bin/activate
 export PYTHONPATH=$(pwd)
 python -i moe/moe_program.py
