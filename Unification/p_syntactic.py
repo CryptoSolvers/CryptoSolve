@@ -1,5 +1,6 @@
 from .unif import unif
-from algebra import FuncTerm
+from algebra import FuncTerm, Term, Variable
+from typing import Dict, List
 
 def p_syntactic(l: Term, r: Term, constraints : Dict[Variable, List[Term]]):
     """ p_syntactic is syntactic unification with the assurance that the unifier satisfies the constraints given"""
