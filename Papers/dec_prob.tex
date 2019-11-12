@@ -193,6 +193,23 @@ $IV$ is the initialization vector, the first block sent.
 	$C_1 = f(P_1 \oplus IV)$, $C_i = f(P_i \oplus P_{i-1} \oplus C_{i-1})$.
 \end{itemize}
 
+\subsubsection{Dealing with $IV$}\label{sec_iv}
+We need in several cases to remove the $IV$, either to chain 
+sessions without including a new $IV$ or to ensure two 
+different sessions have the same fake $IV$. More information on these methods are below. Here we describe how to replace the $IV$ added
+to the block $C_1 = (p_1 \oplus IV)$. 
+\begin{align*}
+	p_1 &= 0\\
+	c_1 &= f(0 \oplus IV) = f(IV)\\
+	p_2 &= c_1\\
+	c_2 &= f(c_1 \oplus c_1) = f(0)
+\end{align*}
+Notice that if we want to simulate something like an $IV$, but
+that we know, we could replace $0$ in the above interaction 
+with some nonce $k$. This will be useful when we want two 
+sessions to have the same starting nonce. 
+
+\ignore{
 \subsection{$MOE_A$ Decision Problems} 
 \begin{conjecture}
 	Given a signature $\Sigma=\{
@@ -217,7 +234,7 @@ $IV$ is the initialization vector, the first block sent.
 	or the number of sessions if there is a solution, the index of that
 	solution in the A set of index will be unified with the same index in the B set. Since unification is modulo $A$ there is then a solution to the PCP problem.  
 \end{proof}
-
+}
 \subsection{$MOE_{\oplus}$ Decision Problems}
 We will first consider the xor equational theory. We can therefore refine the definition of $MOE$-term 
  
@@ -238,60 +255,247 @@ has been solved in the positive [Chris and Hia Paper].
 The next problem to consider is the opposite extreme, that of unbounded
 number of sessions and an unbounded session length. 
 
-\begin{conjecture}
+\begin{theorem}\label{thm:unbounded_unbounded}
 The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
-sessions, unbounded session lengths, and immediate schedule. 
-\end{conjecture}
+sessions, unbounded session lengths, immediate schedule, and CBC. 
+\end{theorem}
+\begin{proof}
+\textbf{Proof Sketch}:\\
+Consider an arbitrary PCP problem:
+\[
+(\frac{A_1}{B_1}),~(\frac{A_2}{B_2}), ~\ldots, ~(\frac{A_n}{B_n})
+\]
+over an alphabet $\Sigma=\{a, b\}$. 
+\begin{itemize}
+	\item Encoding strings:\\ 
+	We encode a string a string $A_i = a_1 a_2 a_3 a_4$ by 
+	setting each character of the string as a plaintext block 
+	and sending each to the oracle from left to right, one at a 
+	time. For example,  $A_i = a_1 a_2 a_3 a_4$:
+	\begin{align*}
+	p_1 &=a_1\\
+	c_1 &=f(a_1 \oplus IV)\\
+	p_2 &=a_2\\
+	c_2 &=f(a_2 \oplus c_1)\\
+	&\ldots\\
+	c_4 &=f(a_4 \oplus c_3)
+	\end{align*}
+	\item Removing and replacing the IV:
+	The $IV$ can be removed and replaced with $f(D)$ for 
+	some nonce $D$. See section~\ref{sec_iv} for more details.
+	\item Chaining multiple strings:\\
+	We also need to chain together the encodings of two or more strings. For example, if we wanted to encode $A_1A_2$. We
+	could just encode them in the same session but it will be
+	useful below to start a new session when concatenating 
+	a string onto the end of another string. We do this as 
+	follows:
+	\begin{itemize}
+		\item Suppose we have two string $A_1 = a_{11}a_{12}$, and 
+		$A_2 =a_{21}a_{22}$.
+		\item Encoding the first string we get 
+		$c^1_2 = f(a_{12} \oplus f(a_{11}\oplus IV))$.
+		\item Start a second session and remove the $IV$:
+		\begin{align*}
+		c^2_1 &= f(0 \oplus IV) = f(IV)\\
+		c^2_2 &= f(c^2_1 \oplus c^2_1) = f(0)\\
+		c^2_3 &= f(a_{21} \oplus c^1_2 \oplus c^2_2 \oplus c^2_2) =
+		f(a_{21} \oplus c^1_2)
+		\end{align*}
+	\end{itemize} 
+	\item Adding/Removing a final nonce to encode the index:
+	After we have encoded one or more strings together we can 
+	add a nonce that is used to indicate the index of the encoded
+	strings and there order. For example, if we encode $A_1A_3$, 
+	we can add a nonce, '$13$' to a final cypher block. Notice
+	when we encode $B_1B_3$ we can add the same final nonce. This
+	ensures that only strings with the same index could possibly 
+	be unified since only these strings will have matching final 
+	nonces. 
+	
+	nonces can then be removes by applying the same method above.
+	This allows us to remove a nonce, concatenate another string 
+	onto the encoding, add a new nonce indicating the new index, 
+	test for unifiability. 
+	\item Encoding all possible permutations:\\
+	We now have all the tools needed to encode the possible 
+	strings that can be formed from the strings of a PCP.\\
+	Steps:
+	\begin{enumerate}
+		\item We start with two sets of sessions, one for the 
+		$A$ strings of the PCP, and one for the $B$ strings.
+		\item Each string is encoded in the method described above.
+		\item Remove the initial oracle introduced IV from each 
+		session. 
+		\item After encoding one or more strings we add a special 
+		nonce to the end of the strings that encodes the index of the 
+		index of the strings concatenated together. The nonce used 
+		to encode the index in the $A$ strings must be the same nonce
+		for the same index in the $B$ strings. For example, 
+		$A_1A_3$ use the nonce '$13$', and $B_1B_3$ would use the same
+		nonce '$13$'. In this way only encodings of the $A$ strings with the same nonce as those strings in $B$ could be unified.
+		\item After encoding a an index, check if the cypher block can be unified. If yes, then stop. If not, remove the nonce, as described above. Start new sessions, one for each new index. 
+		For example, if you encoded $A_1$, you would then continue this
+		sessions for $A_1A_1$ and start two new sessions for 
+		$A_1A_2$ and $A_1A_3$. 
+	\end{enumerate}
+\end{itemize}
+Notice that any possible string formed from the initial PCP strings 
+can be encoded into a cypher block. Only those blocks sharing the
+same index nonce from the $A$ strings and $B$ strings can be unified.
+If there is a unifier there is a solution to the PCP. 
+\end{proof}
 
-\noindent
-\textbf{some proof ideas}:\\
-We would essentially like to reply the idea from the case where 
-$E = A$. However, the difficulty is that $\oplus$ is $AC$ and thus
-commutativity could result in false solutions. We can possibly 
-get around this problem by using repeated applications of $f()$
-to encode the position of a symbol in a string, i.e., 
-$f(f(f(f(a))))$ would represent the the fact that `a' is the 
-4th symbol in the string. 
 
 \begin{example}
-	consider the following PCP:
+	Consider the following PCP:
 	\[
 	(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
 	\]
 	The solution for this basic PCP problem is $1,3$.
-	The encoding for this index for the upper string of the PCP is
-	\begin{align}
-		c_1 &= f(f(b) \oplus IV_{1})\\
-		c_2 &= f(f(f(a)) \oplus c_1)\\
-		&\ldots\\
-		c_5 &= f(f^5(a) \oplus c_4)
-	\end{align}
-	and the corresponding index in the set of lower string is
-	\begin{align}
-	c_1 &= f(f(b) \oplus IV_{1})\\
-	c_2 &= f(f(f(a)) \oplus c_1)\\
-	&\ldots\\
-	c_5 &= f(f^5(a) \oplus c_4)
-	\end{align}
-	The same an thus are unifiable. However notice that the string 
-	for index $abaaa$ for index $2,3$, has the same number of symbols,
-	5, and the same makeup, a single `b' and four `a's. This string will not be unifiable with the solution $1,3$, since it's
-	encoding is $f^1(a)f^2(b)f^3(a)f^4(a)f^5(a)$ which is not
-	unifiable with $f^1(b)f^2(a)f^3(a)f^4(a)f^5(a)$. 
-\end{example}\todo[inline]{Andrew: This is the current idea, does it
-work or lead to other problems?}
+	
+	We would start with two sets of sessions, one for the 
+	upper strings. $ba, ~ab, ~aaa$, and one for the lower
+	strings, $baa, ~ba, ~aa$. One session for each of the initial strings. 
+	
+	\noindent
+	$A$ Sessions:
+	\begin{enumerate}
+		\item Session1, string ``ba'':
+		\begin{align*}
+		p_1 &= 0\\
+		c^{A1}_1 &= f(0 \oplus IV_{1})\\
+		p_2 &= b \oplus c^{A1}_1\\
+		c^{A1}_2 &= f(b \oplus c^{A1}_1 \oplus c^{A1}_1)\\
+		p_3 &= a\\
+		c^{A1}_3 &= f(a \oplus c^{A1}_2)\\
+		&\text{Add the nonce for the index, 1 in this case}\\
+		c^{A1}_4 &=f(1, \oplus c^{A1}_3)
+		\end{align*}
+		\item Session2, string ``ab'':
+		\begin{align*}
+		c^{A2}_3 &= f(b \oplus c^{A2}_2)\\
+			&\text{Add the nonce for the index, 2 in this case}\\
+			c^{A2}_4 &=f(2, \oplus c^{A2}_3)
+		\end{align*}
+		\item Session3, string ``aaa'':
+		\begin{align*}
+		c^{A3}_4 &= f(a \oplus c^{A3}_3)\\
+			&\text{Add the nonce for the index, 3 in this case}\\
+			c^{A3}_5 &=f(3, \oplus c^{A3}_4)
+		\end{align*}
+	\end{enumerate}
+	
+	\noindent
+	$B$ Sessions:
+\begin{enumerate}
+	\item Session1, string ``baa'':
+	\begin{align*}
+	c^{B1}_4 &= f(a \oplus c^{B1}_3)\\
+		&\text{Add the nonce for the index, 1 in this case}\\
+		c^{B1}_5 &=f(1, \oplus c^{B1}_4)
+	\end{align*}
+	\item Session2, string ``ba'':
+	\begin{align*}
+	c^{B2}_3 &= f(a \oplus c^{B2}_2)\\
+		&\text{Add the nonce for the index, 2 in this case}\\
+		c^{B2}_4 &=f(2, \oplus c^{B2}_3)
+	\end{align*}
+	\item Session3, string ``aa'':
+	\begin{align*}
+	c^{B3}_3 &= f(a \oplus c^{B3}_2)\\
+		&\text{Add the nonce for the index, 3 in this case}\\
+		c^{B3}_4 &=f(3, \oplus c^{B3}_3)
+	\end{align*}
+\end{enumerate}
+ 
+Now try if we look for unifiers of the above cypher blocks, 
+$c^{A1}_4, ~c^{A2}_4, ~c^{A3}_5, ~c^{B1}_5, ~c^{B2}_4, ~c^{B3}_4$.
+We don't find a unifier so we move on to test the next level of
+possible strings, those with index: $11, 12, 13, 21, 22, 23, 31, 32, 33$. For these we first remove the current nonce encoding an index, 
+then concatenate the two strings, and then add the new nonce for the
+new index.  To save space we will just show this process for 
+the index 1,3 (the solution) for the $A$ session.
+
+Session1, string ``ba'':
+\begin{align*}
+p_1 &= 0\\
+c^{A1}_1 &= f(0 \oplus IV_{1})\\
+p_2 &= b \oplus c^{A1}_1\\
+c^{A1}_2 &= f(b \oplus c^{A1}_1 \oplus c^{A1}_1)\\
+p_3 &= a\\
+c^{A1}_3 &= f(a \oplus c^{A1}_2)\\
+&\text{Add the nonce for the index, 1 in this case}\\
+c^{A1}_4 &=f(1, \oplus c^{A1}_3)\\
+&\text{end of encoding of string 1, ``ba''}\\
+&\text{start a new session to add string ''aaa''}\\
+p_1 &= 0\\
+c^{A1,3}_1 &= f(0 \oplus IV)\\
+p_2 &= a \oplus c^{A1}_3 \oplus c^{A1,3}_1\\
+c^{A1,3}_2 &= f(a \oplus c^{A1}_3 \oplus c^{A1,3}_1 \oplus c^{A1,3}_1 ) = \\ f(a \oplus c^{A1}_3) \\
+&\ldots \\
+c^{A1,3}_4 &= f(a \oplus c^{A1,3}_3) \\
+&\text{Add the new index 1,3}\\
+c^{A1,3}_5 &= f(13 \oplus c^{A1,3}_4) \\
+\end{align*}
+Notice that for the string in the $B$ sessions with index $1,3$ we get
+$c^{B1,3}_5 = f(13 \oplus c^{B1,3}_4)$.
+
+Now if we check for unifiers we find one for $c^{A1,3}_5$ and 
+$c^{B1,3}_5$, which corresponds to the PCP solution $1,3$.
+ 
+ 
+\end{example}
 
 
+\subsubsection{Finite Length with Arbitrary Sessions}
 
+\begin{lemma}\label{lemma:sim_arbitrary_length}
+Given a $MOE_{\oplus}$ program with sessions of fixed length,
+sessions of arbitrary length can be simulated provided 
+an arbitrary number of sessions can be created. 	
+\end{lemma}
+\begin{proof}
+Suppose there is a bound, $n$, on the length of a sessions, 
+i.e., the number of cypher blocks per session. Suppose you wanted to continue a session beyond the bound, create a $c_{n+1}$ from 
+a $c_{n}$. You need to create a new sessions, remove the 
+new $IV$ (as is done above), add $c_{n}$, and continue. 
+Provided you have an arbitrary number of sessions this can continue
+providing arbitrary length for sessions. 
+\end{proof}
 
-
+\begin{theorem}\label{thm:bounded_unbounded}
+The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
+sessions, bounded session lengths, immediate schedule, and CBC.	
+\end{theorem}
+\begin{proof}
+	From Lemma~\ref{lemma:sim_arbitrary_length} 
+	and Theorem~\ref{thm:unbounded_unbounded}.
+\end{proof}
 
 \subsubsection{Finite Sessions of Arbitrary Length}
-The next decision problems to consider are for $MOE_{\oplus}$ terms,
-both an immediate and a delayed schedule, $CBC$ and $CFB$ modes, a
-finite number of interleaved sessions, and arbitrary long individual
-sessions.    
+\begin{lemma}\label{lemma:sim_arbitrary_sessions}
+	Given a $MOE_{\oplus}$ program with sessions of arbitrary length
+	and a bounded number of sessions,
+	an unbounded number of sessions can be simulated. 	
+\end{lemma}
+\begin{proof}
+	Suppose there is a bound, $n$, on the number of sessions. Suppose you wanted to create a new, $n+1$, session. We can add a new
+	session to an existing one by doing the following: 
+	remove the old cypher block, add a random nonce, and the 
+	first plain text of the new session. Notice if you want to 
+	continue the old session, just repeat the steps but add 
+	the old cypher test as the first plain text.  
+\end{proof}  
+
  
+ \begin{theorem}\label{thm:unbounded_bounded}
+ 	The $MOE_{\oplus}$ decision problem is undecidable for bounded 
+ 	sessions, unbounded session lengths, immediate schedule, and CBC.	
+ \end{theorem}
+ \begin{proof}
+ 	From Lemma~\ref{lemma:sim_arbitrary_sessions} 
+ 	and Theorem~\ref{thm:unbounded_unbounded}.
+ \end{proof}
 
 
 \end{document}
