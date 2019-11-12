@@ -98,6 +98,7 @@ with open('website/program_create.html') as program_create_html:
 
 @app.route('/program', methods=['GET', 'POST'])
 def program():
+    header =  render_template('header.html', title = "MOE Program", styles = styles)
     if request.method == "POST":
         if 'sid' in request.form:
             # Continue existing session
@@ -112,7 +113,7 @@ def program():
                     response = moe_session.rcv_stop(sid)
                     sids.remove(sid)
                 if response != None:
-                    return render_template('program.html', response = str(response), sid = sid)
+                    return header + render_template('program.html', response = str(response), sid = sid) + footer
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
             chaining = get_chaining(request.form.get('chaining'))
@@ -121,10 +122,9 @@ def program():
             # Send an initial message
             x = get_fresh_variable(moe_session)
             response = moe_session.rcv_block(sid, x)
-            return render_template('program.html', response = str(response), sid = sid)
+            return header + render_template('program.html', response = str(response), sid = sid) + footer
 
 
 
     # Assume GET request and return form
-    header =  render_template('header.html', title = "MOE Program", styles = styles)
     return  header + program_create + footer
