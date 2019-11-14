@@ -8,11 +8,11 @@ from flask import request, render_template
 with open('website/footer.html') as footer_html:
     footer = footer_html.read()
 
-with open('website/style.css','r') as css_file:
-    styles = css_file.read()
+#with open('website/style.css','r') as css_file:
+#    styles = css_file.read()
 
 def render_tool_page(response):
-    header =  render_template('header.html', title = "MOE Tool", styles = styles)
+    header =  render_template('header.html', title = "MOE Tool")
     body = render_template('tool.html', response = response)
     return  header + body + footer
 
@@ -98,7 +98,7 @@ with open('website/program_create.html') as program_create_html:
 
 @app.route('/program', methods=['GET', 'POST'])
 def program():
-    header =  render_template('header.html', title = "MOE Program", styles = styles)
+    header =  render_template('header.html', title = "MOE Program")
     if request.method == "POST":
         if 'sid' in request.form:
             # Continue existing session
