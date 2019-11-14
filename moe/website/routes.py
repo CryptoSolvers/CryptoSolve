@@ -1,4 +1,4 @@
-from website import app
+from moe.website import app
 from moe import *
 from Unification import *
 from Unification.p_unif import p_unif
@@ -7,7 +7,7 @@ from flask import request, render_template, session
 from typing import Dict
 from uuid import uuid4
 
-with open('website/partials/footer.html') as footer_html:
+with open('moe/website/partials/footer.html') as footer_html:
     footer = footer_html.read()
 
 def render_tool_page(response):
@@ -64,7 +64,7 @@ def index():
     return render_tool_page("")
 
 moe_sessions : Dict[str, MOESession] = dict()    
-with open('website/partials/program_create.html') as program_create_html:
+with open('moe/website/partials/program_create.html') as program_create_html:
     program_create = program_create_html.read()
 
 DEFAULT_SID = 1 # Since each user can only simulate one MOE at a time
@@ -73,7 +73,6 @@ def program():
     header =  render_template('header.html', title = "MOE Program")
     if request.method == "POST":
         if 'uid' in session and session['uid'] in moe_sessions.keys():
-            print("KLSJFDLS")
             uid = session['uid']
             moe_session = moe_sessions[uid]
             response = None
@@ -89,7 +88,6 @@ def program():
                 response = response if response != None else "Sent " + str(x) if x != None else ""
                 return header + render_template('program.html', response = str(response)) + footer
         elif 'chaining' in request.form and 'schedule' in request.form:
-            print("MWAHAHAHA")
             # Create new session
             chaining = get_chaining(request.form.get('chaining'))
             schedule = request.form.get('schedule')

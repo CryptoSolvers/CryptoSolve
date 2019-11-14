@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 source senv/bin/activate
-export FLASK_APP=website/run.py
+export FLASK_APP=moe/website/run.py
 flask run
