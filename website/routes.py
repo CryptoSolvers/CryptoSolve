@@ -90,8 +90,8 @@ def new_moe_session(chaining, schedule : str) -> Tuple[int, MOESession]:
     similar_session.rcv_start(sid)
     return sid, similar_session
 
-def get_fresh_variable(session : MOESession) -> Variable:
-    return Variable("x_" + str(session.iteration))
+def get_fresh_variable(session : MOESession, sid : int) -> Variable:
+    return Variable("x_" + str(session.iteration[sid]))
     
 with open('website/program_create.html') as program_create_html:
     program_create = program_create_html.read()
@@ -107,7 +107,7 @@ def program():
             if moe_session != None:
                 response = None
                 if 'next' in request.form:
-                    x = get_fresh_variable(moe_session)
+                    x = get_fresh_variable(moe_session, sid)
                     response = moe_session.rcv_block(sid, x)
                 elif 'end' in request.form:
                     response = moe_session.rcv_stop(sid)
@@ -120,7 +120,7 @@ def program():
             schedule = request.form.get('schedule')
             sid, moe_session = new_moe_session(chaining, schedule)
             # Send an initial message
-            x = get_fresh_variable(moe_session)
+            x = get_fresh_variable(moe_session, sid)
             response = moe_session.rcv_block(sid, x)
             return header + render_template('program.html', response = str(response), sid = sid) + footer
 
