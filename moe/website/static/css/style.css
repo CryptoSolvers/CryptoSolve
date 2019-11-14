@@ -1,0 +1,51 @@
+body {
+	margin: 0;
+	padding: 0;
+	font-family: 'Open Sans', sans-serif;
+}
+
+header {
+	margin-bottom: 1rem;
+	padding: 1.5rem;
+	background-color: #002b5a;
+	color: white;
+}
+header h1 {
+	margin-top: 0;
+	font-family: 'Comfortaa', cursive;
+}
+
+header a {
+	border-right: 1px solid #bbb;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	padding-right: calc(0.5rem + 1px);
+	font-size: 1.2rem;
+	color: #eee;
+}
+header a:first-child {
+	padding-left: 0;
+}
+header a:last-child {
+	padding-right: 0;
+	border-right: none;
+}
+header a:hover {
+	color: white;
+}
+
+form {
+	margin-left: 1rem;
+	line-height: 2;
+}
+table {
+	margin-bottom: 1rem;
+}
+label {
+	margin-right: 2rem;
+}
+
+.code {
+	margin-top: 2rem;
+	margin-left: 1rem;
+}
