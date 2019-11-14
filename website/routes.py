@@ -3,13 +3,12 @@ from moe import *
 from Unification import *
 from Unification.p_unif import p_unif
 from algebra import *
-from flask import request, render_template
+from flask import request, render_template, session
+from typing import Dict
+from uuid import uuid4
 
-with open('website/footer.html') as footer_html:
+with open('website/partials/footer.html') as footer_html:
     footer = footer_html.read()
-
-#with open('website/style.css','r') as css_file:
-#    styles = css_file.read()
 
 def render_tool_page(response):
     header =  render_template('header.html', title = "MOE Tool")
@@ -64,67 +63,43 @@ def index():
     print(request.method)
     return render_tool_page("")
 
-
-# [TODO] Should probably implement locks here in the future
-moe_sessions : List[MOESession] = []
-sids : List[int] = []
-def find_moe_session(sid : int) -> Optional[MOESession]:
-    for moe_session in moe_sessions:
-        if sid in moe_session.sessions:
-            return moe_session
-    return None
-
-def new_moe_session(chaining, schedule : str) -> Tuple[int, MOESession]:
-    similar_session : Optional[MOESession] = None
-    for moe_session in moe_sessions:
-        if moe_session.chaining_function == chaining and moe_session.schedule == schedule:
-            similar_session = moe_session
-            break # Done looking
-    # No similar MOE session found
-    if similar_session == None:
-        similar_session = MOESession(chaining, schedule)
-        moe_sessions.append(similar_session)
-    # Add new session
-    sid = sids[-1] + 1 if len(sids) > 0 else 1
-    sids.append(sid)
-    similar_session.rcv_start(sid)
-    return sid, similar_session
-
-def get_fresh_variable(session : MOESession, sid : int) -> Variable:
-    return Variable("x_" + str(session.iteration[sid]))
-    
-with open('website/program_create.html') as program_create_html:
+moe_sessions : Dict[str, MOESession] = dict()    
+with open('website/partials/program_create.html') as program_create_html:
     program_create = program_create_html.read()
 
+DEFAULT_SID = 1 # Since each user can only simulate one MOE at a time
 @app.route('/program', methods=['GET', 'POST'])
 def program():
     header =  render_template('header.html', title = "MOE Program")
     if request.method == "POST":
-        if 'sid' in request.form:
-            # Continue existing session
-            sid = int(request.form.get('sid'))
-            moe_session = find_moe_session(sid)
-            if moe_session != None:
-                response = None
-                if 'next' in request.form:
-                    x = get_fresh_variable(moe_session, sid)
-                    response = moe_session.rcv_block(sid, x)
-                elif 'end' in request.form:
-                    response = moe_session.rcv_stop(sid)
-                    sids.remove(sid)
-                if response != None:
-                    return header + render_template('program.html', response = str(response), sid = sid) + footer
+        if 'uid' in session and session['uid'] in moe_sessions.keys():
+            uid = session['uid']
+            moe_session = moe_sessions[uid]
+            response = None
+            if 'next' in request.form:
+                x = Variable("x_" + str(moe_session.iteration[DEFAULT_SID]))
+                response = moe_session.rcv_block(DEFAULT_SID, x)
+            elif 'end' in request.form:
+                response = moe_session.rcv_stop(DEFAULT_SID)
+                del moe_sessions[uid]
+                session.pop('uid', None)
+            response = response if response != None else ""
+            if response != "" or moe_session.schedule == "end":
+                return header + render_template('program.html', response = str(response)) + footer
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
             chaining = get_chaining(request.form.get('chaining'))
             schedule = request.form.get('schedule')
-            sid, moe_session = new_moe_session(chaining, schedule)
+            moe_session = MOESession(chaining, schedule)
+            moe_session.rcv_start(DEFAULT_SID)
             # Send an initial message
-            x = get_fresh_variable(moe_session, sid)
-            response = moe_session.rcv_block(sid, x)
-            return header + render_template('program.html', response = str(response), sid = sid) + footer
-
-
-
+            x = Variable("x_" + str(moe_session.iteration[DEFAULT_SID]))
+            response = moe_session.rcv_block(DEFAULT_SID, x)
+            # Set up a userid and save the moe_session
+            session['uid'] = uuid4()
+            moe_sessions[session['uid']] = moe_session
+            response = response if response != None else ""
+            return header + render_template('program.html', response = str(response)) + footer
+    
     # Assume GET request and return form
-    return  header + program_create + footer
+    return header + program_create + footer
