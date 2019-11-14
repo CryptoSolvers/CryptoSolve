@@ -3,7 +3,7 @@ from moe import *
 from Unification import *
 from Unification.p_unif import p_unif
 from algebra import *
-from flask import request, render_template, session
+from flask import request, render_template, session, Markup
 from typing import Dict
 from uuid import uuid4
 
@@ -45,6 +45,15 @@ def get_chaining(x: str):
     #     return DoubleHashCBC
     return None
 
+def format_substitutions(subs: List[SubstituteTerm]):
+    text = ""
+    for term in subs:
+        term_str = str(term)
+        for line in term_str.split('\n'):
+            text += Markup.escape(line) + Markup('<br />')
+        text += Markup('<br />')
+    return text
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
@@ -56,11 +65,11 @@ def index():
         length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
         session_bound = int(request.form.get('session_bound'))
         session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
-        result = MOE(unif, chaining, schedule, length_bound, 1) if unif is not None and chaining is not None else "TRY AGAIN"
-        return render_tool_page(str(result)) if result is not None else render_tool_page("NO UNIFIERS FOUND")
+
+        result = MOE(unif, chaining, schedule, length_bound, 1) if unif != None and chaining != None else "TRY AGAIN"
+        return render_tool_page(format_substitutions(result)) if result != None else render_tool_page("NO UNIFIERS FOUND")
 
     # Assume GET request and return form
-    print(request.method)
     return render_tool_page("")
 
 moe_sessions : Dict[str, MOESession] = dict()    
@@ -71,6 +80,13 @@ DEFAULT_SID = 1 # Since each user can only simulate one MOE at a time
 @app.route('/program', methods=['GET', 'POST'])
 def program():
     header =  render_template('header.html', title = "MOE Program")
+
+    # If you step away from the simulation, destroy the previous session
+    if request.method == "GET" and 'uid' in session:
+        if session['uid'] in moe_sessions.keys():
+            del moe_sessions[session['uid']]
+        session.pop('uid', None)
+
     if request.method == "POST":
         if 'uid' in session and session['uid'] in moe_sessions.keys():
             uid = session['uid']

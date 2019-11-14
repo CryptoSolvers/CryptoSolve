@@ -238,7 +238,6 @@ def pairwise(xs):
     result = []
     for i, x in enumerate(xs):
         for y in xs[(i+1):]:
-            print(Equation(x, y))
             result.append(Equation(x, y))
     return result
 
@@ -269,7 +268,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_
         result = m.rcv_block(sid, x)
 
         # Try to find unifiers if schedule is every
-        if schedule is "every":
+        if schedule == "every":
             unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
             if any_unifiers(unifiers):
                 return unifiers
@@ -277,7 +276,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_
     # Stop Interaction
     result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
-    if schedule is "end":
+    if schedule == "end":
         unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
         if any_unifiers(unifiers):
                 return unifiers
