@@ -248,7 +248,7 @@ def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
             return True
     return False
 
-def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1):
+def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', length_bound : int = 10, session_bound : int = 1, knows_iv : bool = True):
     m = MOESession(chaining, schedule=schedule)
     sid = 0
     m.rcv_start(sid)
@@ -260,7 +260,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_
         x = Variable("x_" + str(i))
         # Update constraints
         if i == 1:
-            constraints[x] = [m.IV[sid], xor_zero]
+            constraints[x] = [m.IV[sid], xor_zero] if knows_iv else [xor_zero]
         else:
             last_x = Variable("x_" + str(i - 1))
             constraints[x] = constraints[last_x] + [last_x] + [m.cipher_texts[sid][i - 2]]

@@ -65,8 +65,9 @@ def index():
         length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
         session_bound = int(request.form.get('session_bound'))
         session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
-
-        result = MOE(unif, chaining, schedule, length_bound, 1) if unif != None and chaining != None else "TRY AGAIN"
+        knows_iv = request.form.get('knows_iv') == "knows_iv"
+        
+        result = MOE(unif, chaining, schedule, length_bound, 1, knows_iv) if unif != None and chaining != None else "TRY AGAIN"
         return render_tool_page(format_substitutions(result)) if result != None else render_tool_page("NO UNIFIERS FOUND")
 
     # Assume GET request and return form

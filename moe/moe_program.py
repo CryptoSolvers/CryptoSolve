@@ -12,9 +12,10 @@ print("unif: The unification algorithm to use")
 print("chaining: The function defining how blocks are chained together")
 print("schedule: (str) 'every' or 'end'")
 print("length_bound: (int) the bound on the length of interactions between advesary and oracle")
-print("session_bound: (int) the bound on the number of concurrent sessions allowed\n")
+print("session_bound: (int) the bound on the number of concurrent sessions allowed")
+print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
-print("Ex: MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1)\n")
+print("Ex: MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
 
 print("For help, type help(argument_name) where argument_name is a string")
 print("Ex: help('unif')")
@@ -51,6 +52,8 @@ def help(argument):
     elif argument == "session_bound":
         print("Currently not implemented")
         print("An integer argument bounding the number of concurrent session allowed")
+    elif argument == "knows_iv":
+        print("A boolean (True/False) indicating whether or not the advesary knows the initialization vector")
     else:
         print("Argument '%s' is not an argument of MOE" % argument)
         print("Arguments of MOE: unif, chaining, schedule, length_bound, session_bound")
