@@ -234,12 +234,21 @@ from xor.xorhelper import *
 from xor.structure import *
 from Unification.p_unif import p_unif
 
-def pairwise(xs):
+def pairwise(xs) -> List[Equation]:
     result = []
     for i, x in enumerate(xs):
         for y in xs[(i+1):]:
             result.append(Equation(x, y))
     return result
+
+def create_unification_problems(result : Frame) -> Equations:
+    result_range = result.subs.range()
+    reduced_range = []
+    for r in result_range:
+        reduced_range.append(r * result.subs)
+    print(reduced_range)
+    return Equations(pairwise(reduced_range))
+
 
 def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""
@@ -263,13 +272,11 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
             constraints[x] = [m.IV[sid], xor_zero] if knows_iv else [xor_zero]
         else:
             last_x = Variable("x_" + str(i - 1))
-            constraints[x] = constraints[last_x] + [last_x] + [m.cipher_texts[sid][i - 2]]
-        
+            constraints[x] = constraints[last_x] + [last_x] + [m.cipher_texts[sid][i - 2] * m.subs[sid]]
         result = m.rcv_block(sid, x)
-
         # Try to find unifiers if schedule is every
         if schedule == "every":
-            unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
+            unifiers = p_unif(create_unification_problems(result), constraints)
             if any_unifiers(unifiers):
                 return unifiers
     
@@ -277,7 +284,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
     result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
     if schedule == "end":
-        unifiers = p_unif(Equations(pairwise(result.subs.range())), constraints)
+        unifiers = p_unif(create_unification_problems(result), constraints)
         if any_unifiers(unifiers):
                 return unifiers
 
