@@ -241,12 +241,16 @@ def pairwise(xs) -> List[Equation]:
             result.append(Equation(x, y))
     return result
 
+def unravel(t : Term, s : SubstituteTerm) -> Term:
+    while t != t * s:
+        t = t * s
+    return t
+
 def create_unification_problems(result : Frame) -> Equations:
     result_range = result.subs.range()
     reduced_range = []
     for r in result_range:
-        reduced_range.append(r * result.subs)
-    print(reduced_range)
+        reduced_range.append(unravel(r, result.subs))
     return Equations(pairwise(reduced_range))
 
 
@@ -261,7 +265,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
     m = MOESession(chaining, schedule=schedule)
     sid = 0
     m.rcv_start(sid)
-    constraints = {}
+    constraints = dict()
     xor_zero = Zero()
 
     # Start interactions
@@ -272,7 +276,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
             constraints[x] = [m.IV[sid], xor_zero] if knows_iv else [xor_zero]
         else:
             last_x = Variable("x_" + str(i - 1))
-            constraints[x] = constraints[last_x] + [last_x] + [m.cipher_texts[sid][i - 2] * m.subs[sid]]
+            constraints[x] = constraints[last_x] + [last_x] + [unravel(m.cipher_texts[sid][i - 2], m.subs[sid])]
         result = m.rcv_block(sid, x)
         # Try to find unifiers if schedule is every
         if schedule == "every":
