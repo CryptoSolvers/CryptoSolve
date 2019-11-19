@@ -3,19 +3,20 @@ from .term import *
 
 @overload
 def termToSympy(term : Constant) -> sympy.Symbol:
-    """"""
+    """Converts a constant to a sympy symbol"""
 @overload
 def termToSympy(term : Variable) -> sympy.Symbol:
-    """"""
+    """Converts a variable to a sympy symbol"""
 @overload
 def termToSympy(term : Function) -> sympy.FunctionClass:
-    """"""
+    """Converts a function to a sympy function class"""
 
 @overload
 def termToSympy(term : FuncTerm) -> sympy.Function:
-    """"""
+    """Converts a functerm to a sympy function"""
 
 def termToSympy(term):
+    """Converts a term to a sympy term"""
     if isinstance(term, Constant):
         return sympy.Symbol(term.symbol + "_constant")
     if isinstance(term, Variable):
@@ -32,17 +33,18 @@ def termToSympy(term):
 
 @overload
 def sympyToTerm(symterm : sympy.Symbol) -> Union[Variable, Constant]:
-    """"""
+    """Converts a sympy symbol to either a variable or constant"""
 
 @overload
 def sympyToTerm(symterm : sympy.FunctionClass) -> Function:
-    """"""
+    """Converts a sympy function class to a function"""
 
 @overload
 def sympyToTerm(symterm : sympy.Function) -> FuncTerm:
-    """"""
+    """Converts a sympy function to a functerm"""
 
 def sympyToTerm(symterm):
+    """Converts a sympy term to a term"""
     if isinstance(symterm, sympy.Symbol):
         if symterm.name[-9:] == "_variable":
             return Variable(symterm.name[:-9])
