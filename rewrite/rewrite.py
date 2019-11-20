@@ -5,7 +5,6 @@ from algebra import *
 from Unification import unif
 from copy import deepcopy
 
-# Turn Variables into Constants
 @overload
 def freeze(term: Variable) -> Constant:
     """"""
@@ -20,6 +19,7 @@ def freeze(term: FuncTerm) -> FuncTerm:
     """"""
 
 def freeze(term):
+    """Turns all the variables into constants"""
     term = deepcopy(term)
     if isinstance(term, Variable):
         return Constant(term.symbol)
@@ -37,6 +37,7 @@ class RewriteRule:
     
     # Applies term if possible otherwise return unchanged
     def apply(self, term : Term) -> Term:
+        """Apply a rewrite rule to a term if possible, otherwise return the same term"""
         # Change common variables in RewriteRule if they exist
         overlaping_vars = self._getOverlapVars(term)
         while overlaping_vars:
@@ -51,11 +52,13 @@ class RewriteRule:
         return str(self.hypothesis) + " → " + str(self.conclusion)
     
     def _getOverlapVars(self, term) -> List[Variable]:
+        """Return a list of variables that are overlapping with the hypothesis"""
         rewrite_vars = get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
         term_vars = get_vars(term, unique = True)
         return list(rewrite_vars & term_vars)
     
     def _changeVars(self, overlaping_vars : List[Variable], term : Term):
+        """Change variable names"""
         all_vars = get_vars(term, unique = True) | get_vars(self.hypothesis, unique = True) | get_vars(self.conclusion, unique = True)
         new_vars : List[Variable] = []
         # Go through all the variables that share the same symbol between the term and rewrite rule
@@ -74,6 +77,7 @@ class RewriteRule:
         self.conclusion *= s
 
 def converse(rule : RewriteRule) -> RewriteRule:
+    """Take the converse of a rewrite rule, meaning flip the hypothesis and conclusion"""
     new_rule = deepcopy(rule)
     # Flip Hypothesis and Conclusion
     temp = new_rule.hypothesis

@@ -265,7 +265,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
     m = MOESession(chaining, schedule=schedule)
     sid = 0
     m.rcv_start(sid)
-    constraints = dict()
+    constraints : Dict[Variable, List[Term]] = dict()
     xor_zero = Zero()
 
     # Start interactions

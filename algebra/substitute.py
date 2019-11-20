@@ -6,6 +6,7 @@ class SubstituteTerm:
         self.subs = set() # Tuple of (Variable, Term)
     
     def add(self, variable : Variable, term : Term):
+        """Adds a mapping from a variable to a term"""
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         if len(self.subs) > 0:
@@ -16,6 +17,7 @@ class SubstituteTerm:
         self.subs.add((variable, term))
     
     def remove(self, variable : Variable):
+        """Removes a mapping from a variable"""
         if len(self.subs) > 0:
             v, t = zip(*self.subs)
             term = t[v.index(variable)]
@@ -24,12 +26,14 @@ class SubstituteTerm:
             self.subs = self.subs - x
     
     def replace(self, variable : Variable, term : Term):
+        """Replaces a mapping from a variable to a another term"""
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.remove(variable)
         self.subs.add((variable, term))
     
     def domain(self) -> List[Variable]:
+        """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then range as the ordering is not guarenteed."""
         if len(self.subs) > 0:
             v, _ = zip(*self.subs)
             return v
@@ -37,6 +41,7 @@ class SubstituteTerm:
             return list()
     
     def range(self) -> List[Term]:
+        """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then domain as the ordering is not guarenteed."""
         if len(self.subs) > 0:
             _, t = zip(*self.subs)
             return t
@@ -64,6 +69,7 @@ class SubstituteTerm:
         return str_repr
 
     def _applysub(self, term : Term) -> Term:
+        """Apply a substitution to a term"""
         assert isinstance(term, (Constant, Variable, FuncTerm))
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(new_term)
