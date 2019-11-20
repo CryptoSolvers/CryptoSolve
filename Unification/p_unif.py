@@ -339,11 +339,11 @@ def fix_subst(subst, p):
 
 def p_unif(eqs, constraints):
     diseqs = Disequations([])
-    p_unif_problem = P_unif_problem(eqs, constraints, diseqs)
-    print("begin to compute xor unifiers.")
+    print("Here is the problem:")
     print(eqs)
+    print("end")
+    p_unif_problem = P_unif_problem(eqs, constraints, diseqs)
     xor_unifiers = xor_unification(eqs)
-    print("done computing xor unifiers")
     p_unifiers = []
     for xor_unifier in xor_unifiers:
         new_p_unifiers = fix_subst(xor_unifier, p_unif_problem)
