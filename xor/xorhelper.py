@@ -80,74 +80,78 @@ def collect_all_unconstrained_variables_in_equation(eq):
             results.add(var)
     return results
 
-def name_xor_terms(t):
+def name_xor_terms(t, eqs):
     # Purify arguments
     # Name top-level xor-subterms
     # Return (renamed_term, a set of equations)
     if (isinstance(t, Zero)):
-        return (t, [])
+        return (t, eqs)
     elif (isinstance(t, Constant)):
-        return (t, [])
+        return (t, eqs)
     elif (isinstance(t, Variable)):
-        return (t, [])
+        return (t, eqs)
     elif(is_xor_term(t)):
-        (term1, equation1) = purify_a_term(t.arguments[0])
-        (term2, equation2) = purify_a_term(t.arguments[1])
-        equations = equation1 + equation2
+        (term1, eqs) = purify_a_term(t.arguments[0], eqs)
+        #eqs = eqs + equation1
+        (term2, eqs) = purify_a_term(t.arguments[1], eqs)
+        #eqs = eqs + equation2
+        #equations = equation1 + equation2
 
         global variable_counter
         variable_counter += 1
         new_variable = Variable("N" + str(variable_counter))
 
-        equations.append(Equation(new_variable, xor(term1, term2)))
-        return (new_variable, equations)
+        eqs.append(Equation(new_variable, xor(term1, term2)))
+        return (new_variable, eqs)
     elif (isinstance(t, FuncTerm)):
         terms = []
-        equations = []
         for arg in t.arguments:
-            (term, equation) = name_xor_terms(arg)
+            (term, eqs) = name_xor_terms(arg, eqs)
+            #eqs = eqs + equations
             terms.append(term)
-            equations = equations + equation
-        return (FuncTerm(t.function, terms), equations)
+        return (FuncTerm(t.function, terms), eqs)
     else:
         print("error")
         return None
 
-def purify_a_term(t):
+def purify_a_term(t, eqs):
     if (isinstance(t, Zero)):
-        return (t, [])
+        return (t, eqs)
     elif (isinstance(t, Constant)):
-        return (t, [])
+        return (t, eqs)
     elif (isinstance(t, Variable)):
-        return (t, [])
+        return (t, eqs)
     elif (is_xor_term(t)):
-        (left, equation1) = purify_a_term(t.arguments[0])
-        (right, equation2) = purify_a_term(t.arguments[1])
-        return (xor(left, right), equation1 + equation2)
+        (left, eqs) = purify_a_term(t.arguments[0], eqs)
+        #eqs = eqs + equation1
+        (right, eqs) = purify_a_term(t.arguments[1], eqs)
+        #eqs = eqs + equation2
+        return (xor(left, right), eqs)
     elif(isinstance(t, FuncTerm)):
         terms = []
-        equations = []
         for arg in t.arguments:
-            (term, equation) = name_xor_terms(arg)
+            (term, eqs) = name_xor_terms(arg, eqs)
+            #eqs = eqs + equations
             terms.append(term)
-            equations = equations + equation
-        return (FuncTerm(t.function, terms), equations)
+        return (FuncTerm(t.function, terms), eqs)
     else:
         print("error")
         return None
 
-def purify_an_equation(eq):
-    (purified_lhs, eqs1) = purify_a_term(eq.left_side)
-    (purified_rhs, eqs2) = purify_a_term(eq.right_side)
+def purify_an_equation(eq, eqs):
+    (purified_lhs, eqs) = purify_a_term(eq.left_side, eqs)
+    #eqs = eqs + eqs1
+    (purified_rhs, eqs) = purify_a_term(eq.right_side, eqs)
+    #eqs = eqs + eqs2
     new_equation = Equation(purified_lhs, purified_rhs)
-    return (new_equation, eqs1 + eqs2)
+    return (new_equation, eqs)
 
 def purify_equations(eqs):
     equations = []
     for eq in eqs.contents:
-        (left, right) = purify_an_equation(eq)
+        (left, equations) = purify_an_equation(eq, equations)
         equations.append(left)
-        equations = equations + right
+        #equations = equations + right
     return Equations(equations)
 
 def is_constrained_in_term(v, t):
@@ -396,19 +400,26 @@ class Rule_Decompose(XOR_Rule):
         unifier = unif(first_term, second_term)
         #equations1.append(Equation(xor(first_term.arg, second_term.arg), Zero()))
 
-        if((first_term == second_term) or (unifier.domain() != [])):
-            unifiable = True
-        else:
+        #if((first_term == second_term) or (unifier.domain() != [])):
+        #    unifiable = True
+        #else:
+        #    unifiable = False
+        if(unifier == False):
             unifiable = False
+        else:
+            unifiable = True
 
         disequations1 = disequations
         disequations2 = deepcopy(disequations)
         new_disequation = Disequation(first_term, second_term)
         disequations2.append(new_disequation)
 
-        state1 = XOR_proof_state(apply_sub_to_equations(Equations(equations1), unifier), apply_sub_to_disequations(Disequations(disequations1), unifier), substs * unifier)
         state2 = XOR_proof_state(Equations(equations2), Disequations(disequations2), substs)
-        return (unifiable, state1, state2)
+        if(unifiable):
+            state1 = XOR_proof_state(apply_sub_to_equations(Equations(equations1), unifier),apply_sub_to_disequations(Disequations(disequations1), unifier), substs * unifier)
+            return (unifiable, state1, state2)
+        else:
+            return (unifiable, state, state2)
 
 def xor_unification_helper(state):
     #Returns a list of substitutions
@@ -429,28 +440,34 @@ def xor_unification_helper(state):
     #if no rule is applicable, return []
     #otherwise take an inference step
 
-    trivial_applicable = trivial_rule.is_applicable(state)
-    subst_applicable = subst_rule.is_applicable(state)
-    decompose_applicable = decompose_rule.is_applicable(state)
+    #trivial_applicable = trivial_rule.is_applicable(state)
+    #subst_applicable = subst_rule.is_applicable(state)
+    #decompose_applicable = decompose_rule.is_applicable(state)
 
     #
-    if(not (trivial_applicable or subst_applicable or decompose_applicable)):
-        return []       #not unifiable
-    if(trivial_applicable):
+    #if(not (trivial_applicable or subst_applicable or decompose_applicable)):
+    #    return []       #not unifiable
+    if(trivial_rule.is_applicable(state)):
         new_state = trivial_rule.apply(state)
         return xor_unification_helper(new_state)
-    if(subst_applicable):
+    elif(subst_rule.is_applicable(state)):
         new_state = subst_rule.apply(state)
         return xor_unification_helper(new_state)
-    elif(decompose_applicable):
+    elif(decompose_rule.is_applicable(state)):
         (unifiable, state1, state2) = decompose_rule.apply(state)
         if(unifiable):
             return xor_unification_helper(state1) + xor_unification_helper(state2)
         else:
             return xor_unification_helper(state2)
+    else:
+        return []
 
 def xor_unification(eqs):
+    print("Here are the original equations:")
+    print(eqs)
     equations = purify_equations(eqs)
+    print("Here are the purified equations:")
+    print(equations)
     diseqs = Disequations([])
     subst = SubstituteTerm()
 

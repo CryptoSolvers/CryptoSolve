@@ -7,6 +7,7 @@ from algebra import *
 from xor.xorhelper import *
 from xor.structure import *
 from Unification.p_unif import p_unif
+from xor import *
 
 f = Function("f", 1)
 h = Function("h", 1)

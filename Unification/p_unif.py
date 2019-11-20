@@ -54,11 +54,13 @@ def convert_to_xorterm(t):
         return FuncTerm(t.function, new_arguments)
     if (isinstance(t, XORTerm)):
         new_arguments = list(map(convert_to_xorterm, t.arguments))
-        return xor(*new_arguments)
+        if(len(new_arguments) == 1):
+            return new_arguments[0]
+        else:
+            return xor(*new_arguments)
 
 def powerset(iterable):
     xs = list(iterable)
-    # note we return an iterator rather than a list
     return list(chain.from_iterable(combinations(xs,n) for n in range(len(xs)+1)))
 
 def findsubsets(s, n):
@@ -206,6 +208,7 @@ def make_a_decision(bad_var_term_pairs, p_unif_problem):
             continue
         if(isinstance(term, FuncTerm) and term.function.symbol == "f"):
             #fix it using the Prev rule
+            term = convert_to_xorterm(term)
             for prev_term in constraints[var]:
                 if(not isinstance(prev_term, Variable)):
                     candidate_equation = Equation(xor(term, prev_term), Zero())
@@ -248,7 +251,7 @@ def make_a_decision(bad_var_term_pairs, p_unif_problem):
     return None
 
 def disequation_from_equation(eq):
-    lhs = eq.left_side
+    lhs = deepcopy(eq.left_side)
     return Disequation(lhs, Zero())
 
 def add_disequation_to_p(diseq, p):
@@ -277,7 +280,13 @@ def instantiate_a_problem(p, sigma):
 
     return P_unif_problem(new_eqs, new_constraints, Disequations(new_diseqs))
 
-
+def simplify_substitution(sigma):
+    domain = list(sigma.domain())
+    r = list(sigma.range())
+    tau = SubstituteTerm()
+    for index in range(0, len(domain)):
+        tau.add(domain[index], simplify_a_term(r[index]))
+    return tau
 
 def fix_subst(subst, p):
     #print("Trying to fix this substitution:")
@@ -287,21 +296,20 @@ def fix_subst(subst, p):
     #print("Here are the disequations:")
     #print(p.disequations)
     bad_var_term_pairs = get_all_bad_subterms(subst, p)
-    #print("Here are the bad pairs:")
-    #for (v, t) in bad_var_term_pairs:
-    #    print(v)
-    #    print(t)
     if(bad_var_term_pairs == []):
+        #print("I found a p-unifier.")
         return [subst]        #found a p unifier
     else:
         eq = make_a_decision(bad_var_term_pairs, p)
+
+        if(eq == None):
+            #print("I cannot make a decision, failed on this branch.")
+            return []
+
         # debugging info######
         #print("Here is a decision that I made.")
         #print(eq)
         #####################
-
-        if(eq == None):
-            return []
 
         diseq = disequation_from_equation(eq)
         eqs = Equations([eq])
@@ -309,6 +317,7 @@ def fix_subst(subst, p):
 
         #if(unifiers == [SubstituteTerm()]):
         if(unifiers == []):
+            #print("I made a bad decision, failed on this branch.")
             add_disequation_to_p(diseq, p)
             return fix_subst(subst, p)
 
@@ -316,15 +325,13 @@ def fix_subst(subst, p):
         for unifier in unifiers:
             subst2 = deepcopy(subst)
             p2 = deepcopy(p)
-
             add_disequation_to_p(diseq, p2)
 
             new_subst = subst * unifier
+            new_subst = simplify_substitution(new_subst)
             new_p = instantiate_a_problem(p, unifier)
 
             res1 = fix_subst(new_subst, new_p)
-            #res2 is the original problem, with the disequation added
-
             res2 = fix_subst(subst2, p2)
             result = result + res1
             result = result + res2
@@ -333,7 +340,10 @@ def fix_subst(subst, p):
 def p_unif(eqs, constraints):
     diseqs = Disequations([])
     p_unif_problem = P_unif_problem(eqs, constraints, diseqs)
+    print("begin to compute xor unifiers.")
+    print(eqs)
     xor_unifiers = xor_unification(eqs)
+    print("done computing xor unifiers")
     p_unifiers = []
     for xor_unifier in xor_unifiers:
         new_p_unifiers = fix_subst(xor_unifier, p_unif_problem)
