@@ -246,16 +246,18 @@ def unravel(t : Term, s : SubstituteTerm) -> Term:
         t = t * s
     return t
 
-def create_unification_problems(result : Frame) -> Equations:
+def create_unification_problems(result : Frame) -> List[Equation]:
     result_range = result.subs.range()
     reduced_range = []
     for r in result_range:
         reduced_range.append(unravel(r, result.subs))
-    return Equations(pairwise(reduced_range))
+    return pairwise(reduced_range)
 
 
 def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""
+    if unifiers == False:
+        return False
     for u in unifiers:
         if len(u) > 0:
             return True
@@ -280,16 +282,27 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
         result = m.rcv_block(sid, x)
         # Try to find unifiers if schedule is every
         if schedule == "every":
-            unifiers = unif(create_unification_problems(result), constraints)
-            if any_unifiers(unifiers):
-                return unifiers
+            last_ciphertext = unravel(m.cipher_texts[sid][-1], m.subs[sid])
+            for ciphertext in m.cipher_texts[sid][:-1]:
+                ciphertext = unravel(ciphertext, m.subs[sid])
+                if unif == p_unif: # p_xor requires things in an Equations object
+                    unifiers = unif(Equations([Equation(last_ciphertext, ciphertext)]), constraints)
+                else: # p_syntactic takes left_side, right_side, constraints
+                    unifiers = unif(last_ciphertext, ciphertext, constraints)
+                if any_unifiers(unifiers):
+                    return unifiers
     
     # Stop Interaction
     result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
     if schedule == "end":
-        unifiers = unif(create_unification_problems(result), constraints)
-        if any_unifiers(unifiers):
+        problems = create_unification_problems(result)
+        for problem in problems:
+            if unif == p_unif:
+                unifiers = unif(Equations([problem]), constraints)
+            else:
+                unifiers = unif(problem.left_side, problem.right_side, constraints)
+            if any_unifiers(unifiers):
                 return unifiers
 
     # If we got this far then no unifiers were found
