@@ -280,7 +280,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
         result = m.rcv_block(sid, x)
         # Try to find unifiers if schedule is every
         if schedule == "every":
-            unifiers = p_unif(create_unification_problems(result), constraints)
+            unifiers = unif(create_unification_problems(result), constraints)
             if any_unifiers(unifiers):
                 return unifiers
     
@@ -288,7 +288,7 @@ def MOE(unif = unif, chaining = CipherBlockChaining, schedule : str = 'every', l
     result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
     if schedule == "end":
-        unifiers = p_unif(create_unification_problems(result), constraints)
+        unifiers = unif(create_unification_problems(result), constraints)
         if any_unifiers(unifiers):
                 return unifiers
 
