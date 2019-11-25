@@ -14,6 +14,9 @@ def is_xor_term(t):
     else:
         return (isinstance(t, FuncTerm) and t.function.symbol == "xor")
 
+def is_XOR_Term(t):
+    return isinstance(t, XORTerm)
+
 def xor_to_list(t):
     #convert a xor-term to a list of terms
     if(not is_xor_term(t)):
@@ -33,6 +36,15 @@ def simplify(lst):
         else:
             result.append(item)
     return result
+
+def simplify_XOR_Term(t):
+    simplified_arguments = simplify(t.arguments)
+    if(len(simplified_arguments) == 0):
+        return Zero()
+    elif(len(simplified_arguments) == 1):
+        return simplified_arguments[0]
+    else:
+        return XORTerm(simplified_arguments)
 
 def list_to_xor(lst):
     #convert a list of terms to a xor-term
@@ -473,12 +485,12 @@ class Rule_Decompose(XOR_Rule):
         second = eq.left_side.arguments[1]
         sigma = unif(first, second)
         if(sigma == False):
-            return False
+            return (False, None)
         else:
             new_eqs = apply_sub_to_equations(state.equations, sigma)
             new_eqs = normalize_equations(new_eqs)
             state.substitution = state.substitution * sigma
-            return XOR_proof_state(new_eqs, state.disequations, state.substitution)
+            return (True, XOR_proof_state(new_eqs, state.disequations, state.substitution))
 
 
 def xor_unification_helper(state):
@@ -513,8 +525,11 @@ def xor_unification_helper(state):
         new_state = trivial_rule.apply(state)
         return xor_unification_helper(new_state)
     elif(decompose_rule.is_applicable(state)):
-        new_state = decompose_rule.apply(state)
-        return xor_unification_helper(new_state)
+        (unifiable, new_state) = decompose_rule.apply(state)
+        if(unifiable):
+            return xor_unification_helper(new_state)
+        else:
+            return []
     elif(subst_rule.is_applicable(state)):
         new_state = subst_rule.apply(state)
         return xor_unification_helper(new_state)
