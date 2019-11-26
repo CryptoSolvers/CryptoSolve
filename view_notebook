@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+source senv/bin/activate
+jupyter lab examples/notebooks
