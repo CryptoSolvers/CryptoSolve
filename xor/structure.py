@@ -60,4 +60,35 @@ class XORTerm:
             else:
                 inside = inside or (term == arg)
         return inside
+
+class ConstrainedTerm:
+    def __init__(self, tm, sigma):
+    #term can possibly contain XOR subterms.
+        self.term = tm
+        self.constraint = sigma
+
+    # Hash needed for network library
+    def __hash__(self):
+        return hash(("constrainedterm", self.term))
+
+    def __eq__(self, t):
+        if(not isinstance(t, ConstrainedTerm)):
+            return False
+        if(self.term != t.term):
+            return False
+        else:
+            self_sub = self.constraint
+            self_domain = list(self_sub.domain())
+            t_sub = t.constraint
+            t_domain = list(t_sub.domain())
+            if(len(self_domain) != len(t_domain)):
+                return False
+            for var in self_domain:
+                if(not (var in t_domain)):
+                    return False
+                elif(var * self_sub != var * t_sub):
+                    return False
+            return True
+
+
 ###################################
