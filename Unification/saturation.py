@@ -33,9 +33,9 @@ def resolve(constrained_t1, constrained_t2):
     #returns a list of all possible results
     #For example, if t1 is f(x) + a[y |-> z] and t2 is f(a) + b[y |-> a],
     #then the result is a + b[y |-> a]
-    t1 = constrained_t1.term
+    t1 = convert_to_XORTerm(constrained_t1.term)
     constraint1 = constrained_t1.constraint
-    t2 = constrained_t2.term
+    t2 = convert_to_XORTerm(constrained_t2.term)
     constraint2 = constrained_t2.constraint
     constraint12 = combine_two_substitutions(constraint1, constraint2)
     if(constraint12 == []):
@@ -46,9 +46,13 @@ def resolve(constrained_t1, constrained_t2):
     for (term1, remaining_t1) in results1:
         for (term2, remaining_t2) in results2:
             eq = Equation(convert_to_xorterm(term1), convert_to_xorterm(term2))
-            #print(eq)
             eqs = Equations([eq])
+            #print("solving:")
+            #print(eq)
             xor_unifiers = xor_unification(eqs)
+            #print("xor unifiers:")
+            #for xor_u in xor_unifiers:
+            #    print(xor_u)
 
             for unifier in xor_unifiers:
                 for cons12 in constraint12:
@@ -257,14 +261,15 @@ c = Constant("c")
 d = Constant("d")
 f = Function("f", 1)
 
+t0 = a
 t1 = xor(a, b)
 t2 = xor(b, c)
-t3 = f(xor(a, c))
+t3 = f(xor(x1, c))
 t4 = f(x2)
 
 constraint = dict()
-constraint[x1] = [t1]
-constraint[x2] = [t1, t2]
+constraint[x1] = [t1, t0]
+constraint[x2] = [t0, t1, t2]
 constraint[x3] = [t1, t2, t3]
 constraint[x4] = [t1, t2, t3, t4]
 initial_list = [t1, t2, t3, t4]
@@ -279,6 +284,9 @@ for res in results:
     if(res.term == Zero()):
         result = fix(res.constraint, constraint)
         if(result != None):
+            print("I found a unifier:")
             print(result)
+
+
 
 
