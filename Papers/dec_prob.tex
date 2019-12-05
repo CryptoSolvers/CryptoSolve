@@ -920,5 +920,141 @@ this leads to the following result.
 \end{theorem}
 \begin{proof}
 \end{proof}
+\vfill
+\pagebreak
+\subsection{Example}
+Consider the following PCP:
+\[
+(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
+\] 
+Assume that the oracle has only a single session initiated by the 
+adversary in which to encode the above problem. Assume also that the
+$MOE$ is CBC and the schedule is immediate.  
+
+The encoding is done as follows:
+\begin{itemize}
+	\item The oracle encode the strings of the PCP using a canonical ordering
+	of the strings representing the index of the PCP strings. 
+	For example, 
+	$1, ~2, ~3, ~11, ~12, ~13, ~21, ~22, ~23, ~31, ~32, ~33, ~111, 
+	\ldots$.  
+	\item For each index in the above ordering the oracle encodes
+	two cipher blocks, one which encodes the upper string from the 
+	PCP for that index and one that encodes the lower strings.
+	There are two possible encoding methods we could selected, 
+	one using the $h()$ function and one without. 
+	For example:
+	\begin{itemize}
+		\item For the index $13$ the two possible encodings for the
+		upper strings would be: 
+		\begin{enumerate}
+			\item $f(b \oplus f(a \oplus f(a \oplus f(a \oplus
+			f(a \oplus r_{13})))))$.
+			\item $f(h(b) \oplus h^2(a) \oplus h^3(a) \oplus 
+			h^4(a) \oplus h^5(a) \oplus r_{13})$
+		\end{enumerate}
+		\item For the index $13$ the two possible encodings for the
+		lower strings would be: 
+		\begin{enumerate}
+			\item $f(b \oplus f(a \oplus f(a \oplus f(a \oplus
+			f(a \oplus r_{13})))))$.
+			\item $f(h(b) \oplus h^2(a) \oplus h^3(a) \oplus 
+			h^4(a) \oplus h^5(a) \oplus r_{13})$
+		\end{enumerate}
+		\item the $r_{13}$ nonce is added to the both the upper and 
+		lower encodings for the index $13$ and likewise for all other
+		index. Thus only cipher blocks encoding strings with the same index can be unified. 
+	\end{itemize}
+	\item For each plain text sent by the adversary the oracle ignores the plain text and sends the next cipher block in the above
+	canonical sequence. Thus it takes two steps to send each index
+	in the sequence since there are two cipher blocks for each index, 
+	one for the upper strings and one for the lower.
+	\item The adversary finds a unifier for two blocks iff there
+	is a solution to the PCP.
+	\begin{itemize}
+		\item Only upper and lower strings with the same index will 
+		have the same nonce and thus be the only possible 
+		unifiable cipher blocks. 
+		\item All possible strings will eventually be encoded 
+		with a session of arbitrary length.  
+	\end{itemize}
+\end{itemize}
+
+\section{Pair Encodings by the Oracle}
+
+In this section we look at another possible encoding, where the
+cipher blocks contain pairs. The encoding is done as follows:
+\begin{itemize}
+	\item The $f$-encoding of a string $s = a_1 \cdot a_2 \cdot ~\ldots ~\cdot a_n$, denoted as $f(\bigoplus s)$, is 
+	$f(a_1 \oplus f(a_2 \oplus \ldots f(a_n \oplus C_j) \ldots ))$, where $C_j$ is a cipher block containing the $f(\bigoplus s')$ 
+	encoding of another string $s'$ or a nonce.
+	\item Each cipher block, $C_i$, is the encoding of a pair
+	$[A_i, B_i]$, where $A_i$ is a cipher block $f$-encoding of upper strings of the PCP, and $B_i$ the $f$-encoding of lower strings.
+	$C_0 = [A_0,B_0]$, where $A_0$ is the $f$-encoding of a 
+	upper string in the PCP and $B_0$ the corresponding lower string.
+	The only difference for these initial encodings is the inclusion of a random nonce, $r$, instead of a prior block. More details:
+	\begin{itemize}
+		\item $A_i =f(a_1 \oplus f(a_2 \oplus \ldots f(a_n \oplus C_{i-1, 1}) \ldots )) $
+		\item $B_i =f(b_1 \oplus f(b_2 \oplus \ldots f(b_m \oplus C_{i-1, 2}) \ldots )) $
+		\item For $A_0$, $C_{i-1, 1}=r$, where $r$ is a random nonce.
+		\item For $B_0$, $C_{i-1, 2}=r$, where $r$ is a random nonce.
+	\end{itemize}  
+	\item For each pair in a cipher block we distinguish the first of the second element of the pair by a subscript. For example, if $C_i = [t_1, t_2]$, then 
+	$C_{i,1} = t_1$ and $C_{i,2} = t_2$.
+	 
+\end{itemize}
+
+The interaction works as follows:
+\begin{enumerate}
+	\item The adversary sends $P_i$.
+	\item The oracle ignores $P_i$ and sends back $C_i$. 
+	\item The adversary attempts to unify $C_{i, 1}$ with 
+	$C_{i,2}$. The adversary is successful and the interaction 
+	stops if a unifier is found.
+\end{enumerate}
+
+\begin{theorem}
+		The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
+		sessions, bounded session lengths, immediate schedule, and CBC.
+\end{theorem}
+\begin{proof}
+	\textbf{Sketch:}\\
+	Notice that for any string produced by the combination
+	of strings from a PCP, there will be a cipher block $C_i$ that
+	is the $f$-encoding of that string. Furthermore, 
+	$C_{i,1}$ will encode the upper strings and $C_{i,2}$ will
+	encode the lower strings. 
+	
+	Then, there exists a unifier of $C_{i,1} =^{?} C_{i,2}$ iff
+	the encoded strings are a solution to the PCP.  
+\end{proof}
+
+\begin{example}
+Consider the following PCP:
+\[
+(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
+\] 
+A solution to this problem is $1,3$. Notice that we get that 
+encoded in the following cipher block.
+
+The first possible ``initial blocks'':
+\begin{align*}
+C^1_0 &= [f(b \oplus f(a \oplus r_1)), f(b \oplus f(a \oplus f(a \oplus r_1)))]\\
+C^2_0 &= [f(a \oplus f(b \oplus r_2)), f(b \oplus f(a \oplus r_2))]\\
+C^3_0 &= [f(a \oplus f(a \oplus f(a \oplus r_3))), f(a \oplus f(a \oplus r_3))]\\
+\end{align*}
+
+Some of the possible blocks encoding two strings:
  
+\end{example}
+\begin{align*}
+C^{1,3}_i &= [f(a \oplus f(a \oplus f(a, C^3_{0, 1}))), f(a \oplus f(a \oplus C^3_{0, 2}))], \text{ Encoding the string index 3,1}\\
+C^{2,3}_j &= [f(a \oplus f(a \oplus f(a \oplus C^2_{0, 1}))), f(a \oplus f(a \oplus C^2_{0, 2}))], \text{ Encoding the string index 3,2}\\
+C^{3,1}_k &= [f(b \oplus f(a \oplus C^3_{0, 1}))), f(b \oplus f(a \oplus f(a \oplus C^3_{0, 2})))], \text{ Encoding the string index 1,3}\\
+\end{align*}
+
+Notice that there is a solution, $1,3$, since 
+$C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))))$
+ and 
+$C^{3,1}_{k, 2} f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
 \end{document}
