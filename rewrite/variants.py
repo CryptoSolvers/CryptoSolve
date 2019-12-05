@@ -1,6 +1,6 @@
 from .rewrite import *
 
-def recurse_rule_apply(term : Term, rule = RewriteRule):
+def recurse_rule_apply(term : Term, rule : RewriteRule):
     """Apply rewrite rule to subterms if term is unchanged"""
     new_term = rule.apply(term)
     # If the term didn't change, try recursing down to change...
@@ -20,7 +20,7 @@ class VariantsFromRule:
     def __iter__(self):
         return self
     def __next__(self):
-        new_term = recurse_rule_apply(term, rule)
+        new_term = recurse_rule_apply(self.term, self.rule)
         if new_term == self.term:
             raise StopIteration
         self.term = new_term
@@ -69,20 +69,20 @@ class Variants:
         return next_node
 
 def is_finite(v : Variants, bound : int):
-    """Check the variants structure to see if it's finite. Returns true if it is or if the bound is reached on the number of rules applied."""
+    """Check the variants structure to see if it's finite. Returns true if it is or if the bound is reached on the number of rules applied. Set bound to -1 if you want to try infinitely."""
     iteration = 1
     for variant in v:
-        if iteration > bound:
+        if bound != -1 and iteration > bound:
             return False
         iteration += 1
     return True
 
 def narrow(term : Term, goal_term : Term, rules : List[RewriteRule], bound : int) -> Union[Literal[False], List[RewriteRule]]:
-    """Narrow one term to another term through a set of rewrite rules. If the term cannot be rewritten it'll return false, otherwise it'll return a list of rewrite rules in the order that they need to be applied to produce the new term."""
+    """Narrow one term to another term through a set of rewrite rules. If the term cannot be rewritten it'll return false, otherwise it'll return a list of rewrite rules in the order that they need to be applied to produce the new term. Set bound to -1 if you want it to try infinitely"""
     variants = Variants(term, rules)
     attempt = 1
     for variant in variants:
-        if attempt > bound:
+        if bound != -1 and attempt > bound:
             break
         if variant == goal_term:
             return variants.tree[-1][variant]
