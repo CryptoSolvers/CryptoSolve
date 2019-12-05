@@ -16,7 +16,8 @@ class GenericTerm:
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
-        return type(self) is type(x) and self.symbol == x.symbol
+        return type(self) == type(x) and self.symbol == x.symbol
+
 class Function(GenericTerm):
     def __init__(self, symbol : str, arity : int):
         super().__init__(symbol)
@@ -28,6 +29,7 @@ class Function(GenericTerm):
 class Variable(GenericTerm): 
     def __init__(self, symbol : str):
         super().__init__(symbol)
+
 class FuncTerm(GenericTerm):
     def __init__(self, function : Function, args): 
         super().__init__(function.symbol)
@@ -50,7 +52,7 @@ class FuncTerm(GenericTerm):
     def __hash__(self):
         return hash((self.function, tuple(self.arguments)))
     def __eq__(self, x):
-        return type(self) is type(x) and self.function == x.function and self.arguments == x.arguments
+        return type(self) == type(x) and self.function == x.function and self.arguments == x.arguments
     def __contains__(self, term):
         inside = False
         for arg in self.arguments:
@@ -73,16 +75,17 @@ Term = Union[FuncTerm, Constant, Variable]
 
 @overload
 def get_vars(t: Term, unique: Literal[False]) -> List[Variable]:
-	""""""
+	"""Get the variables inside a term"""
 
 @overload
 def get_vars(t: Term, unique : Literal[True]) -> Set[Variable]:
-    """"""
+    """Get the variables inside a term"""
 @overload
 def get_vars(t: Term) -> List[Variable]:
-    """"""
+    """Get the variables inside a term"""
 
 def get_vars(t, unique = False):
+    """Get the variables inside a term"""
     if isinstance(t, Variable): 
         return {t} if unique else [t]
 	
@@ -99,17 +102,18 @@ def get_vars(t, unique = False):
 #
 @overload
 def get_constants(t: Term, unique: Literal[False]) -> List[Constant]:
-    """"""
+    """Get the constants inside a term"""
 
 @overload
 def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
-    """"""
+    """Get the constants inside a term"""
 
 @overload
 def get_constants(t: Term) -> List[Constant]:
-    """"""
+    """Get the constants inside a term"""
 
 def get_constants(t, unique = False):
+    """Get the constants inside a term"""
     if isinstance(t, Constant): 
         return {t} if unique else [t]
 	
@@ -126,17 +130,18 @@ def get_constants(t, unique = False):
 #
 @overload
 def get_vars_or_constants(t: Term, unique: Literal[False]) -> List[Union[Variable, Constant]]:
-    """"""
+    """Get the variables and constants inside a term"""
 
 @overload
 def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable, Constant]]:
-    """"""
+    """Get the variables and constants inside a term"""
 
 @overload
 def get_vars_or_constants(t: Term) -> List[Union[Variable, Constant]]:
-    """"""
+    """Get the variables and constants inside a term"""
 
 def get_vars_or_constants(t, unique = False):
+    """Get the variables and constants inside a term"""
     if isinstance(t, Constant) or isinstance(t, Variable): 
         return {t} if unique else [t]
     

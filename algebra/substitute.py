@@ -1,23 +1,27 @@
 from .term import *
 from .dag import TermDAG
+from typing import Set
 
 class SubstituteTerm:
     def __init__(self):
-        self.subs = set() # Tuple of (Variable, Term)
+        self.subs : Set[Variable, Term] = set()
     
     def add(self, variable : Variable, term : Term):
         """Adds a mapping from a variable to a term"""
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
+        # Check to see if what we're adding already exists in the substitution set
         if len(self.subs) > 0:
+            # Separate the variables and terms in the set
             v, t = zip(*self.subs)
-            # If we're adding something that's already in the set then we'll just ignore it
             if variable in v and term != t[v.index(variable)]:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
     
     def remove(self, variable : Variable):
         """Removes a mapping from a variable"""
+        # The removal technique consists of creating a set that contains what you want to remove
+        # and then do set subtraction
         if len(self.subs) > 0:
             v, t = zip(*self.subs)
             term = t[v.index(variable)]
@@ -30,6 +34,7 @@ class SubstituteTerm:
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.remove(variable)
+        # We don't have to call self.add as we already ensured that the item is removed
         self.subs.add((variable, term))
     
     def domain(self) -> List[Variable]:
@@ -113,17 +118,18 @@ class SubstituteTerm:
     
     def _termSubstituteHelper(self, term : Term) -> Term:
         return_value = term
+        # If there is nothing in the substitution set, return the same term
         if len(self.subs) > 0:
             sub_vars, sub_terms = zip(*self.subs)
+            # If the term matches something in the substitution set, return the mapping
             if term in sub_vars:
                 return_value = sub_terms[sub_vars.index(term)]
+            # Otherwise, if the term is a function, recurse down
             elif isinstance(term, FuncTerm):
                 arguments = list(term.arguments)
                 for i, t in enumerate(arguments):
                     arguments[i] = self._termSubstituteHelper(t)
                 term.set_arguments(arguments)
-                return_value = term
-            else:
                 return_value = term
         return return_value
 

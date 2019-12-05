@@ -9,13 +9,14 @@ It also includes a way to print the equation or turn it into a directed acyclic 
 - Constant
 - Variable
 - Function
+- FuncTerm
 - Equation
 
-To clean up type annotations, I defined a `Term` to be either a `Constant`, `Variable`, or a `Function`.
+To clean up type annotations, I defined a `Term` to mean any of the above.
+
+A FuncTerm is an instantiation of a function with terms as its arguments.
 
 An equation takes two terms and sets them equal to each other. 
-
-A function takes an arbitrary number of terms as arguments.
 
 ## Directed Acyclic Graph (DAG)
 
