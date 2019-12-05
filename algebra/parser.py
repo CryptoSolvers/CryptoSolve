@@ -8,21 +8,21 @@ class Parser:
 
     def add(self, term : Union[Variable, Constant, Function]):
         if isinstance(term, Variable):
-            if self.find_constant(term.symbol) is not None:
+            if self.find_constant(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a constant in the Parser")
-            if self.find_function(term.symbol) is not None:
+            if self.find_function(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a function in the Parser")
             self.variables.add(term)
         elif isinstance(term, Constant):
-            if self.find_variable(term.symbol) is not None:
+            if self.find_variable(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a variable in the Parser")
-            if self.find_function(term.symbol) is not None:
+            if self.find_function(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a function in the Parser")
             self.constants.add(term)
         elif isinstance(term, Function):
-            if self.find_constant(term.symbol) is not None:
+            if self.find_constant(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a constant in the Parser")
-            if self.find_variable(term.symbol) is not None:
+            if self.find_variable(term.symbol) != None:
                 raise ValueError("Symbol is already defined as a variable in the Parser")
             self.functions.add(term)
         else:
@@ -38,31 +38,31 @@ class Parser:
     
     def find_function(self, x : str) -> Optional[Function]:
         for f in self.functions:
-            if x is f.symbol:
+            if x == f.symbol:
                 return f
         return None
     
     def find_constant(self, x : str) -> Optional[Constant]:
         for c in self.constants:
-            if x is c.symbol:
+            if x == c.symbol:
                 return c
         return None
     
     def find_variable(self, x : str) -> Optional[Variable]:
         for v in self.variables:
-            if x is v.symbol:
+            if x == v.symbol:
                 return v
         return None
     
     def _find_first_char(self, needle : str, haystack : str) -> int:
         for i, c in enumerate(haystack):
-            if c is needle:
+            if c == needle:
                 return i
         return -1
     
     def _find_last_char(self, needle : str, haystack : str) -> int:
         for i, c in enumerate(reversed(haystack)):
-            if c is needle:
+            if c == needle:
                 return len(haystack) - i
         return -1
     
@@ -79,10 +79,10 @@ class Parser:
                 else:
                     continue
             else:
-                if c is ",":
+                if c == ",":
                     args.append(x[start_i:i])
                     start_i = i + 1
-                elif c is "(":
+                elif c == "(":
                     parenthesis = True
         if parenthesis:
             raise ValueError("Parenthesis Mismatch")
@@ -95,14 +95,14 @@ class Parser:
 
     def parse(self, x : str) -> Union[Variable, Constant, Function, FuncTerm]:
         start_i = self._find_first_char("(", x)
-        if start_i is not -1:
+        if start_i != -1:
             end_i = self._find_last_char(")", x)
-            if end_i is -1:
+            if end_i == -1:
                 raise ValueError("Parenthesis misbalance")
             # We have a function!
             function_name = x[:start_i]
             function_handle = self.find_function(function_name)
-            if function_handle is None:
+            if function_handle != None:
                 raise ValueError("Function " + function_name + " is not defined in the Parser")
 
             argument_strings = self._parse_arguments(x[(start_i + 1):(end_i - 1)])
@@ -117,13 +117,13 @@ class Parser:
             return function_handle(*args)
         else:
             x_var = self.find_variable(x)
-            if x_var is not None:
+            if x_var != None:
                 return x_var
             x_constant = self.find_constant(x)
-            if x_constant is not None:
+            if x_constant != None:
                 return x_constant
             x_function = self.find_function(x)
-            if x_function is not None:
+            if x_function != None:
                 return x_function
             # If none of the above matched return an error
             raise ValueError("Symbol " + x + " is undefined in the Parser")

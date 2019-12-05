@@ -35,13 +35,13 @@ def get_chaining(x: str):
         return CipherFeedback
     if x == "HashCBC":
         return HashCBC
-    # if x is "OutputFeedback":
+    # if x == "OutputFeedback":
     #     return OutputFeedback
-    # if x is "CounterMode":
+    # if x == "CounterMode":
     #     return CounterMode
-    # if x is "AccumulatedBlockCiper":
+    # if x == "AccumulatedBlockCiper":
     #     return AccumulatedBlockCiper
-    # if x is "DoubleHashCBC":
+    # if x == "DoubleHashCBC":
     #     return DoubleHashCBC
     return None
 
