@@ -982,14 +982,14 @@ The encoding is done as follows:
 
 \section{Pair Encodings by the Oracle}
 
-In this section we look at another possible encoding, where the
-cipher blocks contain pairs. The encoding is done as follows:
+In this section we look at another possible encoding, where 
+the oracle sends multiple cipher blocks back to the
+adversary each turn. The encoding is done as follows:
 \begin{itemize}
 	\item The $f$-encoding of a string $s = a_1 \cdot a_2 \cdot ~\ldots ~\cdot a_n$, denoted as $f(\bigoplus s)$, is 
 	$f(a_1 \oplus f(a_2 \oplus \ldots f(a_n \oplus C_j) \ldots ))$, where $C_j$ is a cipher block containing the $f(\bigoplus s')$ 
 	encoding of another string $s'$ or a nonce.
-	\item Each cipher block, $C_i$, is the encoding of a pair
-	$[A_i, B_i]$, where $A_i$ is a cipher block $f$-encoding of upper strings of the PCP, and $B_i$ the $f$-encoding of lower strings.
+	\item Each turn the oracle encodes and return two cipher blocks. $A_i$ and $B_i$, where $A_i$ is a cipher block $f$-encoding of upper strings of the PCP, and $B_i$ the $f$-encoding of lower strings.
 	$C_0 = [A_0,B_0]$, where $A_0$ is the $f$-encoding of a 
 	upper string in the PCP and $B_0$ the corresponding lower string.
 	The only difference for these initial encodings is the inclusion of a random nonce, $r$, instead of a prior block. More details:
@@ -999,8 +999,9 @@ cipher blocks contain pairs. The encoding is done as follows:
 		\item For $A_0$, $C_{i-1, 1}=r$, where $r$ is a random nonce.
 		\item For $B_0$, $C_{i-1, 2}=r$, where $r$ is a random nonce.
 	\end{itemize}  
-	\item For each pair in a cipher block we distinguish the first of the second element of the pair by a subscript. For example, if $C_i = [t_1, t_2]$, then 
-	$C_{i,1} = t_1$ and $C_{i,2} = t_2$.
+	\item For each pair of cipher block, $A_i$ and $B_i$, we
+	use $C_i$ to represent the pair. We distinguish the cipher blocks of the pair by a subscript. For example, if $C_i = A_i, B_i$, then 
+	$C_{i,1} = A_i$ and $C_{i,2} = B_i$.
 	 
 \end{itemize}
 
@@ -1039,22 +1040,22 @@ encoded in the following cipher block.
 
 The first possible ``initial blocks'':
 \begin{align*}
-C^1_0 &= [f(b \oplus f(a \oplus r_1)), f(b \oplus f(a \oplus f(a \oplus r_1)))]\\
-C^2_0 &= [f(a \oplus f(b \oplus r_2)), f(b \oplus f(a \oplus r_2))]\\
-C^3_0 &= [f(a \oplus f(a \oplus f(a \oplus r_3))), f(a \oplus f(a \oplus r_3))]\\
+C^1_0 &= f(b \oplus f(a \oplus r_1)), ~f(b \oplus f(a \oplus f(a \oplus r_1)))\\
+C^2_0 &= f(a \oplus f(b \oplus r_2)), ~f(b \oplus f(a \oplus r_2))\\
+C^3_0 &= f(a \oplus f(a \oplus f(a \oplus r_3))), ~f(a \oplus f(a \oplus r_3))\\
 \end{align*}
 
 Some of the possible blocks encoding two strings:
  
 \end{example}
 \begin{align*}
-C^{1,3}_i &= [f(a \oplus f(a \oplus f(a, C^3_{0, 1}))), f(a \oplus f(a \oplus C^3_{0, 2}))], \text{ Encoding the string index 3,1}\\
-C^{2,3}_j &= [f(a \oplus f(a \oplus f(a \oplus C^2_{0, 1}))), f(a \oplus f(a \oplus C^2_{0, 2}))], \text{ Encoding the string index 3,2}\\
-C^{3,1}_k &= [f(b \oplus f(a \oplus C^3_{0, 1}))), f(b \oplus f(a \oplus f(a \oplus C^3_{0, 2})))], \text{ Encoding the string index 1,3}\\
+C^{1,3}_i &= f(a \oplus f(a \oplus f(a, C^3_{0, 1}))), ~f(a \oplus f(a \oplus C^3_{0, 2})), \text{ Encoding the string index 3,1}\\
+C^{2,3}_j &= f(a \oplus f(a \oplus f(a \oplus C^2_{0, 1}))), ~f(a \oplus f(a \oplus C^2_{0, 2})), \text{ Encoding the string index 3,2}\\
+C^{3,1}_k &= f(b \oplus f(a \oplus C^3_{0, 1}))), ~f(b \oplus f(a \oplus f(a \oplus C^3_{0, 2}))), \text{ Encoding the string index 1,3}\\
 \end{align*}
 
 Notice that there is a solution, $1,3$, since 
 $C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))))$
  and 
-$C^{3,1}_{k, 2} f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
+$C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
 \end{document}
