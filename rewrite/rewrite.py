@@ -88,7 +88,7 @@ class RewriteRule:
         # Perform matching and substitution
         frozen_term = freeze(term)
         sigma = unif(self.hypothesis, frozen_term)
-        return self.conclusion * sigma if sigma else None
+        return self.conclusion * sigma if sigma != False else None
 
     def _apply_pos(self, term : Term, pos : Position) -> Optional[Term]:
         term = deepcopy(term)
@@ -111,18 +111,16 @@ class RewriteRule:
         return term
     
     def _apply_all(self, term : Term, pos : Position, subterm : Term, result : Dict[Position, Term]) -> Dict[Position, Term]:
-        """Applies the rewrite rule to every subterm"""
-        if isinstance(subterm, Constant) or isinstance(subterm, Variable):
-            return result
-        
+        """Applies the rewrite rule to every subterm"""     
         # If the current position is rewritable, add it to result dictionary
         r = self._apply_pos(term, pos)
         if r is not None:
             result[pos] = r
         
         # Recurse down arguments
-        for i, t in enumerate(subterm.arguments):
-            self._apply_all(term, pos + str(i + 1), t, result)
+        if isinstance(subterm, FuncTerm): 
+            for i, t in enumerate(subterm.arguments):
+                self._apply_all(term, pos + str(i + 1), t, result)
         
         return result
     
