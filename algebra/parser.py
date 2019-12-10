@@ -8,21 +8,21 @@ class Parser:
 
     def add(self, term : Union[Variable, Constant, Function]):
         if isinstance(term, Variable):
-            if self.find_constant(term.symbol) != None:
+            if self.find_constant(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a constant in the Parser")
-            if self.find_function(term.symbol) != None:
+            if self.find_function(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a function in the Parser")
             self.variables.add(term)
         elif isinstance(term, Constant):
-            if self.find_variable(term.symbol) != None:
+            if self.find_variable(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a variable in the Parser")
-            if self.find_function(term.symbol) != None:
+            if self.find_function(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a function in the Parser")
             self.constants.add(term)
         elif isinstance(term, Function):
-            if self.find_constant(term.symbol) != None:
+            if self.find_constant(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a constant in the Parser")
-            if self.find_variable(term.symbol) != None:
+            if self.find_variable(term.symbol) is not None:
                 raise ValueError("Symbol is already defined as a variable in the Parser")
             self.functions.add(term)
         else:
@@ -93,7 +93,7 @@ class Parser:
 
 
 
-    def parse(self, x : str) -> Union[Variable, Constant, Function, FuncTerm]:
+    def parse(self, x : str) -> Union[Variable, Constant, Function, FuncTerm, ValueError]:
         start_i = self._find_first_char("(", x)
         if start_i != -1:
             end_i = self._find_last_char(")", x)
@@ -102,7 +102,7 @@ class Parser:
             # We have a function!
             function_name = x[:start_i]
             function_handle = self.find_function(function_name)
-            if function_handle != None:
+            if function_handle is not None:
                 raise ValueError("Function " + function_name + " is not defined in the Parser")
 
             argument_strings = self._parse_arguments(x[(start_i + 1):(end_i - 1)])
@@ -117,13 +117,13 @@ class Parser:
             return function_handle(*args)
         else:
             x_var = self.find_variable(x)
-            if x_var != None:
+            if x_var is not None:
                 return x_var
             x_constant = self.find_constant(x)
-            if x_constant != None:
+            if x_constant is not None:
                 return x_constant
             x_function = self.find_function(x)
-            if x_function != None:
+            if x_function is not None:
                 return x_function
             # If none of the above matched return an error
             raise ValueError("Symbol " + x + " is undefined in the Parser")
