@@ -71,22 +71,11 @@ class RewriteRule:
         self.hypothesis = hypothesis
         self.conclusion = conclusion
     
-    def apply(self, term : Term, pos : Optional[Position] = None) -> Union[Dict[Position, Term], Optional[Term], ValueError]:
+    def apply(self, term : Term, pos : Optional[Position] = None) -> Union[Dict[Position, Term], Optional[Term]]:
         """Applies the rewrite rule to a certain subterm or all subterms if not specified."""
         if pos is None:
-            return self._apply_helper(term, '', dict())
-        if pos == '':
-            return self._match(term)
-        
-        # Recurse down to appropriate position
-        if isinstance(term, Constant) or isinstance(term, Variable):
-            return ValueError("Position " + pos + " is not valid for term " + str(term))
-        index = int(pos[0])
-        if index > len(term.arguments):
-            return ValueError("Position " + pos + " is not valid for term " + str(term))
-        
-        return self.apply(term.arguments[index - 1], pos[1:])
-
+            return self._apply_all(term, '', term, dict())
+        return self._apply_pos(term, pos)
 
     
     def _match(self, term : Term) -> Optional[Term]:
@@ -101,20 +90,39 @@ class RewriteRule:
         sigma = unif(self.hypothesis, frozen_term)
         return self.conclusion * sigma if sigma else None
 
-    
-    def _apply_helper(self, term : Term, pos : Position, result : Dict[Position, Term]) -> Dict[Position, Term]:
-        """Applies the rewrite rule to every subterm"""
+    def _apply_pos(self, term : Term, pos : Position) -> Optional[Term]:
+        term = deepcopy(term)
+        if pos == '':
+            return self._match(term)
+        
+        # Recurse down to appropriate position
         if isinstance(term, Constant) or isinstance(term, Variable):
+            raise ValueError("Position " + pos + " is not valid for term " + str(term))
+        index = int(pos[0])
+        if index > len(term.arguments):
+            raise ValueError("Position " + pos + " is not valid for term " + str(term))
+        
+        term.arguments = list(term.arguments)
+        new_argument = self._apply_pos(term.arguments[index - 1], pos[1:])
+        if new_argument is None:
+            return None
+        term.arguments[index - 1] = new_argument
+        term.arguments = tuple(term.arguments)
+        return term
+    
+    def _apply_all(self, term : Term, pos : Position, subterm : Term, result : Dict[Position, Term]) -> Dict[Position, Term]:
+        """Applies the rewrite rule to every subterm"""
+        if isinstance(subterm, Constant) or isinstance(subterm, Variable):
             return result
         
         # If the current position is rewritable, add it to result dictionary
-        r = self._match(term)
+        r = self._apply_pos(term, pos)
         if r is not None:
             result[pos] = r
         
         # Recurse down arguments
-        for i, t in enumerate(term.arguments):
-            self._apply_helper(t, pos + str(i + 1), result)
+        for i, t in enumerate(subterm.arguments):
+            self._apply_all(term, pos + str(i + 1), t, result)
         
         return result
     
