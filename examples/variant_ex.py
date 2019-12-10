@@ -11,17 +11,13 @@ a = Constant("a")
 b = Constant("b")
 
 r = RewriteRule(f(x, x), x)
-
-vs = VariantsFromRule(f(a, f(b, b)), r)
-for v in vs:
-    print(v)
-
 r2 = RewriteRule(f(a, x), b)
+print("Rewrite Rule 1:", r)
+print("Rewrite Rule 2:", r2)
+term = f(a, f(b, b))
+vt = Variants(term, {r, r2})
+print("Variants of", term, ":", list(vt))
 
-vt = Variants(f(a, f(b, b)), {r, r2})
-for v in vt:
-    print(v)
+print("Variants Finite?", is_finite(vt, -1))
 
-print("Is Finite: ", is_finite(vt, -1))
-
-print("Rewrite rule from", f(a, f(b, b)), "to", b, narrow(f(a, f(b, b)), b, {r, r2}, -1))
+print("Rewrite rule from", term, "to", f(a, b), narrow(term, f(a,b), {r, r2}, -1))
