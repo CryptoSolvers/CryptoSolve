@@ -93,7 +93,7 @@ class Parser:
 
 
 
-    def parse(self, x : str) -> Union[Variable, Constant, Function, FuncTerm, ValueError]:
+    def parse(self, x : str) -> Union[Variable, Constant, Function, FuncTerm]:
         start_i = self._find_first_char("(", x)
         if start_i != -1:
             end_i = self._find_last_char(")", x)
@@ -102,7 +102,7 @@ class Parser:
             # We have a function!
             function_name = x[:start_i]
             function_handle = self.find_function(function_name)
-            if function_handle is not None:
+            if function_handle is None:
                 raise ValueError("Function " + function_name + " is not defined in the Parser")
 
             argument_strings = self._parse_arguments(x[(start_i + 1):(end_i - 1)])
