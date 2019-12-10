@@ -67,8 +67,8 @@ def index():
         session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
         knows_iv = request.form.get('knows_iv') == "knows_iv"
         
-        result = MOE(unif, chaining, schedule, length_bound, 1, knows_iv) if unif != None and chaining != None else "TRY AGAIN"
-        return render_tool_page(format_substitutions(result)) if result != None else render_tool_page("NO UNIFIERS FOUND")
+        result = MOE(unif, chaining, schedule, length_bound, 1, knows_iv) if unif is not None and chaining is not None else "TRY AGAIN"
+        return render_tool_page(format_substitutions(result)) if result is not None else render_tool_page("NO UNIFIERS FOUND")
 
     # Assume GET request and return form
     return render_tool_page("")
@@ -101,8 +101,8 @@ def program():
                 response = moe_session.rcv_stop(DEFAULT_SID)
                 del moe_sessions[uid]
                 session.pop('uid', None)
-            if response != None or moe_session.schedule == "end":
-                response = response if response != None else "Sent " + str(x) if x != None else ""
+            if response is not None or moe_session.schedule == "end":
+                response = response if response is not None else "Sent " + str(x) if x is not None else ""
                 return header + render_template('program.html', response = str(response)) + footer
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
@@ -116,7 +116,7 @@ def program():
             # Set up a userid and save the moe_session
             session['uid'] = uuid4()
             moe_sessions[session['uid']] = moe_session
-            response = response if response != None else "Sent " + str(x) 
+            response = response if response is not None else "Sent " + str(x) 
             return header + render_template('program.html', response = str(response)) + footer
     
     # Assume GET request and return form
