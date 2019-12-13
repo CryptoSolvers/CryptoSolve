@@ -71,10 +71,11 @@ class RewriteRule:
         self.hypothesis = hypothesis
         self.conclusion = conclusion
     
-    def apply(self, term : Term, pos : Optional[Position] = None) -> Union[Dict[Position, Term], Optional[Term]]:
+    def apply(self, term : Term, pos : Optional[Position] = None) -> Optional[Union[Dict[Position, Term], Term]]:
         """Applies the rewrite rule to a certain subterm or all subterms if not specified."""
         if pos is None:
-            return self._apply_all(term, '', term, dict())
+            result = self._apply_all(term, '', term, dict())
+            return result if len(result) != 0 else None
         return self._apply_pos(term, pos)
 
     

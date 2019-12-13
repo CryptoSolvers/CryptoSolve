@@ -27,11 +27,12 @@ class Variants:
         for rule in self.rules:
             for t in self.tree[last_branch_index].keys():
                 new_terms = rule.apply(t)
-                for pos, new_t in new_terms.items():
-                    # Check that the result is not already in the tree
-                    # If new, then set what rewrite rules at what positions produced the term in the branch
-                    if new_t not in self:
-                        branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
+                if new_terms is not None:
+                    for pos, new_t in new_terms.items():
+                        # Check that the result is not already in the tree
+                        # If new, then set what rewrite rules at what positions produced the term in the branch
+                        if new_t not in self:
+                            branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
         return branch
 
     def __next__(self):
