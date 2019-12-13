@@ -4,7 +4,7 @@ from typing import Union, Any, Optional, List
 from copy import deepcopy
 from algebra import *
 from collections import Counter
-from rewrite import *
+# from rewrite import *
 
 #
 ## Associative Functions
@@ -92,54 +92,54 @@ class ACTerm(ATerm, CTerm):
     def __hash__(self):
         return FuncTerm.__hash__(self)
 
-# 
-## Idempotence Functions
-#
+# # 
+# ## Idempotence Functions
+# #
 
-class IFunction(Function):
-    def __init__(self, symbol : str, arity : int):
-        super().__init__(symbol, arity)
-    def __call__(self, *args) -> Term:
-        term = ITerm(self, args)
-        x = Variable("x")
-        f = Function(self.symbol, self.arity)
-        r = RewriteRule(f(x,x), x)
-        return r.apply(term)
+# class IFunction(Function):
+#     def __init__(self, symbol : str, arity : int):
+#         super().__init__(symbol, arity)
+#     def __call__(self, *args) -> Term:
+#         term = ITerm(self, args)
+#         x = Variable("x")
+#         f = Function(self.symbol, self.arity)
+#         r = RewriteRule(f(x,x), x)
+#         return r.apply(term)
 
 
-class ITerm(FuncTerm):
-    def __init__(self, function : Function, args):
-        super().__init__(function, args)
-    def __eq__(self, x):
-        return isinstance(x, ITerm) and self.function == x.function and self.arguments == x.arguments
-    def __hash__(self):
-        return FuncTerm.__hash__(self)
+# class ITerm(FuncTerm):
+#     def __init__(self, function : Function, args):
+#         super().__init__(function, args)
+#     def __eq__(self, x):
+#         return isinstance(x, ITerm) and self.function == x.function and self.arguments == x.arguments
+#     def __hash__(self):
+#         return FuncTerm.__hash__(self)
 
-#
-## ACI
-#
+# #
+# ## ACI
+# #
 
-class ACIFunction(ACFunction, IFunction):
-    def __init__(self, symbol : str, arity : int):
-        super().__init__(symbol, arity)
-    # __call__ violates Liskov Substitution Principle?
-    def __call__(self, *args) -> FuncTerm: # type: ignore
-        # Apply I equational theory
-        args = tuple(set(args))
-        if len(args) == 1:
-            return deepcopy(args[0])
-        # Construct AC Term
-        term = ACITerm(self, args[:self.arity])
-        for i in range(self.arity, len(args), self.arity - 1):
-            l = args[i:(i + self.arity - 1)]
-            term = ACITerm(self, (term, *l))
-        return term
+# class ACIFunction(ACFunction, IFunction):
+#     def __init__(self, symbol : str, arity : int):
+#         super().__init__(symbol, arity)
+#     # __call__ violates Liskov Substitution Principle?
+#     def __call__(self, *args) -> FuncTerm: # type: ignore
+#         # Apply I equational theory
+#         args = tuple(set(args))
+#         if len(args) == 1:
+#             return deepcopy(args[0])
+#         # Construct AC Term
+#         term = ACITerm(self, args[:self.arity])
+#         for i in range(self.arity, len(args), self.arity - 1):
+#             l = args[i:(i + self.arity - 1)]
+#             term = ACITerm(self, (term, *l))
+#         return term
 
-class ACITerm(ACTerm, ITerm):
-    def __init__(self, function : Function, args):
-        ACTerm.__init__(self, function, args)
-        ITerm.__init__(self, function, args)
-    def __eq__(self, x):
-        return ACTerm.__eq__(self, x)
-    def __hash__(self):
-        return FuncTerm.__hash__(self)
+# class ACITerm(ACTerm, ITerm):
+#     def __init__(self, function : Function, args):
+#         ACTerm.__init__(self, function, args)
+#         ITerm.__init__(self, function, args)
+#     def __eq__(self, x):
+#         return ACTerm.__eq__(self, x)
+#     def __hash__(self):
+#         return FuncTerm.__hash__(self)

@@ -67,3 +67,19 @@ def narrow(term : Term, goal_term : Term, rules : Set[RewriteRule], bound : int)
             return variants.tree[-1][variant]
         attempt += 1
     return None
+
+def normal(element : Term, rewrite_rules : Set[RewriteRule]):
+    """Returns the normal form of an element given a set of convergent term rewrite rules"""
+    element = deepcopy(element)
+    element_changed = True
+    # We keep on going until the element stops changing
+    while element_changed:
+        element_changed = False
+        for rule in rewrite_rules:
+            new_elements = rule.apply(element)
+            if new_elements is not None:
+                # Replace element with any rewritten term
+                element = next(iter(new_elements.values()))
+                element_changed = True
+                break
+    return element
