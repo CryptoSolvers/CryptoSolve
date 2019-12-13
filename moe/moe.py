@@ -276,7 +276,7 @@ def pairwise(xs) -> List[Equation]:
     return result
 
 def unravel(t : Term, s : SubstituteTerm) -> Term:
-    """Apply a substitution until you can't""""
+    """Apply a substitution until you can't"""
     while t != t * s:
         t = t * s
     return t
