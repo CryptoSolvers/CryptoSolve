@@ -27,11 +27,12 @@ class Variants:
         for rule in self.rules:
             for t in self.tree[last_branch_index].keys():
                 new_terms = rule.apply(t)
-                for pos, new_t in new_terms.items():
-                    # Check that the result is not already in the tree
-                    # If new, then set what rewrite rules at what positions produced the term in the branch
-                    if new_t not in self:
-                        branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
+                if new_terms is not None:
+                    for pos, new_t in new_terms.items():
+                        # Check that the result is not already in the tree
+                        # If new, then set what rewrite rules at what positions produced the term in the branch
+                        if new_t not in self:
+                            branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
         return branch
 
     def __next__(self):
@@ -66,3 +67,19 @@ def narrow(term : Term, goal_term : Term, rules : Set[RewriteRule], bound : int)
             return variants.tree[-1][variant]
         attempt += 1
     return None
+
+def normal(element : Term, rewrite_rules : Set[RewriteRule]):
+    """Returns the normal form of an element given a set of convergent term rewrite rules"""
+    element = deepcopy(element)
+    element_changed = True
+    # We keep on going until the element stops changing
+    while element_changed:
+        element_changed = False
+        for rule in rewrite_rules:
+            new_elements = rule.apply(element)
+            if new_elements is not None:
+                # Replace element with any rewritten term
+                element = next(iter(new_elements.values()))
+                element_changed = True
+                break
+    return element
