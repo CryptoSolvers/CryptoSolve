@@ -133,5 +133,5 @@ def ac_unify(U: set):
 					
 	#Create the variable lists and send it to matrix solve
 	delta = SubstituteTerm()
-	delta=convert_eq(U, e.left_side.function.symbol)
+	delta=convert_eq(U, e.right_side.function.symbol)
 	print(delta)
