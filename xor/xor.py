@@ -1,5 +1,5 @@
 from algebra import *
-from theories import *
+from .ac import *
 from collections import Counter
 from .structure import *
 class Xor(ACFunction):
