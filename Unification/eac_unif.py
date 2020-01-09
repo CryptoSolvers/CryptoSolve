@@ -12,14 +12,13 @@
 #!/usr/bin/env python3
 from algebra import *
 from Unification import *
-from itertools import combinations
+#from itertools import combinations
 
 
 def eac_unif(U: set):
 	
-	
-	var_count = [0]
-	
+	unif_problems = dict()
+	U2 = set()
 	#First call flat
 	U2 = flat(U)
 	
@@ -29,128 +28,206 @@ def eac_unif(U: set):
 		var_set = var_set.union(get_vars(e.left_side))
 		var_set = var_set.union(get_vars(e.right_side))
 	
-	#print(var_set)
-	#Generate the set of partitions 
-	#To-Do
-	
-	
-	
-	
-	#################################################
-	# Composite Rules                               #
-	#################################################
-	
-	#rule c1, i*a*
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_i(U2, var_count)
-	
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_a(U2)
-	
-	print(U2)
-	
-	#rule c2, [b + c + d]a*
-	U2 = rule_b_c(U2)
-	U2 = rule_d(U2)
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_a(U2)
-		
-	print(U2)
-	
-	#rule c3, [b + c + d]*a*i*e[b + c + d]*a*
-	U2 = rule_b_c(U2)
-	U2 = rule_d(U2)
-	
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_a(U2)
-		
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_i(U2, var_count)
-	
-	U2 = rule_e(U2, var_count)
-	
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_b_c(U2)
-		U2 = rule_d(U2)
-	
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_a(U2)
-	
-	print(U2)
-	
-	#rule c4, (i*[b + c + d]*a*)*(f + g + h)a*
-	Utemp2 = set()
-	while Utemp2 != U2:
-		Utemp2 = U2
-		Utemp = set()
-		while Utemp != U2:
-			Utemp = U2
-			U2 = rule_i(U2, var_count)
-		Utemp = set()
-		while Utemp != U2:
-			Utemp = U2
-			U2 = rule_b_c(U2)
-			U2 = rule_d(U2)
-		Utemp = set()
-		while Utemp != U2:
-			Utemp = U2
-			U2 = rule_a(U2)
-	U2 = rule_f(U2, var_count)
-	U2 = rule_g(U2)
-	U2 = rule_h(U2, var_count)
-	Utemp = set()
-	while Utemp != U2:
-		Utemp = U2
-		U2 = rule_a(U2)
-	
-	
-	
-	################################################
-	# Call AC-unification                          #
-	################################################
-	
-	#first get just the f-terms
-	f_terms = set()
+	#Collect the variables for the set V
+	V = list()
 	for e in U2:
+		if isinstance(e.right_side, FuncTerm) and str(e.right_side.function) == "exp":
+			V.append(e.right_side.arguments[1])
 		if isinstance(e.right_side, FuncTerm) and str(e.right_side.function) == "f":
-			f_terms.add(e)
-	print("F-terms")
-	print(f_terms)
-	delta = SubstituteTerm()
+			V.append(e.right_side.arguments[0])
+			V.append(e.right_side.arguments[1])
+	#Generate the codewords of the partitions
+	VL = list(V)
+	P = list()
+	P = setpartitions(set(V))
 	
-	#call ac-unif
-	delta=ac_unify(f_terms)
-	print(delta)
+	#For each codeword, create the set of new equalities and
+	#send the set of equations to the unification algorithm rules
+	for code in P:
+		UE = set()
+		for  p in range(len(code)):
+			UE.add(Equation(VL[p], VL[code[p]-1]))
+		#Add the new equalities
+		U2.update(UE)
+		#Call the unification rules or R1
+		U3 = U4 = list()
+		U3 = R1(U2)
+		#now for each solution in U3 call AC-unification
+		for sol in U3:
+			#first get just the f-terms
+			f_terms = set()
+			if len(sol) != 0:
+				for e in sol:
+					if isinstance(e.right_side, FuncTerm) and str(e.right_side.function) == "f":
+						f_terms.add(e)
+				delta = SubstituteTerm()
+				#call ac-unif
+				delta=ac_unify(f_terms)
+				U4.append([sol, delta])
+	print("EAC Unification is complete")
+	return U4
+	
+def R1(U2: set):
+	
+	var_count = [0]
+	UP=list()
+	UP.append(U2)
+	Utemp = list()
+	Bound = 3
+	x = 0
+	#bound until graph termination method is added
+	while Utemp != UP and  x < Bound:
+		Utemp = UP
+		UP = rule_c1(UP, var_count)
+		UP = rule_c2(UP, var_count)
+		UP = rule_c3(UP, var_count)
+		UP = rule_c4(UP, var_count)
+		x = x + 1
+	return(UP)
+
+
+def rule_c1(UP: list, var_count):
+	#rule c1, i*a*
+	
+	#fail test
+	for U2 in UP:
+		if fail_rules(U2):
+			print("Fail found")
+			U2 = U2.clear()
+	
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_i(UP[i], var_count)
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_a(UP[i])
+	return(UP)
 	
 	
-	return U2
+def rule_c2(UP: list, var_count):
+	#Old: rule c2, [b + c + d]a*
+	#New: rule c2, [bcd]a*
+	#fail test
+	for U2 in UP:
+		if fail_rules(U2):
+			U2 = U2.clear()
+	
+	for i in range(len(UP)):
+		UP[i]=rule_b_c(UP[i])
+	for i in range(len(UP)):
+		UP[i] = rule_d(UP[i])
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_a(UP[i])
+	
+	return(UP)
+	
+def rule_c3(UP: list, var_count):
+	#Old: rule c3, [b + c + d]*a*i*e[b + c + d]*a*
+	#New: rule c3, [bcd]*a*i*e[bcd]*a*
+	#fail test
+	for U2 in UP:
+		if fail_rules(U2):
+			U2 = U2.clear()
+	
+	for i in range(len(UP)):
+		UP[i] = rule_b_c(UP[i])
+		
+	for i in range(len(UP)):
+		UP[i] = rule_d(UP[i])
+	
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_a(UP[i])
+	
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_i(UP[i], var_count)
+	
+	for i in range(len(UP)):
+		UP[i] = rule_e(UP[i], var_count)
+	
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_b_c(UP[i])
+			UP[i] = rule_d(UP[i])
+	
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_a(UP[i])
+	return(UP)
+	
+def rule_c4(UP: list, var_count):
+	#Old: rule c4, (i*[b + c + d]*a*)*(f + g + h)a*
+	#New: rule c4, (i*[bcd]*a*)*(f + g + h)a*
+	#fail test
+	for U2 in UP:
+		if fail_rules(U2):
+			U2 = U2.clear()
+	
+	
+	for i in range(len(UP)):
+		Utemp2 = set()
+		while Utemp2 != UP[i]:
+			Utemp2 = UP[i]
+			Utemp = set()
+			while Utemp != UP[i]:
+				Utemp = UP[i]
+				UP[i] = rule_i(UP[i], var_count)
+			Utemp = set()
+			while Utemp != UP[i]:
+				Utemp = UP[i]
+				UP[i] = rule_b_c(UP[i])
+				UP[i] = rule_d(UP[i])
+			Utemp = set()
+			while Utemp != UP[i]:
+				Utemp = UP[i]
+				UP[i] = rule_a(UP[i])
+	for i in range(len(UP)):
+		Utempa = Utempb = set()
+		UP[i] = rule_f(UP[i], var_count)
+		Utempa = rule_g(UP[i])
+		Utempb = rule_h(UP[i], var_count)
+		UP.append(Utempa)
+		UP.append(Utempb)
+		
+	for i in range(len(UP)):
+		Utemp = set()
+		while Utemp != UP[i]:
+			Utemp = UP[i]
+			UP[i] = rule_a(UP[i])
+	
+	return(UP)
 	
 def rule_a(U2: set):
 	#Rule (a)
+	Uremove = set()
 	for e in list(U2):
-		if isinstance(e.right_side, Variable) and isinstance(e.left_side, Variable):
+		if isinstance(e.right_side, Variable) and isinstance(e.left_side, Variable) and e not in Uremove:
 			sigma = SubstituteTerm()
 			sigma.add(e.left_side, e.right_side)
 			for e2 in list(U2):
-				if (isinstance(e2.left_side, FuncTerm) or isinstance(e2.left_side, Variable)):
-					e2.left_side = e2.left_side * sigma
-				if (isinstance(e2.right_side, FuncTerm) or isinstance(e2.right_side, Variable)):
-					e2.right_side = e2.right_side * sigma
-			U2.remove(e)
+				if e2 != e:
+					if (isinstance(e2.left_side, FuncTerm) or isinstance(e2.left_side, Variable)):
+						e2.left_side = e2.left_side * sigma
+					if (isinstance(e2.right_side, FuncTerm) or isinstance(e2.right_side, Variable)):
+						e2.right_side = e2.right_side * sigma
+			#U2.remove(e)
+			Uremove.add(e)
 	return U2
 					
 def rule_b_c(U2: set):
@@ -166,7 +243,6 @@ def rule_b_c(U2: set):
 					if e2.left_side == e.left_side and str(e2.right_side.function) == "exp" and e2 not in Uremove:
 						if e.right_side.arguments[0] == e2.right_side.arguments[0]:
 							# rule (b)
-							print("In rule B")
 							e3 = Equation(e.right_side.arguments[1], e2.right_side.arguments[1])
 							U2.add(e3)
 							U2 = U2 - {e2}
@@ -174,11 +250,11 @@ def rule_b_c(U2: set):
 					else:
 						if e.right_side.arguments[1] == e2.right_side.arguments[1]:
 							# rule (c)
-							print("In rule C")
 							e3 = Equation(e.right_side.arguments[0], e2.right_side.arguments[0])
 							U2.add(e3)
 							U2 = U2 - {e2}
 							Uremove.add(e2)
+	U2=U2.difference(Uremove)
 	return U2
 	
 	
@@ -200,6 +276,7 @@ def rule_d(U2: set):
 						U2.add(e5)
 						Uremove.add(e2)
 						
+	U2=U2.difference(Uremove) 
 	return U2
 	
 	
@@ -374,4 +451,34 @@ def rule_g(U2: set):
 	return U2
 
 
+#Failure rules
 
+def fail_rules(U2: set):
+	test = False
+	for e in list(U2):
+		if isinstance(e.right_side, FuncTerm) and str(e.right_side.function) == "f":
+			for e2 in list(U2):
+				if e2.left_side == e.left_side and (( isinstance(e.right_side, FuncTerm) and str(e2.right_side.function) == "g") or (isinstance(e.right_side, FuncTerm) and str(e2.right_side.function) == "exp")):
+					test = True
+	return(test)
+
+def setpartitions(S: set):
+	n = len(S)
+	C = list()
+	U = list()
+	for i in range(n):
+		C.append(1)
+	sp(0, 1, C, n, U)
+	return(U)
+	
+
+def sp(m: int, p: int, C: list, N: int, U: list):
+	if p > N:
+		#print(C)
+		U.append(deepcopy(C))
+	else:
+		for i in range(1, m+1):
+			C[p-1] = i
+			sp(m, p+1, C, N, U)
+		C[p-1] = m+1
+		sp(m+1, p+1, C, N, U)

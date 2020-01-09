@@ -25,14 +25,18 @@ def flat(U: set):
 	#Flatten the terms
 	#Need to update to include deeper than two levels in the term
 	for e in list(U):
+		mod = False
 		if isinstance(e.right_side, FuncTerm):
 			root = e.right_side.function
 			var_list = list()
 			for arg in list(e.right_side.arguments):
-				vtemp = Variable('v_'+str(z+1))
-				U.add(Equation(vtemp, arg))
-				var_list.append(vtemp)
-				z=z+1
+				if isinstance(arg, FuncTerm):
+					vtemp = Variable('v_'+str(z+1))
+					U.add(Equation(vtemp, arg))
+					var_list.append(vtemp)
+					z=z+1
+				else:
+					var_list.append(arg)
 			U.add(Equation(e.left_side, FuncTerm(Function(str(root.symbol), root.arity), var_list)))
 			U.remove(e)
 
