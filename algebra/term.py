@@ -3,36 +3,87 @@ import typing
 from typing import Union, Any, Optional, List, Set, overload
 from typing_extensions import Literal
 from copy import deepcopy
+from abc import ABC, abstractmethod # Abstract Base Class
 
 #
 ## Basic Types
 #
+class AnySort:
+    def __init__(self):
+        self.name = "any"
+        self.parents = {}
+    def __repr__(self):
+        return self.name
+    def __hash__(self):
+        return hash(self.name)
+    def __eq__(self, x):
+        return self.name == x.name
 
-class GenericTerm:
-    def __init__(self, symbol : str):
+ANY = AnySort()
+
+class Sort(AnySort):
+    def __init__(self, name, parent_sort = None):
+        super().__init__()
+        self.name = name
+        self.parents = {ANY, parent_sort} | parent_sort.parents if parent_sort is not None else {ANY}
+    def subset_of(self, sort) -> bool:
+        """Returns true is this sort is a subset of the sort given"""
+        return sort in self.parents
+    # Syntactic sugar: You can compare sorts with <
+    def __lt__(self, sort):
+        return self.subset_of(sort)
+    # Syntactic sugar: You can compare sorts with >
+    def __gt__(self, sort):
+        return sort.subset_of(self)
+
+
+class Term(ABC):
+    """A term is a FuncTerm, Variable, or Constant. This abstract class exists to provide shared functionality"""
+    @abstractmethod # Don't allow this class to be instatiated on its own
+    def __init__(self, symbol : str, sort : AnySort = ANY):
         self.symbol = symbol
+        self.sort = sort # By default the sort will be ANY
     def __repr__(self):
         return self.symbol
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
-        return type(self) == type(x) and self.symbol == x.symbol
+        return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
 
-class Function(GenericTerm):
-    def __init__(self, symbol : str, arity : int):
-        super().__init__(symbol)
+class Function:
+    def __init__(self, symbol : str, arity : int, domain_sort : Union[AnySort, List[AnySort]] = ANY, range_sort : AnySort = ANY):
+        self.symbol = symbol
+        self.domain_sort = domain_sort
+        self.range_sort = range_sort
         assert arity >= 0
         self.arity = arity
+        # If the domain sort is a list, make sure it has a one-to-one mapping with the arguments
+        if isinstance(domain_sort, list):
+            assert len(domain_sort) == arity
     def __call__(self, *args):
+        # Check to see if arguments belong to the domain of the function
+        for i, arg in enumerate(args):
+            domain_sort = self.domain_sort if not isinstance(self.domain_sort, list) else self.domain_sort[i]
+            if arg.sort != domain_sort and not arg.sort.subset_of(domain_sort):
+                raise ValueError("Domain Mismatch. Expected {}, Got {}." % (str(domain_sort), str(arg.sort)))
         return FuncTerm(self, args)
+    def __repr__(self):
+        return self.symbol
+    def __hash__(self):
+        return hash((self.symbol, self.arity))
+    def __eq__(self, x):
+        return type(self) == type(x) \
+            and self.symbol == x.symbol \
+            and self.domain_sort == x.domain_sort \
+            and self.range_sort == x.range_sort
 
-class Variable(GenericTerm): 
-    def __init__(self, symbol : str):
-        super().__init__(symbol)
+class Variable(Term): 
+    def __init__(self, symbol : str, sort : AnySort = ANY):
+        super().__init__(symbol, sort)
 
-class FuncTerm(GenericTerm):
+class FuncTerm(Term):
     def __init__(self, function : Function, args): 
-        super().__init__(function.symbol)
+        super().__init__(function.symbol, function.range_sort)
         self.function = function
         assert len(args) == self.function.arity
         self.arguments = args
@@ -40,6 +91,7 @@ class FuncTerm(GenericTerm):
         self.arguments = tuple(args)
     def set_function(self, function : Function):
         self.function = function
+        self.sort = function.range_sort
     def __repr__(self):
         if self.function.arity == 0:
             return self.function.symbol
@@ -63,11 +115,8 @@ class FuncTerm(GenericTerm):
         return inside
 
 class Constant(FuncTerm):
-    def __init__(self, symbol : str):
-        super().__init__(Function(symbol, 0), ())
-
-# New Type to clean up future annotations
-Term = Union[FuncTerm, Constant, Variable]
+    def __init__(self, symbol : str, sort : AnySort = ANY):
+        super().__init__(Function(symbol, 0, range_sort = sort), ())
 
 #
 ## get_vars Section
