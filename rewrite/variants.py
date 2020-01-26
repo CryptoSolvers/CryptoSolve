@@ -1,12 +1,12 @@
 from .rewrite import *
 class Variants:
     """Construct variants of a term from a set of rewrite rules"""
-    def __init__(self, term : Term, rules : Set[RewriteRule]):
+    def __init__(self, term : Term, rules : RewriteSystem):
         # Each index represents the depth of the tree
         # Then at each depth of a tree we have a dictionary of terms mapped to what substitutions led to it
         self.tree : List[Dict[Term, List[Tuple[RewriteRule, Position]]]] = [{term : []}]
         self.branch_iter = iter(self.tree[0]) # Where we are at the branch
-        self.rules : Set[RewriteRule] = rules
+        self.rules : RewriteSystem = rules
     
     def __iter__(self):
         return self
@@ -56,7 +56,7 @@ def is_finite(v : Variants, bound : int) -> bool:
         iteration += 1
     return True
 
-def narrow(term : Term, goal_term : Term, rules : Set[RewriteRule], bound : int) -> Optional[List[Tuple[RewriteRule, Position]]]:
+def narrow(term : Term, goal_term : Term, rules : RewriteSystem, bound : int) -> Optional[List[Tuple[RewriteRule, Position]]]:
     """Narrow one term to another term through a set of rewrite rules. If the term cannot be rewritten it'll return None, otherwise it'll return a list of rewrite rules in the order that they need to be applied to produce the new term. Set bound to -1 if you want it to try infinitely"""
     variants = Variants(term, rules)
     attempt = 1
@@ -68,7 +68,7 @@ def narrow(term : Term, goal_term : Term, rules : Set[RewriteRule], bound : int)
         attempt += 1
     return None
 
-def normal(element : Term, rewrite_rules : Set[RewriteRule]):
+def normal(element : Term, rewrite_rules : RewriteSystem):
     """Returns the normal form of an element given a set of convergent term rewrite rules"""
     element = deepcopy(element)
     element_changed = True

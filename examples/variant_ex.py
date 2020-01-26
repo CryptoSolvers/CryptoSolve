@@ -15,9 +15,10 @@ r2 = RewriteRule(f(a, x), b)
 print("Rewrite Rule 1:", r)
 print("Rewrite Rule 2:", r2)
 term = f(a, f(b, b))
-vt = Variants(term, {r, r2})
+rs = RewriteSystem({r, r2})
+vt = Variants(term, rs)
 print("Variants of", term, ":", list(vt))
 
 print("Variants Finite?", is_finite(vt, -1))
 
-print("Rewrite rule from", term, "to", f(a, b), narrow(term, f(a,b), {r, r2}, -1))
+print("Rewrite rule from", term, "to", f(a, b), narrow(term, f(a,b), rs, -1))
