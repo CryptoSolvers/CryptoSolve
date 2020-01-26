@@ -97,6 +97,11 @@ problems. We can more compactly represent the sequence of messages
 in a $MOE$-program as a frame. 
 
 \begin{definition}
+	$MOE_{\oplus}$-terms: Given a first-order signature $\Sigma=\{
+	\oplus, 0, f, h\}$, a countable set of (free) constants (names) $N$, such that $\Sigma \cap N =\emptyset$, and a (countable) set of variables $X$, the set of $MOE_{\oplus}$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$. 
+\end{definition}
+
+\begin{definition}
 		$MOE$-frame:  $\phi = \nu \tilde{n}.\sigma$, where
 		$\tilde{n}$ is a set of names representing non-free variables such as random nonces. $\sigma$ is a substitution
 		such that $Dom(\sigma) = \{ y_1, y_2, \ldots, y_n\}$,
@@ -132,11 +137,7 @@ The adversary has the ability to execute multiple simultaneous session with the 
 %\end{definition}
 
 
-\subsection{$MOE$ Decision Problems}
-
-We model a potential attack via a decision problem involving unification. 
-
-First we need a new definition of unification which includes the 
+We model a potential attack via a decision problem involving unification. First we need a new definition of unification which includes the 
 constraint on term orders imposed by the $MOE$-program. This 
 ordering can be enforeced using a relation $\prec_{\mathcal{P}}$, defined 
 as follows. 
@@ -171,9 +172,9 @@ We can now define the $MOE$ unification problem.
 \end{definition}
 
 
-\begin{definition}\todo[inline]{Andrew: We need to improve this def}
+\begin{definition}
 	Decision Problem: We model an attack by the adversary being able
-	to unify two terms, either from the same frame of from different
+	to $\mathcal{P}$-unify two terms, either from the same frame of from different
 	frames.  
 \end{definition}
 
@@ -201,16 +202,140 @@ $IV$ is the initialization vector, the first block sent.
 	$C_1 = f(P_1 \oplus IV)$, $C_i = f(P_i \oplus P_{i-1} \oplus C_{i-1})$.
 \end{itemize}
 
-\subsection{MOE with xor}
+\section{Non-deterministic Decision Problem}
 
-We will first consider the xor equational theory. We can therefore refine the definition of $MOE$-term 
+In this section we prove that the non-deterministic version 
+of the decision problem is undecidable.
 
 \begin{definition}
-	$MOE_{\oplus}$-terms: Given a first-order signature $\Sigma=\{
-	\oplus, 0, f, h\}$, a countable set of (free) constants (names) $N$, such that $\Sigma \cap N =\emptyset$, and a (countable) set of variables $X$, the set of $MOE_{\oplus}$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$. 
+If $A_i$ be a string such that $A_i = a_0 a_1\ldots a_m$ and 
+$C_j$ some cipher block, let $F(A_i \bigoplus C_j) =
+f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
 \end{definition}
 
+\begin{definition}\label{non-det-func}
+Let $PCP = ~(\frac{A_0}{B_0}), ~(\frac{A_1}{B_1}), ~\ldots, ~(\frac{A_n}{B_n})$. 	
+	
+Let $C_i$ be the ith output of the cryptosystem. 
+For $i > 0$ let $C_i = E_{i_0}$ or, $E_{i_2}$, or $\ldots$,
+$E_{i_n}$ where 
+\begin{align*}
+	E_{i_j} &= [f(r_i \oplus C_{i, 1}), f(r_i, C_{i,2}) ] \\
+	C_{i,1} &= F(A_j \bigoplus C_{i-1, 1})	\\
+	C_{i,2} &= F(B_j \bigoplus C_{i-1, 2}) 
+\end{align*}
+where $r_i$ is a new random nonce.
+$C_0 = [r,r]$ for a nonce $r$
+\end{definition}
 
+Based on the the non-deterministic system of 
+Definition~\ref{non-det-func} we can define the following
+$MOE_{\oplus}$ program which produces an unsafe pair, 
+two $\mathcal{P}$-unifiable cipherblocks, iff the adversary
+finds a solution to the PCP.
+
+The program works as follows:
+\begin{itemize}
+	\item The adversary non-deterministically picks a possible
+	solution to the PCP, $i_0, i_1, i_2, \ldots, i_k$.
+	\item Each turn the adversary sends an index in the solution, 
+	starting with $i_k$ and proceeding each turn until $i_0$ 
+	is reached. 
+	\item The oracle encodes a pair of cipher blocks according 
+	to Definition~\ref{non-det-func} and returns the pair,
+	$E_j$, to the adversary.
+	\item The adversary attempts to $\mathcal{P}$-unify 
+	all of the current cipher blocks it knows.
+	\item the program stops if the adversary finds an unsafe
+	pair or it sends a stop session command.
+\end{itemize}
+
+\begin{theorem}
+	The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
+	sessions, bounded session lengths, immediate schedule, and CBC.
+\end{theorem}
+\begin{proof}
+	Notice that if there is a finite sequence giving a solution
+	to the PCP, the adversary can give that index and confirm the
+	solution. 
+	Then, there exists a unifier of $C_{i,1} =^{?} C_{i,2}$ iff
+	the encoded strings are a solution to the PCP.  
+\end{proof}
+
+\begin{example}
+	Consider the following PCP:
+	\[
+	(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
+	\] 
+	A solution to this problem is $1,3$. Notice that we get that 
+	encoded in the following cipher block.
+	
+	The first possible ``initial blocks'':
+	\begin{align*}
+	C^1_0 &= f(b \oplus f(a \oplus r_1)), ~f(b \oplus f(a \oplus f(a \oplus r_1)))\\
+	C^2_0 &= f(a \oplus f(b \oplus r_2)), ~f(b \oplus f(a \oplus r_2))\\
+	C^3_0 &= f(a \oplus f(a \oplus f(a \oplus r_3))), ~f(a \oplus f(a \oplus r_3))\\
+	\end{align*}
+	
+	Some of the possible blocks encoding two strings:
+	
+\end{example}
+\begin{align*}
+C^{1,3}_i &= f(a \oplus f(a \oplus f(a, C^3_{0, 1}))), ~f(a \oplus f(a \oplus C^3_{0, 2})), \text{ Encoding the string index 3,1}\\
+C^{2,3}_j &= f(a \oplus f(a \oplus f(a \oplus C^2_{0, 1}))), ~f(a \oplus f(a \oplus C^2_{0, 2})), \text{ Encoding the string index 3,2}\\
+C^{3,1}_k &= f(b \oplus f(a \oplus C^3_{0, 1}))), ~f(b \oplus f(a \oplus f(a \oplus C^3_{0, 2}))), \text{ Encoding the string index 1,3}\\
+\end{align*}
+
+Notice that there is a solution, $1,3$, since 
+$C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))))$
+and 
+$C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
+
+\section{Deterministic Decision Problem}
+\todo{Andrew: Could do this by using multiple sessions or
+	having the oracle send back more than 2 blocks. 
+	I'm not sure what's the best approach.
+	What do you think?}
+In this section we create a deterministic version of the 
+above non-deterministic program by testing not a single 
+non-deterministic selected solution but rather all possible
+solutions. 
+
+\subsection{Option One: send back all the blocks in a single session} 
+The program works as follows:
+\begin{itemize}
+	\item The adversary sends a number representing the 
+	length, in terms of PCP blocks, of the string.
+	\item The oracle encodes all combinations of blocks
+	of that length and sends those cipher blocks back to
+	the adversary.
+	\item The adversary attempts to $\mathcal{P}$-unify
+	the cipher blocks it knows.
+	\item The session stops if an unsafe pair is found or 
+	the adversary sends the stop command. 
+\end{itemize}
+
+\subsection{Option Two: Create a new session for each possible
+	encoding}
+
+The program works as follows:
+\begin{itemize}
+	\item Start with a single session with $C_0 = [r,r]$
+	\item For each step $i > 0$, the adversary creates
+	a new session for each of the possible strings of length 
+	$i$. In each session it sends the previous cipher block, $C_k$, and a index $j$.
+	\item The oracle encodes the blocks, $F(A_i \bigoplus C_{k, 1})$ and $F(B_i \bigoplus C_{K, 2})$ and sends them back
+	to the adversary.
+	\item The adversary attempts to $\mathcal{P}$-unify 
+	the blocks it knows. 
+	\item The program ends if an unsafe pair is found or 
+	the stop command is sent by the adversary.  
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 				Old part of the paper                        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ignore{
 \section{Decision Problems with an Adversary Encoding the PCP}
 In this section we assume that the adversary is active and the 
 oracle is passive. That is, the adversary attempts to encode the 
@@ -818,7 +943,7 @@ Steps:
 	\item We start with two sessions, one for the 
 	$A$ strings of the PCP, and one for the $B$ strings.
 	\item Each string is encoded in the method described above.
-	\item The oracle adsd a special 
+	\item The oracle adds a special 
 	nonce to the end of the strings that encodes the index's of the strings concatenated together. The nonce used 
 	to encode the index in the $A$ strings must be the same nonce
 	for the same index in the $B$ strings. For example, 
@@ -1058,4 +1183,6 @@ Notice that there is a solution, $1,3$, since
 $C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))))$
  and 
 $C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
+
+}
 \end{document}
