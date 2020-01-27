@@ -251,8 +251,7 @@ The program works as follows:
 \end{itemize}
 
 \begin{theorem}
-	The $MOE_{\oplus}$ decision problem is undecidable for unbounded 
-	sessions, bounded session lengths, immediate schedule, and CBC.
+	The $MOE_{\oplus}$ non-deterministic decision problem is undecidable for unbounded session lengths, immediate schedule, and CBC.
 \end{theorem}
 \begin{proof}
 	Notice that if there is a finite sequence giving a solution
@@ -301,19 +300,46 @@ above non-deterministic program by testing not a single
 non-deterministic selected solution but rather all possible
 solutions. 
 
+\begin{definition}\label{det-func}\todo{Possible deterministic function def}
+	
+	Let $PCP = ~(\frac{A_0}{B_0}), ~(\frac{A_1}{B_1}), ~\ldots, ~(\frac{A_n}{B_n})$. 	
+	
+	Let $O_i$ be the ith output of the cryptosystem. 
+	For $i > 0$ let $O_i = [E_{i_{0,0}}$, $E_{i_{0,1}}$, $\ldots$,
+	$E_{i_{n,m}}]$ where $m = |O_{i-1}|$ and for 
+	$0 \leq j \leq n$ and $0 \leq l \leq m$
+	\begin{align*}
+	E_{i_{j,k}} &= [f(r_p \oplus C_{i, 1}), f(r_p, C_{i,2}) ] \\
+	C_{i_{j,k},1} &= F(A_j \bigoplus C_{i-1_{k}, 1})	\\
+	C_{i_{j,k},2} &= F(B_j \bigoplus C_{i-1_{k}, 2}) 
+	\end{align*}
+	where $r_p$ is a new random nonce.
+	$C_0 = [r,r]$ for a nonce $r$
+\end{definition}
+
 \subsection{Option One: send back all the blocks in a single session} 
 The program works as follows:
 \begin{itemize}
-	\item The adversary sends a number representing the 
-	length, in terms of PCP blocks, of the string.
+	\item For each step $i$, $0 \leq i \leq M$, the adversary
+	sends $i$.
 	\item The oracle encodes all combinations of blocks
-	of that length and sends those cipher blocks back to
+	of length, $i$, according to Definition~\ref{det-func}.
+	The oracle sends the list of cipher blocks back to
 	the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify
 	the cipher blocks it knows.
 	\item The session stops if an unsafe pair is found or 
 	the adversary sends the stop command. 
 \end{itemize}
+
+\begin{theorem}
+	The $MOE_{\oplus}$ deterministic decision problem is undecidable for unbounded session lengths, immediate schedule, and CBC.
+\end{theorem}
+\begin{proof}
+	Notice that if there is a finite sequence giving a solution
+	to the PCP at some finite number of steps that sequence will
+	be produced and the adversary will find an unsafe pair.  
+\end{proof}
 
 \subsection{Option Two: Create a new session for each possible
 	encoding}
