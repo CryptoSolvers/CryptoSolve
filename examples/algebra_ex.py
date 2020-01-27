@@ -16,9 +16,20 @@ c = Constant("c")
 
 # Simple Equation Printing
 e1 = Equation(x, a)
-e2 = Equation(f("2", "2"), Constant("4"))
+e2 = Equation(f(Constant("2"), Constant("2")), Constant("4"))
 print(e1)
 print(e2)
+
+# Simple sort test
+reals = Sort("reals")
+non_zeros = Sort("non_zeros", reals)
+divide = Function("divide", 2, [reals, non_zeros], reals)
+one = Constant("1", non_zeros)
+zero = Constant("0", reals)
+try:
+    divide(one, zero)
+except:
+    print("Cannot divide by zero. Check.")
 
 # Directed Acyclic Graphs
 # From page 16
