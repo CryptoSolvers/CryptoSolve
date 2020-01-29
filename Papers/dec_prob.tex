@@ -110,8 +110,8 @@ in a $MOE$-program as a frame.
 \end{definition}
 
 A $MOE$-frame models a trace of a $MOE$ program in the following way:
-if the $i$th action of the challenger in the trace is 
-$Rcv\_Block(t)$ or $Send(t)$, where $t$ is a $MOE$-term, 
+if the $i$th action of the challenger in the trace of a given session $c$ is 
+$block(c, t)$ or $send(c, t)$, where $t$ is a $MOE$-term, 
 then there is a variable $y_i \in Dom(\sigma)$ and 
 $y_i \sigma \mapsto t$. Random variables such as the IV are 
 modeled as names and placed in $\tilde{n}$.
@@ -121,7 +121,7 @@ return cipher blocks to the adversary. These restrictions have
 the following impact on the $MOE$-frames:
 \begin{itemize}
 	\item $MOE$: The mode of encryption dictates how the oracle 
-	constructs cypher blocks. For example, in a CyberBlock Chaining,
+	constructs cypher blocks. For example, in a Cipher Block Chaining,
 	$CBC$, $MOE$ the ith block of cipher text, $C_i$, is modeled by
 	the $y_i \mapsto f(C_{i-1} \oplus x_i)$, where $\oplus$ is
 	the xor function.
@@ -202,10 +202,10 @@ f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
 \end{definition}
 
 \begin{example}
-Assume you have a string A = "aba" and assume $C$ is some cipher
+Assume you have a string A = "abd" and assume $C$ is some cipher
 block. Then, 
 \[F(A \bigoplus C) = 
-f(a \oplus f(b \oplus f(a \oplus C)))
+f(a \oplus f(b \oplus f(d \oplus C)))
 \]
 \end{example}
 
@@ -218,7 +218,7 @@ Let $C_i$ be the ith output of the cryptosystem.
 For $i > 0$ let $C_i = E_{i_0}$ or, $E_{i_2}$, or $\ldots$,
 $E_{i_n}$ where 
 \begin{align*}
-	E_{i_j} &= [f(r_i \oplus C_{i, 1}), f(r_i, C_{i,2}) ] \\
+	E_{i_j} &= [f(r_i \oplus C_{i, 1}), f(r_i \oplus C_{i,2}) ] \\
 	C_{i,1} &= F(A_j \bigoplus C_{i-1, 1})	\\
 	C_{i,2} &= F(B_j \bigoplus C_{i-1, 2}) 
 \end{align*}
@@ -229,7 +229,7 @@ $C_0 = [r,r]$ for a nonce $r$
 Notice that Definition~\ref{non-det-func} defines a 
 particle $MOE_{\oplus}$ and thus we can consider the problem 
 of finding an algorithm that solves the decision problem for
-this $MOE$. That is, an algorithm that will determine of 
+this $MOE$. That is, an algorithm that will determine if 
 the $MOE$ will ever produce two $\mathcal{P}$-unifiable
 cipher blocks.
 
