@@ -252,7 +252,7 @@ The program works as follows:
 	to Definition~\ref{non-det-func} and returns the pair,
 	$E_j$, to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
-	all of the current cipher blocks it knows.
+	all of the current cipher blocks it knows. \todo{Brandon: Not sure how I feel about this wording. The advesary only needs to unify the two blocks within $E_j$ each time it receives it. Since this algorithm non-deterministically chooses a solution it does not matter, but otherwise it could try to unify the top block in one sequence with a bottom block in another.}
 	\item The program stops if the adversary finds an unsafe
 	pair or it sends a stop session command.
 \end{itemize}
@@ -307,7 +307,7 @@ Follows from the encoding given in Definition~\ref{non-det-func}
 		oracle and receives the following in return.
 		$C_2 = E_{2_1}$ where
 		\begin{align*}
-		E_{2_1} &= [f(r_2 \oplus C_{1, 1}), f(r_2, C_{1,2}) ] \\
+		E_{2_1} &= [f(r_2 \oplus C_{2, 1}), f(r_2, C_{2,2}) ] \\
 		C_{2,1} &= F(A_1 \bigoplus C_{1, 1}) = 
 		f(b \oplus f(a \oplus C_{1,1}))	\\
 		C_{2,2} &= F(B_1 \bigoplus C_{1, 2}) =
@@ -331,6 +331,7 @@ C_{2,2} &= f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus IV)))))
 	having the oracle send back more than 2 blocks. 
 	I'm not sure what's the best approach.
 	What do you think?}
+\todo{Brandon: I like the first option better as that allows us to have a bounded number of sessions. (The undeterministic proof currently only requires one session) }
 In this section we create a deterministic version of the 
 above non-deterministic program by testing not a single 
 non-deterministic selected solution but rather all possible
@@ -358,12 +359,12 @@ The program works as follows:
 \begin{itemize}
 	\item For each step $i$, $0 \leq i \leq M$, the adversary
 	sends $i$.
-	\item The oracle encodes all combinations of blocks
+	\item The oracle encodes all combinations of PCP blocks
 	of length, $i$, according to Definition~\ref{det-func}.
 	The oracle sends the list of cipher blocks back to
 	the adversary.
-	\item The adversary attempts to $\mathcal{P}$-unify
-	the cipher blocks it knows.
+	\item The adversary attempts to $\mathcal{P}$-unify 
+	the top and bottom cipher blocks within each $E_i$.
 	\item The session stops if an unsafe pair is found or 
 	the adversary sends the stop command. 
 \end{itemize}
@@ -386,7 +387,7 @@ The program works as follows:
 	\item For each step $i > 0$, the adversary creates
 	a new session for each of the possible strings of length 
 	$i$. In each session it sends the previous cipher block, $C_k$, and a index $j$.
-	\item The oracle encodes the blocks, $F(A_i \bigoplus C_{k, 1})$ and $F(B_i \bigoplus C_{K, 2})$ and sends them back
+	\item The oracle encodes the blocks, $F(A_j \bigoplus C_{k, 1})$ and $F(B_j \bigoplus C_{K, 2})$ and sends them back
 	to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
 	the blocks it knows. 
