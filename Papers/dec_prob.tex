@@ -110,8 +110,8 @@ in a $MOE$-program as a frame.
 \end{definition}
 
 A $MOE$-frame models a trace of a $MOE$ program in the following way:
-if the $i$th action of the challenger in the trace is 
-$Rcv\_Block(t)$ or $Send(t)$, where $t$ is a $MOE$-term, 
+if the $i$th action of the challenger in the trace of a given session $c$ is 
+$block(c, t)$ or $send(c, t)$, where $t$ is a $MOE$-term, 
 then there is a variable $y_i \in Dom(\sigma)$ and 
 $y_i \sigma \mapsto t$. Random variables such as the IV are 
 modeled as names and placed in $\tilde{n}$.
@@ -121,7 +121,7 @@ return cipher blocks to the adversary. These restrictions have
 the following impact on the $MOE$-frames:
 \begin{itemize}
 	\item $MOE$: The mode of encryption dictates how the oracle 
-	constructs cypher blocks. For example, in a CyberBlock Chaining,
+	constructs cypher blocks. For example, in a Cipher Block Chaining,
 	$CBC$, $MOE$ the ith block of cipher text, $C_i$, is modeled by
 	the $y_i \mapsto f(C_{i-1} \oplus x_i)$, where $\oplus$ is
 	the xor function.
@@ -171,15 +171,7 @@ We can now define the $MOE$ unification problem.
 	\end{itemize}
 \end{definition}
 
-
-\begin{definition}
-	Decision Problem: We model an attack by the adversary being able
-	to $\mathcal{P}$-unify two terms, either from the same frame of from different
-	frames.  
-\end{definition}
-
-Now that the general decision problem is defined, we can define several
-instances of the problem based on the combination of the following factors:
+We are interested in the problem of deciding if the adversary is able to $\mathcal{P}$-unify two cipher blocks. We can define several instances of the problem based on the combination of the following factors:
 \begin{itemize}
 	\item The equational Theory $E$.
 	\item The $MOE$.
@@ -187,12 +179,8 @@ instances of the problem based on the combination of the following factors:
 	\item Bounds on the session length and number of sessions.  
 \end{itemize}
 
-We consider several of these possibilities in what follows.
-
-First, we will consider the $E=xor$ equational theory and we 
-will consider the following $MOE$. In these modes of encryption 
-$\Sigma ={\oplus, 0, f}$, where $\oplus$ is xor and $f=enc(K,\_)$.
-$IV$ is the initialization vector, the first block sent. 
+Here we will consider $\Sigma ={\oplus, 0, f, IV}$, where $\oplus$ is xor and $f=enc(K,\_)$, $IV$ is an initialization vector.
+Several examples of $MOE$ using this signature are: 
 \begin{itemize}
 	\item Cipher Block Chaining $(CBC):$ The ith plain text is modeled via a term consisting of a single variable $x_i$. The initial cipher block, the IV, is modeled by a name, $r$. The ith block of cipher text, $C_i$, is modeled by a
 	term $f(C_{i-1} \oplus x_i)$.
@@ -213,6 +201,16 @@ $C_j$ some cipher block, let $F(A_i \bigoplus C_j) =
 f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
 \end{definition}
 
+\begin{example}
+Assume you have a string A = "abd" and assume $C$ is some cipher
+block. Then, 
+\[F(A \bigoplus C) = 
+f(a \oplus f(b \oplus f(d \oplus C)))
+\]
+\end{example}
+
+
+
 \begin{definition}\label{non-det-func}
 Let $PCP = ~(\frac{A_0}{B_0}), ~(\frac{A_1}{B_1}), ~\ldots, ~(\frac{A_n}{B_n})$. 	
 	
@@ -220,7 +218,7 @@ Let $C_i$ be the ith output of the cryptosystem.
 For $i > 0$ let $C_i = E_{i_0}$ or, $E_{i_2}$, or $\ldots$,
 $E_{i_n}$ where 
 \begin{align*}
-	E_{i_j} &= [f(r_i \oplus C_{i, 1}), f(r_i, C_{i,2}) ] \\
+	E_{i_j} &= [f(r_i \oplus C_{i, 1}), f(r_i \oplus C_{i,2}) ] \\
 	C_{i,1} &= F(A_j \bigoplus C_{i-1, 1})	\\
 	C_{i,2} &= F(B_j \bigoplus C_{i-1, 2}) 
 \end{align*}
@@ -228,12 +226,21 @@ where $r_i$ is a new random nonce.
 $C_0 = [r,r]$ for a nonce $r$
 \end{definition}
 
+Notice that Definition~\ref{non-det-func} defines a 
+particle $MOE_{\oplus}$ and thus we can consider the problem 
+of finding an algorithm that solves the decision problem for
+this $MOE$. That is, an algorithm that will determine if 
+the $MOE$ will ever produce two $\mathcal{P}$-unifiable
+cipher blocks.
+
 Based on the the non-deterministic system of 
 Definition~\ref{non-det-func} we can define the following
 $MOE_{\oplus}$ program which produces an unsafe pair, 
 two $\mathcal{P}$-unifiable cipherblocks, iff the adversary
 finds a solution to the PCP.
 
+\begin{definition}
+Denote the following $MOE$ program as $PCP_{MOE}$.
 The program works as follows:
 \begin{itemize}
 	\item The adversary non-deterministically picks a possible
@@ -245,20 +252,35 @@ The program works as follows:
 	to Definition~\ref{non-det-func} and returns the pair,
 	$E_j$, to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
-	all of the current cipher blocks it knows.
-	\item the program stops if the adversary finds an unsafe
+	all of the current cipher blocks it knows. \todo{Brandon: Not sure how I feel about this wording. The advesary only needs to unify the two blocks within $E_j$ each time it receives it. Since this algorithm non-deterministically chooses a solution it does not matter, but otherwise it could try to unify the top block in one sequence with a bottom block in another.}
+	\item The program stops if the adversary finds an unsafe
 	pair or it sends a stop session command.
 \end{itemize}
+\end{definition}
+
+\begin{lemma}\label{lemma:pcp_to_moe}
+Given a PCP problem the corresponding $PCP_{MOE}$ program 
+produces a $\mathcal{P}$-unifiable pair of cipher blocks
+iff there is a solution the given PCP. 
+\end{lemma}
+\begin{proof}
+Follows from the encoding given in Definition~\ref{non-det-func}
+\end{proof}
+
+
 
 \begin{theorem}
-	The $MOE_{\oplus}$ non-deterministic decision problem is undecidable for unbounded session lengths, immediate schedule, and CBC.
+	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
+	of determining if $M$, executing with 
+	an unbounded number of sessions and unbounded session
+	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
 \end{theorem}
 \begin{proof}
-	Notice that if there is a finite sequence giving a solution
-	to the PCP, the adversary can give that index and confirm the
-	solution. 
-	Then, there exists a unifier of $C_{i,1} =^{?} C_{i,2}$ iff
-	the encoded strings are a solution to the PCP.  
+	Assume there was such an algorithm. Then one could apply that
+	algorithm to the $MOE_{\oplus}$ defined in
+	Definition~\ref{non-det-func}. However, 
+	from Lemma~\ref{lemma:pcp_to_moe}, this would
+	imply that we could then solve the PCP, a contradiction.   
 \end{proof}
 
 \begin{example}
@@ -266,35 +288,50 @@ The program works as follows:
 	\[
 	(\frac{ba}{baa}),~(\frac{ab}{ba}),~(\frac{aaa}{aa})
 	\] 
-	A solution to this problem is $1,3$. Notice that we get that 
-	encoded in the following cipher block.
+	A solution to this problem is $1,3$. 
 	
-	The first possible ``initial blocks'':
-	\begin{align*}
-	C^1_0 &= f(b \oplus f(a \oplus r_1)), ~f(b \oplus f(a \oplus f(a \oplus r_1)))\\
-	C^2_0 &= f(a \oplus f(b \oplus r_2)), ~f(b \oplus f(a \oplus r_2))\\
-	C^3_0 &= f(a \oplus f(a \oplus f(a \oplus r_3))), ~f(a \oplus f(a \oplus r_3))\\
-	\end{align*}
+	Let's trace a run of the $PCP_{MOE}$ program where the 
+	adversary guesses the solution $1,3$.
+	\begin{enumerate}
+		\item In the first step the adversary sends $3$ to the
+		oracle and receives the following cipher block in return.
+		$C_1 = E_{1_3}$ where
+		\begin{align*}
+		E_{1_3} &= [f(r_1 \oplus C_{1, 1}), f(r_1 \oplus C_{1,2}) ] \\
+		C_{1,1} &= F(A_3 \bigoplus C_{0, 1}) = 
+		(f(a \oplus f(a \oplus f(a \oplus IV))))	\\
+		C_{1,2} &= F(B_3 \bigoplus C_{0, 2}) =
+		f(a \oplus f(a \oplus IV))
+		\end{align*}
+		\item At the second step the adversary send a $1$ to the
+		oracle and receives the following in return.
+		$C_2 = E_{2_1}$ where
+		\begin{align*}
+		E_{2_1} &= [f(r_2 \oplus C_{2, 1}), f(r_2, C_{2,2}) ] \\
+		C_{2,1} &= F(A_1 \bigoplus C_{1, 1}) = 
+		f(b \oplus f(a \oplus C_{1,1}))	\\
+		C_{2,2} &= F(B_1 \bigoplus C_{1, 2}) =
+		f(b \oplus f(a \oplus f(a \oplus C_{1,2})))
+		\end{align*}
+	\end{enumerate}
+	Notice that now after step 2 the adversary has two 
+	cipher blocks, $C_{2,1}$ and $C_{2,2}$, which are
+	$\mathcal{P}$-unifiable.
 	
-	Some of the possible blocks encoding two strings:
-	
-\end{example}
 \begin{align*}
-C^{1,3}_i &= f(a \oplus f(a \oplus f(a, C^3_{0, 1}))), ~f(a \oplus f(a \oplus C^3_{0, 2})), \text{ Encoding the string index 3,1}\\
-C^{2,3}_j &= f(a \oplus f(a \oplus f(a \oplus C^2_{0, 1}))), ~f(a \oplus f(a \oplus C^2_{0, 2})), \text{ Encoding the string index 3,2}\\
-C^{3,1}_k &= f(b \oplus f(a \oplus C^3_{0, 1}))), ~f(b \oplus f(a \oplus f(a \oplus C^3_{0, 2}))), \text{ Encoding the string index 1,3}\\
+C_{2,1} &= f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus IV))))) \\
+C_{2,2} &= f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus IV)))))
 \end{align*}
 
-Notice that there is a solution, $1,3$, since 
-$C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))))$
-and 
-$C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
+\end{example}
+
 
 \section{Deterministic Decision Problem}
 \todo{Andrew: Could do this by using multiple sessions or
 	having the oracle send back more than 2 blocks. 
 	I'm not sure what's the best approach.
 	What do you think?}
+\todo{Brandon: I like the first option better as that allows us to have a bounded number of sessions. (The undeterministic proof currently only requires one session) }
 In this section we create a deterministic version of the 
 above non-deterministic program by testing not a single 
 non-deterministic selected solution but rather all possible
@@ -322,12 +359,12 @@ The program works as follows:
 \begin{itemize}
 	\item For each step $i$, $0 \leq i \leq M$, the adversary
 	sends $i$.
-	\item The oracle encodes all combinations of blocks
+	\item The oracle encodes all combinations of PCP blocks
 	of length, $i$, according to Definition~\ref{det-func}.
 	The oracle sends the list of cipher blocks back to
 	the adversary.
-	\item The adversary attempts to $\mathcal{P}$-unify
-	the cipher blocks it knows.
+	\item The adversary attempts to $\mathcal{P}$-unify 
+	the top and bottom cipher blocks within each $E_i$.
 	\item The session stops if an unsafe pair is found or 
 	the adversary sends the stop command. 
 \end{itemize}
@@ -350,7 +387,7 @@ The program works as follows:
 	\item For each step $i > 0$, the adversary creates
 	a new session for each of the possible strings of length 
 	$i$. In each session it sends the previous cipher block, $C_k$, and a index $j$.
-	\item The oracle encodes the blocks, $F(A_i \bigoplus C_{k, 1})$ and $F(B_i \bigoplus C_{K, 2})$ and sends them back
+	\item The oracle encodes the blocks, $F(A_j \bigoplus C_{k, 1})$ and $F(B_j \bigoplus C_{K, 2})$ and sends them back
 	to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
 	the blocks it knows. 
