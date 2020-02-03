@@ -17,6 +17,7 @@
 \usepackage{marginnote}
 \usepackage{mathtools}
 \usepackage{todonotes}
+\usepackage{fancyhdr}
 
 
 \newtheorem{definition}{Definition}
@@ -253,6 +254,9 @@ The program works as follows:
 	$E_j$, to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
 	all of the current cipher blocks it knows. \todo{Brandon: Not sure how I feel about this wording. The advesary only needs to unify the two blocks within $E_j$ each time it receives it. Since this algorithm non-deterministically chooses a solution it does not matter, but otherwise it could try to unify the top block in one sequence with a bottom block in another.}
+	\todo{It's a requirement, we can't limit what blocks the
+		adversary attempts to unify. However, we can use nonces
+		to ensure only certain pairs could possibly be unifiable.}
 	\item The program stops if the adversary finds an unsafe
 	pair or it sends a stop session command.
 \end{itemize}
@@ -1248,4 +1252,41 @@ $C^{3,1}_{k, 1} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3))))
 $C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$ 
 
 }
+
+\section{Bounded Session Lengths and Unbounded Number of Sessions}
+\thispagestyle{fancy}
+
+If $\alpha ~ = ~ abb$ then $\overline{\alpha} (x) ~ = ~ f(a \oplus f(b \oplus f(b \oplus x)))$\\[+10pt]
+
+For all dominoes $\big( \alpha_i , \; \beta_i \big)$ except the start domino and the end domino, we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := \, \overline{\alpha_i}\big( x_2 \; \oplus \;   f(x_1)  \big) \; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  \overline{\beta_i}\big( x_3 \; \oplus \; f(f(x_1)) \big) \; ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
+\end{array}
+\]
+
+For the end domino we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := \, \overline{\alpha_n}( x_2 ) \; \oplus \;   f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  \overline{\beta_n}( x_3 ) \; \oplus \; f(f( y_1 )) \\[+10pt]
+\end{array}
+\]
+
+
+For the start domino $\big( \alpha_0 , \; \beta_0 \big)$, we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := \, \overline{\alpha_0}\big( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
+x_3 & \qquad y_3 \, := \,  \overline{\beta_0}\big( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
+\end{array}
+\]
+
+The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
+
+\ifthenelse {\value{page} > 1} {\thispagestyle{plain}} {\thispagestyle{empty}}
 \end{document}
