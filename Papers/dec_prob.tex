@@ -1430,6 +1430,21 @@ The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
 
 \end{proof}
 \section{The Invertability Problem}
+A natural requirement of any cryptographic algorithm is that given a
+cipher block encoding of a plain text message and the ability to decrypt, the original plain text can be obtained. That is, one can decrypt a cipher block to obtain the original plain text given you 
+have the key. Thus in the automatic synthesis of cryptosystem we 
+need to be able to check that this property exists. For cryptosystems
+modeled symbolically as MOEs this leads to the invertability problem.
+
+\begin{definition}
+Let $M$ be a MOE with signature $\Sigma$. Let $f \in \Sigma$ model 
+the encryption function. Let $m$ be the initial plain text message
+and let $C_i$ be the ith cipher text block produced by $M$
+encoding $m$. 
+Assume there exists a function $f^{-1}$ which is the inverse of $f$. 
+Then, the \emph{invertiablity problem} asks whether there is an 
+algorithm which when given $M$ and $C_i$ will produce $m$. 
+\end{definition}
 
 \section{Conclusions}
 
