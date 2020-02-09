@@ -101,20 +101,20 @@ the adversary being able to equationally unifiy cipher blocks
 it obtains from the oracle, see [Cathy paper] for more details
 and underlying security proofs. We are therefore, very interested 
 in the class of algorithmic questions that ask whether there exists
-and algorithm to decide if given a MOE-program and schedule, can
+an algorithm to decide if given a MOE-program and schedule, can
 the adversary always find a unifier if one exists. The most basic form
-of this question, where the number length and number of protocol 
+of this question, where the numeric length and number of independent protocol 
 interactions is finitely bounded has been proven decidable for the
 $xor$-equational theory [cite Chris and Hai's paper]. 
 Here we investigate the remaining cases and show them undecidable.
 
 A related algorithmic question asks if given a MOE-term and assuming
-the encryption can be inverted (decrypted), can once unwind the 
+the encryption can be inverted (decrypted), can one unwind the 
 encryption and other function applications to retrieve the 
 original message. This ``invertability'' property of course 
 is usually a requirement for any useful cryptographic algorithm.
-It is therefore important to know if an aromatically generated cryptosystem has this property. We investigate the algorithmic 
-question of given a MOE-program and schedule, is there an algorithm that will decide if the produced cipher blocks are invertible or not.        
+It is therefore important to know if an aromatically generated cryptosystem has this property. We investigate the following algorithmic 
+question of given a MOE-program and schedule: is there an algorithm that will decide if the produced cipher blocks are invertible or not?
    
  
 \section{Preliminaries}
@@ -231,7 +231,7 @@ return cipher blocks to the adversary. These restrictions have
 the following impact on the $MOE$-frames:
 \begin{itemize}
 	\item $MOE$: The mode of encryption dictates how the oracle 
-	constructs cypher blocks. For example, in a Cipher Block Chaining,
+	constructs cipher blocks. For example, in a Cipher Block Chaining,
 	$CBC$, $MOE$ the ith block of cipher text, $C_i$, is modeled by
 	the $y_i \mapsto f(C_{i-1} \oplus x_i)$, where $\oplus$ is
 	the xor function.
@@ -239,7 +239,7 @@ the following impact on the $MOE$-frames:
 	cipher blocks immediately or at the end of the session.  
 \end{itemize}
 
-The adversary has the ability to execute multiple simultaneous session with the oracle. In this case the initial name, the IV, will be fresh for each session. Each session can then be modeled by it's own frame. 
+The adversary has the ability to execute multiple simultaneous sessions with the oracle. In this case the initial name, the IV, will be fresh for each session. Each session can then be modeled by it's own frame. 
 
 
 %\begin{definition}
@@ -249,7 +249,7 @@ The adversary has the ability to execute multiple simultaneous session with the 
 
 We model a potential attack via a decision problem involving unification. First we need a new definition of unification which includes the 
 constraint on term orders imposed by the $MOE$-program. This 
-ordering can be enforeced using a relation $\prec_{\mathcal{P}}$, defined 
+ordering can be enforced using a relation $\prec_{\mathcal{P}}$, defined 
 as follows. 
 
 \begin{definition}
@@ -473,7 +473,7 @@ The program works as follows:
 	The oracle sends the list of cipher blocks back to
 	the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
-	the top and bottom cipher blocks within each $E_i$.
+	all of the current cipher blocks it knows.
 	\item The session stops if an unsafe pair is found or 
 	the adversary sends the stop command. 
 \end{itemize}
