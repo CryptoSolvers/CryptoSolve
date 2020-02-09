@@ -1,5 +1,5 @@
-%\documentclass{llncs}
-\documentclass[11pt,twoside,a4paper]{article}
+\documentclass{easychair}
+%\documentclass[11pt,twoside,a4paper]{article}
 \usepackage{amssymb, amsthm}
 \usepackage{proof}
 \usepackage{url}
@@ -38,6 +38,8 @@
 \newcommand{\tdh}{\tilde{h}}
 \newcommand{\ignore}[1]{}
 \newcommand*\rfrac[2]{{}^{#1}\!/_{#2}}
+\newcommand{\Var}{\mathit{Var}}
+\newcommand{\CSU}[1]{\mathit{CSU_{#1}}}
 
 %\newcommand{\ISFULL}
 
@@ -51,22 +53,129 @@
 
 
 
-\title{ $MOE$ Decision Problems}
+\title{Algorithmic Problems in the Symbolic Approach to the Verification of Automatically Synthesized Cryptosystems}
 
+\author{Andrew M. Marshall \inst{1} 
+	\and Catherine A. Meadows \inst{2} 
+	\and Paliath Narendran \inst{3} 
+	\and Veena Ravishankar \inst{1} 
+	\and Brandon Rozek \inst{4} }
+\institute{University of Mary Washington, Fredericksburg, VA, USA
+	\and Naval Research Laboratory, Washington, DC, USA
+	\and University at Albany--SUNY, Albany, NY, USA 
+	\and Naval Surface Warfare Center Dahlgren Division, Dahlgren, VA, USA}
 
+\authorrunning{Marshall, Meadows, Narendran, Ravishankar, and Rozek}
+\titlerunning{MOE Decision Problems}
 \begin{document}
-\tableofcontents
+%\tableofcontents
 \maketitle
 \begin{abstract}
-The $MOE$ decision problem. 
+We investigate two algorithmic problems that arise in the Symbolic Approach to the Verification of Automatically Synthesized Cryptosystems. First, we investigate several forms of
+the decision problem which arises in the symbolic investigation 
+of cryptographic Modes of Encryption (MOE). We present several
+undecidability results for these problems. Second, we investigate
+the invertability problem which also arises in investigation of
+MOE.    
 
 \end{abstract}
 
 
-\pagebreak
+%\pagebreak
+
+\section{Introduction}
+A relatively new and promising direction in the verification of
+automatically synthesized cryptosystems is to utilize previously developed methods from the analysis of cryptographic protocols 
+(for example~\cite{malozemoff2014automated}).
+In particular, we follow an approach developed here [cite Cathy paper].
+In this approach we can model synthesized cryptographic algorithms
+as a type of protocol modeling the interaction between an adversary
+and an encryptor/oracle. We denote these protocols as 
+MOE-programs, see Definition~\ref{def:moe_program}.
+In this model the adversary sends messages to the oracle which then 
+encrypts those messages according to some pre-determined 
+method. The encrypted blocks are then send back to the adversary 
+based on some schedule. One can then reduce certain security
+questions on the overall synthesized cryptographic algorithm to
+the adversary being able to equationally unifiy cipher blocks
+it obtains from the oracle, see [Cathy paper] for more details
+and underlying security proofs. We are therefore, very interested 
+in the class of algorithmic questions that ask whether there exists
+and algorithm to decide if given a MOE-program and schedule, can
+the adversary always find a unifier if one exists. The most basic form
+of this question, where the number length and number of protocol 
+interactions is finitely bounded has been proven decidable for the
+$xor$-equational theory [cite Chris and Hai's paper]. 
+Here we investigate the remaining cases and show them undecidable.
+
+A related algorithmic question asks if given a MOE-term and assuming
+the encryption can be inverted (decrypted), can once unwind the 
+encryption and other function applications to retrieve the 
+original message. This ``invertability'' property of course 
+is usually a requirement for any useful cryptographic algorithm.
+It is therefore important to know if an aromatically generated cryptosystem has this property. We investigate the algorithmic 
+question of given a MOE-program and schedule, is there an algorithm that will decide if the produced cipher blocks are invertible or not.        
+   
+ 
+\section{Preliminaries}
+Let us briefly introduce some of the background concepts which will be important to this paper. 
+\subsection{Terms and Substitutions}
+Given a first-order signature $\Sigma$, a set of {\em names} is a
+countable set of (free) constants $N$, such that $\Sigma \cap N =
+\emptyset$.  Given a (countable) set of variables $X$, the set of
+$(\Sigma \cup N)$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$.
+The set of variables in a term $t$ is denoted by $fv(t)$ and the set
+of names in $t$ is denoted by $fn(t)$.  A term $t$ is \emph{ground} if
+$fv(t) = \emptyset$.  For any position $p$ in a term $t$ (including
+the root position $\epsilon$), $t(p)$ denotes the symbol at position
+$p$, $t|_p$ denotes the subterm of $t$ at position $p$, and $t[u]_p$
+denotes the term $t$ in which $t|_p$ is replaced by $u$.
+The size of a term $t$ is denoted by $|t|$ and defined in the usual
+way as follows: $|f(t_1,\dots,t_n)| = 1 + \sum_{i=1}^n |t_i|$ if $f$
+is a $n$-ary function symbol with $n\geq 1$, $|c| = 1$ if $c \in N$, and $|x| = 0$ if $x \in X$.
+A substitution $\sigma$ is an endomorphism of $T(\Sigma \cup N,X)$ with only finitely many variables not mapped to themselves, denoted by
+$\sigma= \{ x_1 \mapsto t_1, \dots, x_m \mapsto t_m \}$. 
+Application of a substitution $\sigma$ to a term $t$ is written $t\sigma$.
+Given two substitutions $\theta$ and $\sigma$, the composition $\sigma \circ \theta$ is the substitution denoted here by $\theta\sigma$ and defined such that $x(\theta\sigma) = (x\theta)\sigma$ for any $x \in X$. 
+The domain of $\sigma$ is $Dom(\sigma) = \{ x \in X ~|~ x\sigma \neq x \}$. The range of $\sigma$ is $Ran(\sigma) = \{ x\sigma ~|~ x \in Dom(\sigma) \}$. When $\theta$ and $\sigma$ are two substitutions with disjoint domains and only ground terms in their ranges, then $\theta\sigma = \theta \cup \sigma$.
+Given a substitution $\sigma$ and a finite set of variables $V \subseteq X$, the restriction of $\sigma$ to $V$ is the substitution denoted by $\sigma_{| V}$ such that $x\sigma_{| V} = x \sigma$ for any $x \in V$ and $x\sigma_{| V} = x$ for any $x \in X \backslash V$.
+
+\subsection{Equational Theories}
+
+Given a set $E$ of $\Sigma$-axioms (i.e., pairs of $\Sigma$-terms,
+denoted by $l = r$), the \emph{equational theory} $=_E$ is the
+congruence closure of $E$ under the law of substitutivity.  For any
+$\Sigma$-term $t$, the equivalence class of $t$ with respect to $=_E$
+is denoted by $[t]_E$. Since $\Sigma \cap N = \emptyset$, the 
+$\Sigma$-equalities in $E$ do not contain any names in $N$.
+A theory $E$ is
+\emph{trivial} if $x=_E y$, for two distinct variables $x$ and $y$. In this
+paper, all the considered theories are assumed non-trivial.
+
+An $E$-unification problem with free constants in $N$ is a set of $\Sigma \cup N$-equations $P= \{ s_{1} =^{?} t_{1} , \dots , s_{m} =^{?} t_{m}\} $.
+The set of variables in
+$P$ is denoted by $fv(P)$.  A solution to $P$, called an
+\emph{E-unifier\/}, is a substitution $\sigma$ such that $s_i \sigma
+=_E^{} t_i \sigma$ for all $1 \leq i \leq m$.  A substitution $\sigma$
+is \emph{more general modulo\/} $E$ than $\theta$ on a set of
+variables $V$, denoted as $\sigma \leq_{E}^V \theta$, if there is a
+substitution $\tau$ such that $x \sigma \tau =_{E} x \theta$ for all
+$x \in V$.  A \emph{Complete Set of $E$-Unifiers} of $P$, denoted by
+$\CSU{E}(P)$, is a set of substitutions such that each $\sigma \in
+\CSU{E}(P)$ is an $E$-unifier of $P$, and for each $E$-unifier
+$\theta$ of $P$, there exists $\sigma \in \CSU{E}(P)$ such that
+$\sigma \leq_{E}^{fv(P)} \theta$.  $E$-unification is said to be
+\emph{finitary} if any $E$-unification problem $P$ admits a finite
+$\CSU{E}(P)$.  An $E$-unification problem $P = \{ x_{1} =^{?} t_{1} , \dots , x_{m} =^{?} t_{m}\}$ is a {\em solved form}
+if  $x_1,\dots, x_m$ are variables occurring once in $P$, and in that
+case the corresponding substitution $\mu_P = \{ x_{1} \mapsto t_{1} ,
+\dots , x_{m} \mapsto t_{m} \}$ is an $E$-unifier of $P$ such that $\{ \mu_P \}$ is a $\CSU{E}(P)$.
+When $E$ is empty, $E$-unification is called syntactic unification and
+has the property of being unitary: if two terms $s$ and $t$ are
+syntactically unifiable, then there exists a $\CSU{E}(s =^? t)$ of cardinality $1$ whose element is called a most general unifier of $s =^? t$ denoted by $mgu(s,t)$.
 
 
-\section{Definitions}
+\subsection{Modes of Encryption}
 
 \begin{definition}
 	$MOE$-terms: Given a first-order signature $\Sigma$, a countable set of (free) constants (names) $N$, such that $\Sigma \cap N =\emptyset$, and a (countable) set of variables $X$, the set of $MOE$-terms over $X$ is denoted by $T(\Sigma \cup N,X)$. 
@@ -74,7 +183,7 @@ The $MOE$ decision problem.
 
 
 
-\begin{definition}
+\begin{definition}\label{def:moe_program}
 	$MOE$-Program: Is an interaction between the 
 	the adversary and the oracle consisting of the following actions
 	and orders. Let $c$ be a name representing a session identifier.
@@ -191,7 +300,12 @@ Several examples of $MOE$ using this signature are:
 	$C_1 = f(P_1 \oplus IV)$, $C_i = f(P_i \oplus P_{i-1} \oplus C_{i-1})$.
 \end{itemize}
 
-\section{Non-deterministic Decision Problem}
+
+
+\section{Decision Problems in MOE-Programs}
+
+\subsection{Non-deterministic Decision Problem in unbounded session 
+	lengths}
 
 In this section we prove that the non-deterministic version 
 of the decision problem is undecidable.
@@ -253,10 +367,7 @@ The program works as follows:
 	to Definition~\ref{non-det-func} and returns the pair,
 	$E_j$, to the adversary.
 	\item The adversary attempts to $\mathcal{P}$-unify 
-	all of the current cipher blocks it knows. \todo{Brandon: Not sure how I feel about this wording. The advesary only needs to unify the two blocks within $E_j$ each time it receives it. Since this algorithm non-deterministically chooses a solution it does not matter, but otherwise it could try to unify the top block in one sequence with a bottom block in another.}
-	\todo{It's a requirement, we can't limit what blocks the
-		adversary attempts to unify. However, we can use nonces
-		to ensure only certain pairs could possibly be unifiable.}
+	all of the current cipher blocks it knows. 
 	\item The program stops if the adversary finds an unsafe
 	pair or it sends a stop session command.
 \end{itemize}
@@ -276,7 +387,7 @@ Follows from the encoding given in Definition~\ref{non-det-func}
 \begin{theorem}
 	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
 	of determining if $M$, executing with 
-	an unbounded number of sessions and unbounded session
+	a bounded number of sessions and unbounded session
 	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
 \end{theorem}
 \begin{proof}
@@ -330,18 +441,13 @@ C_{2,2} &= f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus IV)))))
 \end{example}
 
 
-\section{Deterministic Decision Problem}
-\todo{Andrew: Could do this by using multiple sessions or
-	having the oracle send back more than 2 blocks. 
-	I'm not sure what's the best approach.
-	What do you think?}
-\todo{Brandon: I like the first option better as that allows us to have a bounded number of sessions. (The undeterministic proof currently only requires one session) }
+\subsection{Deterministic Decision Problem in unbounded session lengths}
 In this section we create a deterministic version of the 
 above non-deterministic program by testing not a single 
 non-deterministic selected solution but rather all possible
 solutions. 
 
-\begin{definition}\label{det-func}\todo{Possible deterministic function def}
+\begin{definition}\label{det-func}
 	
 	Let $PCP = ~(\frac{A_0}{B_0}), ~(\frac{A_1}{B_1}), ~\ldots, ~(\frac{A_n}{B_n})$. 	
 	
@@ -357,8 +463,7 @@ solutions.
 	where $r_p$ is a new random nonce.
 	$C_0 = [r,r]$ for a nonce $r$
 \end{definition}
-
-\subsection{Option One: send back all the blocks in a single session} 
+ 
 The program works as follows:
 \begin{itemize}
 	\item For each step $i$, $0 \leq i \leq M$, the adversary
@@ -374,7 +479,10 @@ The program works as follows:
 \end{itemize}
 
 \begin{theorem}
-	The $MOE_{\oplus}$ deterministic decision problem is undecidable for unbounded session lengths, immediate schedule, and CBC.
+	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
+	of determining if $M$, executing with 
+	a bounded number of sessions and unbounded session
+	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
 \end{theorem}
 \begin{proof}
 	Notice that if there is a finite sequence giving a solution
@@ -382,8 +490,11 @@ The program works as follows:
 	be produced and the adversary will find an unsafe pair.  
 \end{proof}
 
+
+\ignore{
 \subsection{Option Two: Create a new session for each possible
 	encoding}
+
 
 The program works as follows:
 \begin{itemize}
@@ -402,7 +513,7 @@ The program works as follows:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 				Old part of the paper                        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\ignore{
+
 \section{Decision Problems with an Adversary Encoding the PCP}
 In this section we assume that the adversary is active and the 
 oracle is passive. That is, the adversary attempts to encode the 
@@ -1253,17 +1364,36 @@ $C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$
 
 }
 
-\section{Bounded Session Lengths and Unbounded Number of Sessions}
-\thispagestyle{fancy}
+\subsection{Bounded Session Lengths and Unbounded Number of Sessions}
+%\thispagestyle{fancy}
 
 If $\alpha ~ = ~ abb$ then $\overline{\alpha} (x) ~ = ~ f(a \oplus f(b \oplus f(b \oplus x)))$\\[+10pt]
+\begin{definition}
+	If $A_i$ be a string such that $A_i = a_0 a_1\ldots a_m$ and 
+	$C_j$ some cipher block, let $F(A_i \bigoplus C_j) =
+	f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
+\end{definition}
 
+\begin{example}
+	Assume you have a string A = "abd" and assume $C$ is some cipher
+	block. Then, 
+	\[F(A \bigoplus C) = 
+	f(a \oplus f(b \oplus f(d \oplus C)))
+	\]
+\end{example}
+
+In this section we investigate the case where the session length
+is bounded but the the number of sessions is unbounded. In this
+case it's still possible to encode the PCP problem into the 
+unbounded number of sessions. 
+
+\subsubsection{Encoding}
 For all dominoes $\big( \alpha_i , \; \beta_i \big)$ except the start domino and the end domino, we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, \overline{\alpha_i}\big( x_2 \; \oplus \;   f(x_1)  \big) \; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  \overline{\beta_i}\big( x_3 \; \oplus \; f(f(x_1)) \big) \; ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
+x_2 & \qquad y_2 \, := F(\alpha_i \bigoplus  x_2 \; \oplus \;   f(x_1))\; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(\beta_i \bigoplus  x_3 \; \oplus \; f(f(x_1))) ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
 \end{array}
 \]
 
@@ -1271,8 +1401,8 @@ For the end domino we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, \overline{\alpha_n}( x_2 ) \; \oplus \;   f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  \overline{\beta_n}( x_3 ) \; \oplus \; f(f( y_1 )) \\[+10pt]
+x_2 & \qquad y_2 \, := \, F(\alpha_i \bigoplus x_2) \; \oplus \;   f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(\beta_i \bigoplus x_3) \; \oplus \; f(f( y_1 )) \\[+10pt]
 \end{array}
 \]
 
@@ -1281,12 +1411,28 @@ For the start domino $\big( \alpha_0 , \; \beta_0 \big)$, we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, \overline{\alpha_0}\big( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
-x_3 & \qquad y_3 \, := \,  \overline{\beta_0}\big( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
+x_2 & \qquad y_2 \, := \, F(\alpha_0 \bigoplus( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(\beta_0 \bigoplus( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
 \end{array}
 \]
 
 The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
 
-\ifthenelse {\value{page} > 1} {\thispagestyle{plain}} {\thispagestyle{empty}}
+%\ifthenelse {\value{page} > 1} {\thispagestyle{plain}} %{\thispagestyle{empty}}
+
+\begin{theorem}
+	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
+	of determining if $M$, executing with 
+	a unbounded number of sessions and bounded session
+	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
+\end{theorem}
+\begin{proof}
+
+\end{proof}
+\section{The Invertability Problem}
+
+\section{Conclusions}
+
+\bibliographystyle{plain}
+\bibliography{MOE_bib}
 \end{document}
