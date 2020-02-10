@@ -1365,22 +1365,6 @@ $C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$
 }
 
 \subsection{Bounded Session Lengths and Unbounded Number of Sessions}
-%\thispagestyle{fancy}
-
-If $\alpha ~ = ~ abb$ then $\overline{\alpha} (x) ~ = ~ f(a \oplus f(b \oplus f(b \oplus x)))$\\[+10pt]
-\begin{definition}
-	If $A_i$ be a string such that $A_i = a_0 a_1\ldots a_m$ and 
-	$C_j$ some cipher block, let $F(A_i \bigoplus C_j) =
-	f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
-\end{definition}
-
-\begin{example}
-	Assume you have a string A = "abd" and assume $C$ is some cipher
-	block. Then, 
-	\[F(A \bigoplus C) = 
-	f(a \oplus f(b \oplus f(d \oplus C)))
-	\]
-\end{example}
 
 In this section we investigate the case where the session length
 is bounded but the the number of sessions is unbounded. In this
@@ -1388,12 +1372,12 @@ case it's still possible to encode the PCP problem into the
 unbounded number of sessions. 
 
 \subsubsection{Encoding}
-For all dominoes $\big( \alpha_i , \; \beta_i \big)$ except the start domino and the end domino, we create
+For all dominoes $\big( A_i , \; B_i \big)$ except the start domino and the end domino, we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := F(\alpha_i \bigoplus  x_2 \; \oplus \;   f(x_1))\; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(\beta_i \bigoplus  x_3 \; \oplus \; f(f(x_1))) ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
+x_2 & \qquad y_2 \, := F(A_i \bigoplus  x_2 \; \oplus \;   f(x_1))\; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus  x_3 \; \oplus \; f(f(x_1))) ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
 \end{array}
 \]
 
@@ -1401,18 +1385,18 @@ For the end domino we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, F(\alpha_i \bigoplus x_2) \; \oplus \;   f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(\beta_i \bigoplus x_3) \; \oplus \; f(f( y_1 )) \\[+10pt]
+x_2 & \qquad y_2 \, := \, F(A_i \bigoplus x_2) \; \oplus \;   f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus x_3) \; \oplus \; f(f( y_1 )) \\[+10pt]
 \end{array}
 \]
 
 
-For the start domino $\big( \alpha_0 , \; \beta_0 \big)$, we create
+For the start domino $\big( A_0 , \; B_0 \big)$, we create
 \[
 \begin{array}{cl}
 x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, F(\alpha_0 \bigoplus( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(\beta_0 \bigoplus( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
+x_2 & \qquad y_2 \, := \, F(A_0 \bigoplus( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_0 \bigoplus( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
 \end{array}
 \]
 
