@@ -6,7 +6,7 @@ from Unification import *
 from xor import xor
 from copy import deepcopy
 import types
-import sys,imp
+#import sys,imp
 
 def enum_str(D, s, sig):
 	if D <= 0:
@@ -64,6 +64,8 @@ reccase_str="""
 
 tempcode =""" 
 def NewMOE(moe, session_id, iteration):
+    from algebra import Function
+    from xor import xor
     moe.assertIteration(session_id, iteration)
     P = moe.plain_texts[session_id]
     C = moe.cipher_texts[session_id]
@@ -73,11 +75,24 @@ def NewMOE(moe, session_id, iteration):
     if i == 0:
         return"""+basecase_str+reccase_str
 
-moemod = imp.new_module("newmoe")
-exec(tempcode, moemod.__dict__)
+#moemod = imp.new_module("newmoe")
+#exec(tempcode, moemod.__dict__)
+#s = Constant("s")
+#x = Variable("x")
+#p = MOESession(moemod.NewMOE)
+#p.rcv_start(1)
+#print(p.rcv_block(1, x))
+
+#new method
+from moe import *
+import sys, importlib
+newname = 'newmod'
+my_spec = importlib.util.spec_from_loader(newname, loader=None)
+newmod = importlib.util.module_from_spec(my_spec)
+exec(tempcode, newmod.__dict__)
 s = Constant("s")
 x = Variable("x")
-p = MOESession(moemod.NewMOE)
+p = MOESession(newmod.NewMOE)
 p.rcv_start(1)
 print(p.rcv_block(1, x))
 
