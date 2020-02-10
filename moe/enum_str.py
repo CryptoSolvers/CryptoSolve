@@ -1,6 +1,12 @@
+import sys
+sys.path.append("..")
 
-#!/usr/bin/env python3
+from algebra import *
+from Unification import *
+from xor import xor
 from copy import deepcopy
+import types
+import sys,imp
 
 def enum_str(D, s, sig):
 	if D <= 0:
@@ -52,10 +58,28 @@ def _get_lists_for_map(l):
 
 
 
+basecase_str=""" f(xor(P[0], IV))"""
+reccase_str="""
+    return  f(xor(P[i], C[i-1]))"""
 
+tempcode =""" 
+def NewMOE(moe, session_id, iteration):
+    moe.assertIteration(session_id, iteration)
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
+    IV = moe.IV[session_id]
+    f = Function("f", 1)
+    i = iteration - 1
+    if i == 0:
+        return"""+basecase_str+reccase_str
 
-
-
+moemod = imp.new_module("newmoe")
+exec(tempcode, moemod.__dict__)
+s = Constant("s")
+x = Variable("x")
+p = MOESession(moemod.NewMOE)
+p.rcv_start(1)
+print(p.rcv_block(1, x))
 
 s= list()
 sig = {"c", "p", "r"}
