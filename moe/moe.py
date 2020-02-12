@@ -25,9 +25,10 @@ class Frame:
 # However, you have to create an oracle for every different chaining function and schedule that you want to use
 # The API is largely taken from "Symbolic Security Criteria for Blockwise Adaptive Secure Modes of Encryption" by Catherine Meadows
 class MOESession:
-    def __init__(self, chaining_function, schedule : str = "every"):
+    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = ""):
         self.chaining_function = chaining_function
         self.schedule : str = schedule
+        self.custom_moe_string : str = custom_moe_string
         self.sessions : List[int] = []
         # The below variables are dictionaries that are indexed by the session id
         self.subs : Dict[int, SubstituteTerm] = {}
@@ -73,7 +74,10 @@ class MOESession:
 
         # Create new cipher text variable and map it to the MOE
         sub_var = Variable("y_" + str(self.iteration[session_id]))
-        encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
+        if(self.chaining_function == CustomMOE):
+            encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.custom_moe_string)
+        else:
+             encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
         self.subs[session_id].add(sub_var, encrypted_block)
         self.cipher_texts[session_id].append(sub_var)
 
@@ -89,6 +93,25 @@ class MOESession:
 ##
 # Modes of Encryptions (MOEs)
 ##
+
+def CustomMOE(moe, session_id, iteration, moe_string : str):
+    moe.assertIteration(session_id, iteration)
+    P = moe.plain_texts[session_id]
+    C = moe.cipher_texts[session_id]
+    IV = moe.IV[session_id]
+    parser = Parser()
+    parser.add(Function("f", 1))
+    parser.add(Function("xor", 2))
+    parser.add(Variable("P[i]"))
+    parser.add(Variable("C[i]"))
+    parser.add(Variable("C[i-1]"))
+    parser.add(Constant("IV"))
+    parser.add(Constant("P[0]"))
+    i = iteration - 1
+    if i == 0:
+        return parser.parse((moe_string.replace("C[i-1]", "IV")).replace("i", "0"))
+    return parser.parse(moe_string)
+
 def CipherBlockChaining(moe, session_id, iteration):
     """Cipher Block Chaining"""
     moe.assertIteration(session_id, iteration)
