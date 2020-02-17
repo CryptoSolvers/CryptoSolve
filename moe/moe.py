@@ -29,6 +29,16 @@ class MOESession:
         self.chaining_function = chaining_function
         self.schedule : str = schedule
         self.custom_moe_string : str = custom_moe_string
+        if(self.chaining_function == CustomMOE):
+            parser = Parser()
+            parser.add(Function("f", 1))
+            parser.add(Function("xor", 2))
+            parser.add(Variable("P[i]"))
+            parser.add(Variable("C[i]"))
+            parser.add(Variable("C[i-1]"))
+            parser.add(Constant("IV"))
+            parser.add(Constant("P[0]"))
+            parser.parse(custom_moe_string)
         self.sessions : List[int] = []
         # The below variables are dictionaries that are indexed by the session id
         self.subs : Dict[int, SubstituteTerm] = {}
