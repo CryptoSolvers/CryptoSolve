@@ -7,13 +7,11 @@ from flask import request, render_template, session, Markup
 from typing import Dict
 from uuid import uuid4
 
-with open('moe/website/partials/footer.html') as footer_html:
-    footer = footer_html.read()
 
 def render_tool_page(response):
     header =  render_template('header.html', title = "MOE Tool")
     body = render_template('tool.html', response = response)
-    return  header + body + footer
+    return  header + body
 
 def get_unif(x : str):
     if x == "unif":
@@ -74,8 +72,6 @@ def index():
     return render_tool_page("")
 
 moe_sessions : Dict[str, MOESession] = dict()    
-with open('moe/website/partials/program_create.html') as program_create_html:
-    program_create = program_create_html.read()
 
 DEFAULT_SID = 1 # Since each user can only simulate one MOE at a time
 @app.route('/program', methods=['GET', 'POST'])
@@ -103,7 +99,7 @@ def program():
                 session.pop('uid', None)
             if response is not None or moe_session.schedule == "end":
                 response = response if response is not None else "Sent " + str(x) if x is not None else ""
-                return header + render_template('program.html', response = str(response)) + footer
+                return header + render_template('program.html', response = str(response))
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
             chaining = get_chaining(request.form.get('chaining'))
@@ -117,7 +113,7 @@ def program():
             session['uid'] = uuid4()
             moe_sessions[session['uid']] = moe_session
             response = response if response is not None else "Sent " + str(x) 
-            return header + render_template('program.html', response = str(response)) + footer
+            return header + render_template('program.html', response = str(response))
     
     # Assume GET request and return form
-    return header + program_create + footer
+    return header + render_template('program_create.html')

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export FLASK_APP=moe/website/run.py
+export FLASK_APP=moe.website
 if command -v xdg-open >/dev/null 2>&1; then
 	$(sleep 3 && xdg-open "http://localhost:5000") &
 fi
