@@ -23,12 +23,12 @@ source senv/bin/activate
 <u>Install moe package</u>
 
 ```bash
-pip install .
+./install_packages
 ```
 
-If you encounter any permission errors, try running the following command instead,
+If you encounter any permission errors, edit the file to look like the following instead,
 ```bash
-pip install --user .
+pip install --user directoryname/
 ```
 
 Now you can run the examples! In the future, don't forget to `source` the environment every time you open a new terminal session.

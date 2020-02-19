@@ -14,19 +14,16 @@ for directory in directories:
 setup(name="moe",
     version="0.0.1",
     packages=find_packages(),
-    scripts=["moe/moe_tool", "view_notebook", "moe/moe_website"],
+    scripts=["moe_tool", "moe_website"],
     install_requires = [
+        # Our dependencies
+        "algebra",
+        "Unification",
+        "xor",
+        # Outside dependencies
         "Flask>=1.1.1",
-        "matplotlib>=3.1.1",
         "mypy>=0.740",
         "mypy-extensions>=0.4.0",
-        "networkx>=2.3",
-        "notebook>=6.0.0",
-        "jupyterlab>=1.2.0",
-        "jupyter-client>=5.3.0",
-        "numpy>=1.17.0"
-        "scipy>=1.3.1",
-        "sympy>=1.4"
     ],
     data_files = data_files,
     include_package_data = True
