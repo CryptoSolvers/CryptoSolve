@@ -302,13 +302,26 @@ Several examples of $MOE$ using this signature are:
 
 
 
-\section{Decision Problems in MOE-Programs}
+\section{Decision Problems with Unbounded Session Length in MOE-Programs}
 
-\subsection{Non-deterministic Decision Problem in unbounded session 
-	lengths}
+The first type of decision problems we examine are those 
+with sessions of an arbitrary or unbounded length. However,
+we assume that the number of sessions is bounded. In both
+cases, a bound of one on the number of sessions is stiff
+sufficient to obtain the undecidability results. We examine two cases:
+\begin{enumerate}
+	\item The non-deterministic case: where the MOE program is modeled by a non-deterministic function. 
+	See Section~\ref{sec:UB-non-det-func}.
+	\item The deterministic case: where the MOE program is
+	modeled as a deterministic function. 
+	See Section~\ref{sec:UB-det-func}.
+\end{enumerate}
+
+\subsection{Non-deterministic Decision Problem in unbounded session lengths}\label{sec:UB-non-det-func}
 
 In this section we prove that the non-deterministic version 
-of the decision problem is undecidable.
+of the decision problem for MOE programs of 
+unbounded session lengths and bounded number of sessions is undecidable.
 
 \begin{definition}
 If $A_i$ be a string such that $A_i = a_0 a_1\ldots a_m$ and 
@@ -317,7 +330,7 @@ f(a_0 \oplus f(a_1 \oplus \ldots f(a_m \oplus C_j) \ldots ))$
 \end{definition}
 
 \begin{example}
-Assume you have a string A = "abd" and assume $C$ is some cipher
+Assume you have a string A = ``abd'' and assume $C$ is some cipher
 block. Then, 
 \[F(A \bigoplus C) = 
 f(a \oplus f(b \oplus f(d \oplus C)))
@@ -441,11 +454,13 @@ C_{2,2} &= f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus IV)))))
 \end{example}
 
 
-\subsection{Deterministic Decision Problem in unbounded session lengths}
+\subsection{Deterministic Decision Problem in unbounded session lengths}\label{sec:UB-det-func}
 In this section we create a deterministic version of the 
 above non-deterministic program by testing not a single 
 non-deterministic selected solution but rather all possible
-solutions. 
+solutions. This then allows us to prove the undecidability
+of the deterministic decision problem for MOE programs 
+with unbounded session lengths and bounded number of sessions. 
 
 \begin{definition}\label{det-func}
 	
@@ -1364,14 +1379,148 @@ $C^{3,1}_{k, 2} = f(b \oplus f(a \oplus f(a \oplus f(a \oplus f(a \oplus r_3)))$
 
 }
 
-\subsection{Bounded Session Lengths and Unbounded Number of Sessions}
+\section{Decision Problems with 
+Bounded Session Lengths and Unbounded Number of Sessions}
 
 In this section we investigate the case where the session length
 is bounded but the the number of sessions is unbounded. In this
 case it's still possible to encode the PCP problem into the 
-unbounded number of sessions. 
+unbounded number of sessions. Here again we have two 
+versions of the problem based on modeling the MOE 
+program by a deterministic or a non-deterministic function.
+We start by examining the non-deterministic case.
 
-\subsubsection{Encoding}
+\subsection{Non-deterministic Decision Problems with 
+	Bounded Session Lengths}
+
+First, we can use the same non-deterministic function 
+definition we used in Definition~\ref{non-det-func}.
+We then need to show how to encode that function 
+into a MOE program. 
+
+\subsubsection{Encoding Non-deterministic Function into a Bounded Session Length MOE program}\label{sec:non-det-bounded-sessions}
+We can now encode the non-deterministic function 
+definition into a MOE program between an 
+adversary and an oracle/encryption program. 
+
+\begin{definition}\label{bounded-non-det-encoding}
+The Adversary's actions are divided into two categories:
+\begin{enumerate}
+	\item Starting a new session.
+	We have two subcategories here:
+	\begin{enumerate}
+		\item The initial session: The adversary sends a 
+		$-1$ and the oracle returns the first cipher block,
+		$C_0 = [r,r]$ where $r$ is a new random nonce. 
+		\item New, $i+1$ session after the prior, ith, session ends: 
+		The adversary sends a pair, $[j, [C_{i,1}, C_{i,2}]]$. The oracle sends back $E_{i_j}$. 
+	\end{enumerate}
+	\item Continuing the current sessions.
+	The adversary continues as in the unbounded session 
+	cases. Each ith round the adversary sends an index $j$ and
+	the oracle returns $E_{i_J}$.
+\end{enumerate}
+\end{definition}
+
+\begin{lemma}\label{lemma:bounded_pcp_to_moe}
+	Given a PCP problem the corresponding
+	bounded session $PCP_{MOE}$ program of Definition~\ref{bounded-non-det-encoding}
+	produces a $\mathcal{P}$-unifiable pair of cipher blocks
+	iff there is a solution the given PCP. 
+\end{lemma}
+\begin{proof}
+	Follows from the encoding given in Definition~\ref{bounded-non-det-encoding}
+\end{proof}
+
+\begin{theorem}
+	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
+	of determining if $M$, executing with 
+	a unbounded number of sessions and bounded session
+	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
+\end{theorem}
+\begin{proof}
+	Directly Lemma~\ref{lemma:bounded_pcp_to_moe}, this would
+	imply that we could then solve the PCP, a contradiction.   
+\end{proof}
+
+\subsection{Deterministic Decision Problems with 
+	Bounded Session Lengths}
+Again we can reuse the same deterministic function 
+from Definition~\ref{det-func}. We then need to 
+encode this function into a MOE program. 
+
+\subsubsection{Encoding Deterministic Function into a Bounded Session Length MOE program}\label{sec:det-bounded-sessions}
+We can now encode the non-deterministic function 
+definition into a MOE program between an 
+adversary and an oracle/encryption program. 
+
+\begin{definition}\label{bounded-det-encoding}
+
+Like the non-deterministic case the adversary's actions are divided into two categories:
+\begin{enumerate}
+	\item Starting a new session.
+	We have two subcategories here:
+	\begin{enumerate}
+		\item The initial session: The adversary sends a 
+		$-1$ and the oracle returns the first cipher block,
+		$C_0 = [r,r]$ where $r$ is a new random nonce. 
+		\item New, $i+1$ session after the prior, ith, session ends: 
+		The adversary sends a list of the last set of cipher blocks from $O_i$, $[C_1, C_2, \ldots, C_m]$. The oracle sends back $O_{i+1}$. 
+	\end{enumerate}
+	\item Continuing the current sessions.
+	The adversary continues as in the unbounded session 
+	cases. Each ith round the adversary sends a step $j$ and
+	the oracle returns $O_{i}$.
+\end{enumerate}
+\end{definition}
+
+\begin{lemma}\label{lemma:det-bounded_pcp_to_moe}
+	Given a PCP problem the corresponding
+	bounded session $PCP_{MOE}$ program of Definition~\ref{bounded-det-encoding}
+	produces a $\mathcal{P}$-unifiable pair of cipher blocks
+	iff there is a solution the given PCP. 
+\end{lemma}
+\begin{proof}
+	Follows from the encoding given in Definition~\ref{bounded-det-encoding}
+\end{proof}
+
+\begin{theorem}
+	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
+	of determining if $M$, executing with 
+	a unbounded number of sessions and bounded session
+	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
+\end{theorem}
+\begin{proof}
+	Directly Lemma~\ref{lemma:det-bounded_pcp_to_moe}, this would
+	imply that we could then solve the PCP, a contradiction.   
+\end{proof}
+
+
+\section{The Invertibility Problem}
+A natural requirement of any cryptographic algorithm is that given a
+cipher block encoding of a plain text message and the ability to decrypt, the original plain text can be obtained. That is, one can decrypt a cipher block to obtain the original plain text given you 
+have the key. Thus in the automatic synthesis of cryptosystem we 
+need to be able to check that this property holds. For cryptosystems
+modeled symbolically as MOEs this leads to the invertibility problem.
+
+\begin{definition}
+Let $M$ be a MOE with signature $\Sigma$. Let $f \in \Sigma$ model 
+the encryption function. Let $m$ be the initial plain text message
+and let $C_i$ be the ith cipher text block produced by $M$
+encoding $m$. 
+Assume there exists a function $f^{-1}$ which is the inverse of $f$. 
+Then, the \emph{invertibility problem} asks whether there is an 
+algorithm which when given $M$ and $C_i$ will produce $m$. 
+\todo{Brandon: If it took multiple cipher text blocks to encode $m$, then just having one $C_i$ wouldn't be enough to produce $m$ wouldn't it?}
+\todo{Andrew: It would be sufficient, depending on the MOE, to get the currently included plain text and thats what we want.}
+\end{definition}
+
+\section{Conclusions}
+
+
+\appendix
+
+\section{Alternative Bounded Session length Encoding}
 For all dominoes $\big( A_i , \; B_i \big)$ except the start domino and the end domino, we create
 \[
 \begin{array}{cl}
@@ -1411,27 +1560,8 @@ The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
 	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
 \end{theorem}
 \begin{proof}
-
+	
 \end{proof}
-\section{The Invertability Problem}
-A natural requirement of any cryptographic algorithm is that given a
-cipher block encoding of a plain text message and the ability to decrypt, the original plain text can be obtained. That is, one can decrypt a cipher block to obtain the original plain text given you 
-have the key. Thus in the automatic synthesis of cryptosystem we 
-need to be able to check that this property exists. For cryptosystems
-modeled symbolically as MOEs this leads to the invertability problem.
-
-\begin{definition}
-Let $M$ be a MOE with signature $\Sigma$. Let $f \in \Sigma$ model 
-the encryption function. Let $m$ be the initial plain text message
-and let $C_i$ be the ith cipher text block produced by $M$
-encoding $m$. 
-Assume there exists a function $f^{-1}$ which is the inverse of $f$. 
-Then, the \emph{invertiablity problem} asks whether there is an 
-algorithm which when given $M$ and $C_i$ will produce $m$. 
-\todo{Brandon: If it took multiple cipher text blocks to encode $m$, then just having one $C_i$ wouldn't be enough to produce $m$ wouldn't it?}
-\end{definition}
-
-\section{Conclusions}
 
 \bibliographystyle{plain}
 \bibliography{MOE_bib}
