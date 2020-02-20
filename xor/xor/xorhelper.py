@@ -1,7 +1,7 @@
 from algebra import *
-from Unification import *
-from xor import *
-from xor.structure import *
+from Unification import unif
+from .xor import *
+from .structure import *
 from copy import deepcopy
 
 from math import *

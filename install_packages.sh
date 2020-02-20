@@ -5,4 +5,3 @@ pip install theories/
 pip install Unification/
 pip install rewrite/
 pip install moe/
-pip install examples/

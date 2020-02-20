@@ -4,3 +4,4 @@ senv/
 *.ipynb_checkpoints/
 *.pyc
 .mypy_cache/
+*egg-info*

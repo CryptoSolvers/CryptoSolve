@@ -1,1 +1,1 @@
-from .xor import *
+from . import ac, structure, xorhelper, xor
