@@ -1,6 +1,3 @@
-import sys
-sys.path.append("..")
-
 # TODO: Not accounting for proof steps being longer than a line long...
 
 from algebra import *

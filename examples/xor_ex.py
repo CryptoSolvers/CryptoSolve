@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import sys
-sys.path.append("..")
-
 from algebra import *
 from xor import *
 

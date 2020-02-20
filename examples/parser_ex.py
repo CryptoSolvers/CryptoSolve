@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import sys
-sys.path.append("..")
-
 from algebra import *
 f = Function("f", 2)
 a = Constant("a")

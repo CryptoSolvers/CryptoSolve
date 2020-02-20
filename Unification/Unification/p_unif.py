@@ -1,8 +1,4 @@
-import sys
 from itertools import *
-
-sys.path.append("..")
-
 from xor.xorhelper import *
 from xor.structure import *
 

@@ -1,6 +1,3 @@
-import sys
-sys.path.append("..")
-
 from algebra import *
 from Unification import *
 from xor import xor

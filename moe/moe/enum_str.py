@@ -1,6 +1,3 @@
-import sys
-sys.path.append("..")
-
 from algebra import *
 from Unification import *
 from xor import xor
@@ -9,6 +6,7 @@ import types
 import sys,imp
 
 def enum_str(D, s, sig):
+	"""Generates a random MOE string. D represents the depth, s is meant to be an emptt list, and sig represents the signature"""
 	if D <= 0:
 		(s1, s2) = _get_lists_for_map(list(sig)) #get two lists that have each character in sig mapped to each other character by index exactly one time
 		fList = map(lambda i: "f(" + str(i) + ")", list(sig)) #all possible f()
@@ -57,29 +55,30 @@ def _get_lists_for_map(l):
 	return (s1, s2)
 
 
+# Brandon: Commented super scary code
 
-basecase_str=""" f(xor(P[0], IV))"""
-reccase_str="""
-    return  f(xor(P[i], C[i-1]))"""
+# basecase_str=""" f(xor(P[0], IV))"""
+# reccase_str="""
+#     return  f(xor(P[i], C[i-1]))"""
 
-tempcode =""" 
-def NewMOE(moe, session_id, iteration):
-    moe.assertIteration(session_id, iteration)
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
-    f = Function("f", 1)
-    i = iteration - 1
-    if i == 0:
-        return"""+basecase_str+reccase_str
+# tempcode =""" 
+# def NewMOE(moe, session_id, iteration):
+#     moe.assertIteration(session_id, iteration)
+#     P = moe.plain_texts[session_id]
+#     C = moe.cipher_texts[session_id]
+#     IV = moe.IV[session_id]
+#     f = Function("f", 1)
+#     i = iteration - 1
+#     if i == 0:
+#         return"""+basecase_str+reccase_str
 
-moemod = imp.new_module("newmoe")
-exec(tempcode, moemod.__dict__)
-s = Constant("s")
-x = Variable("x")
-p = MOESession(moemod.NewMOE)
-p.rcv_start(1)
-print(p.rcv_block(1, x))
+# moemod = imp.new_module("newmoe")
+# exec(tempcode, moemod.__dict__)
+# s = Constant("s")
+# x = Variable("x")
+# p = MOESession(moemod.NewMOE)
+# p.rcv_start(1)
+# print(p.rcv_block(1, x))
 
 s= list()
 sig = {"c", "p", "r"}

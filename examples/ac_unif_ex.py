@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-import sys
-sys.path.append("..")
-
-
 from algebra import *
 from Unification import *
 f = Function("f", 2)
