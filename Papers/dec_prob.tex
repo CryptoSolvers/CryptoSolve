@@ -1503,17 +1503,100 @@ have the key. Thus in the automatic synthesis of cryptosystem we
 need to be able to check that this property holds. For cryptosystems
 modeled symbolically as MOEs this leads to the invertibility problem.
 
-\begin{definition}
-Let $M$ be a MOE with signature $\Sigma$. Let $f \in \Sigma$ model 
-the encryption function. Let $m$ be the initial plain text message
-and let $C_i$ be the ith cipher text block produced by $M$
-encoding $m$. 
-Assume there exists a function $f^{-1}$ which is the inverse of $f$. 
-Then, the \emph{invertibility problem} asks whether there is an 
-algorithm which when given $M$ and $C_i$ will produce $m$. 
-\todo{Brandon: If it took multiple cipher text blocks to encode $m$, then just having one $C_i$ wouldn't be enough to produce $m$ wouldn't it?}
-\todo{Andrew: It would be sufficient, depending on the MOE, to get the currently included plain text and thats what we want.}
+Let $\phi = \nu \tilde{n}.\sigma$, be a frame where 
+$\sigma$ is a ground substitution, s.t., 
+$\sigma = \{x_0 \mapsto C_0, x_1 \mapsto C_1, \ldots, 
+	x_n \mapsto C_n\}$. Thus, $\sigma$ represents the ground
+cipher blocks, $C_i$, produced by the $MOE$ at step 
+$i$. Let $P = \{M_0, M_1, \ldots, M_n\}$ be the set of
+ground terms representing the plaintext messages where
+$M_i$ is a subterm of $C_i$.  The \emph{invertibility} problem
+is given by the relation $\phi \vdash_{E^{-1}} M$, s.t.
+$M \in P$. This relation is axiomatized by the following rules.
+
+\vspace*{0.1in}
+\begin{tabular}{lcc}
+	(a) & $\qquad$ & $\vcenter{
+		\infer[\qquad \mathrm{if} ~ x \in Dom(\sigma), ~x\sigma=M_i ]{ \phi \vdash_{E^{-1}} M_i }
+		{  }
+	}
+	$\\[+30pt]
+	(b) & $\qquad$ & $\vcenter{
+		\infer[\qquad s \in \tilde{n} ]{ \phi \vdash_{E^{-1}} s }
+		{  }
+	}
+	$\\[+30pt]
+	(c) & & $\vcenter{
+		\infer{\phi \vdash_{E^{-1}} M_1, \ldots \phi \vdash_{E^{-1}} M_l}
+		{\phi \vdash_{E^{-1}} f(M_1, ~M_2, \ldots, ~M_l)}
+	}
+	$\\[+30pt]
+	(d) & $\qquad$ & $\vcenter{
+		\infer[\qquad s.t. ~g \neq f ]{ \phi \vdash_{E^{-1}} g(M_1, ~M_2, \ldots, ~M_l) }
+		{ \phi \vdash_{E^{-1}} M_1, \ldots \phi \vdash_{E^{-1}} M_l }
+	}
+	$\\[+30pt]
+	(e) & $\qquad$ & $\vcenter{
+		\infer[\qquad M_i =_{E} M_j ]{ \phi \vdash_{E^{-1}} M_j }
+		{ \phi \vdash_{E^{-1}} M_i }
+	}
+	$
+	
+\end{tabular} 
+
+
+\vspace*{0.1in}
+Notice that if we introduce a new symbol, $f^{-1}$, where $f$ is the symbolic encryption function, i.e., $f = enc(\_, K)$, for some key $K$, and let $f^{-1}$ model decryption, 
+$f^{-1} = dec(\_, K)$, s.t. $f^{-1}(f(M)) = M$. 
+Then by augmenting $E$, s.t., $E^{-1} = E \cup  \{f^{-1}(f(x)) = x\}$, rule $(c)$ is subsumed by 
+rule $(e)$. In this case the set of rules 
+axiomatizing the invertibility problem are exactly those
+axiomatizing the deduction problem~\cite{DBLP:journals/tcs/AbadiC06, Cortier2010}.
+We then obtain the following result.
+
+\begin{lemma}\label{lem:invert_equiv_deduc}
+(\cite{DBLP:journals/tcs/AbadiC06}), The invertibility 
+problem is equivalent to the intruder deduction problem. 
+\end{lemma}
+
+Since the intruder duduction problem is undecidable in 
+general, so is the invertibility problem. 
+
+\begin{corol}\label{cor:invert_undec}
+The invertibility problem is undecidable in general.
+\end{corol}
+
+However, like deduction the invertibility problem is 
+decidable for some cases. 
+
+\subsection{Invertibility as a Unification problem}
+Following the direction of the deduction problem we 
+can characterize the invertibility problem as a type
+of unification problem. 
+
+\begin{definition}\label{def:recipe}
+Let $\phi = \nu \tilde{n}.\sigma$ be a frame, and $t$ a ground term. 
+We denote $\phi \vdash_E t$ if there exists a term $s$ such that $s\sigma =_{E} t$ and $fn(s) \cap \tilde{n} = \emptyset$. The term $s$ is called a \emph{recipe} of $t$ in $\phi$ modulo $E$.
 \end{definition}
+
+\begin{lemma}\label{lem:deduc_recipe}
+(\cite{DBLP:journals/tcs/AbadiC06})
+Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E M$ iff $\exists$ a recipe of
+$M$ in $\phi$ modulo $E$. 
+\end{lemma} 
+
+Therefore, by the equivalence we get. 
+
+\begin{corol}
+Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E^{-1} M$ iff $\exists$ a recipe of $M$ in $\phi$ modulo $E^{-1}$. 
+\end{corol}
+
+We now look at some the specific xor based cases explored 
+in the decision problem section. 
+
+\subsection{Invertibility in $MOE_{\oplus}$ Frames}
+
+\todo{Andrew: hopefully add the new algorithm(s) here }
 
 \section{Conclusions}
 
