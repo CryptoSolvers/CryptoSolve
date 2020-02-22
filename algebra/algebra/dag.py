@@ -84,3 +84,29 @@ class TermDAG:
             return self.dag.predecessors(term)
         else:
             return []
+
+# Below is legacy code to support termDAGSubstitute until a new DagSubstitute class is written
+
+def termSubstituteHelper(term, variable, replacement_term):
+    return_value = None
+    if term == variable:
+        return_value = replacement_term
+    elif isinstance(term, FuncTerm):
+        arguments = list(term.arguments)
+        for i, t in enumerate(arguments):
+            arguments[i] = termSubstituteHelper(t, variable, replacement_term)
+            term.set_arguments(arguments)
+            return_value = term
+    else:
+        return_value = term
+    return return_value
+
+def termSubstitute(term, variable, replacement_term):
+    new_term = deepcopy(term)
+    new_term = termSubstituteHelper(term, variable, replacement_term)
+    return new_term
+
+def termDAGSubstitute(dag, variable, replacement_term):
+    root = list(dag.dag.node)[0]
+    new_root = termSubstitute(root, variable, replacement_term)
+    return TermDAG(new_root)

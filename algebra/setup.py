@@ -8,7 +8,7 @@ setup(name="algebra",
         "mypy>=0.740",
         "mypy-extensions>=0.4.0",
         "networkx>=2.3",
-        "numpy>=1.17.0"
+        "numpy>=1.17.0",
         "sympy>=1.4"
     ]
 )

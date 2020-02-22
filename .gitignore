@@ -5,3 +5,5 @@ senv/
 *.pyc
 .mypy_cache/
 *egg-info*
+*.tox
+*.coverage

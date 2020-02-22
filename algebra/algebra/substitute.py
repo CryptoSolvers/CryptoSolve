@@ -41,7 +41,7 @@ class SubstituteTerm:
         """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then range as the ordering is not guarenteed."""
         if len(self.subs) > 0:
             v, _ = zip(*self.subs)
-            return v
+            return list(v)
         else:
             return list()
     
@@ -49,7 +49,7 @@ class SubstituteTerm:
         """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then domain as the ordering is not guarenteed."""
         if len(self.subs) > 0:
             _, t = zip(*self.subs)
-            return t
+            return list(t)
         else:
             return list()
 
@@ -133,29 +133,3 @@ class SubstituteTerm:
                 return_value = term
         return return_value
 
-
-# Below is legacy code to support termDAGSubstitute until a new DagSubstitute class is written
-
-def termSubstituteHelper(term, variable, replacement_term):
-    return_value = None
-    if term == variable:
-        return_value = replacement_term
-    elif isinstance(term, FuncTerm):
-        arguments = list(term.arguments)
-        for i, t in enumerate(arguments):
-            arguments[i] = termSubstituteHelper(t, variable, replacement_term)
-            term.set_arguments(arguments)
-            return_value = term
-    else:
-        return_value = term
-    return return_value
-
-def termSubstitute(term, variable, replacement_term):
-    new_term = deepcopy(term)
-    new_term = termSubstituteHelper(term, variable, replacement_term)
-    return new_term
-
-def termDAGSubstitute(dag, variable, replacement_term):
-    root = list(dag.dag.node)[0]
-    new_root = termSubstitute(root, variable, replacement_term)
-    return TermDAG(new_root)

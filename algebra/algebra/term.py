@@ -18,6 +18,8 @@ class AnySort:
         return hash(self.name)
     def __eq__(self, x):
         return self.name == x.name
+    def __str__(self):
+        return self.name
 
 ANY = AnySort()
 
@@ -65,7 +67,7 @@ class Function:
         for i, arg in enumerate(args):
             domain_sort = self.domain_sort if not isinstance(self.domain_sort, list) else self.domain_sort[i]
             if arg.sort != domain_sort and not arg.sort.subset_of(domain_sort):
-                raise ValueError("Domain Mismatch. Expected {}, Got {}." % (str(domain_sort), str(arg.sort)))
+                raise ValueError("Domain Mismatch. Expected {}, Got {}.".format(str(domain_sort), str(arg.sort)))
         return FuncTerm(self, args)
     def __repr__(self):
         return self.symbol
