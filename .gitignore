@@ -7,3 +7,4 @@ senv/
 *egg-info*
 *.tox
 *.coverage
+*/docs/build
