@@ -1495,6 +1495,38 @@ Like the non-deterministic case the adversary's actions are divided into two cat
 	imply that we could then solve the PCP, a contradiction.   
 \end{proof}
 
+\subsection{Encoding Bounded Session length Encoding}
+For all dominoes $\big( A_i , \; B_i \big)$ except the start domino and the end domino, we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := F(A_i \bigoplus  x_2 \; \oplus \;   f(x_1))\; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus  x_3 \; \oplus \; f(f(x_1))) ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
+\end{array}
+\]
+
+For the end domino we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := \, F(A_i \bigoplus x_2) \; \oplus \;   f( y_1 ) \\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus x_3) \; \oplus \; f(f( y_1 )) \\[+10pt]
+\end{array}
+\]
+
+
+For the start domino $\big( A_0 , \; B_0 \big)$, we create
+\[
+\begin{array}{cl}
+x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
+x_2 & \qquad y_2 \, := \, F(A_0 \bigoplus( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
+x_3 & \qquad y_3 \, := \,  F(B_0 \bigoplus( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
+\end{array}
+\]
+
+The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
+
+%\ifthenelse {\value{page} > 1} {\thispagestyle{plain}} %{\thispagestyle{empty}}
 
 \section{The Invertibility Problem}
 A natural requirement of any cryptographic algorithm is that given a
@@ -1504,10 +1536,9 @@ need to be able to check that this property holds. For cryptosystems
 modeled symbolically as MOEs this leads to the invertibility problem.
 
 Let $\phi = \nu \tilde{n}.\sigma$, be a frame where 
-$\sigma$ is a ground substitution, s.t., 
+$\sigma$ is a substitution, s.t., 
 $\sigma = \{x_0 \mapsto C_0, x_1 \mapsto C_1, \ldots, 
-	x_n \mapsto C_n\}$. Thus, $\sigma$ represents the ground
-cipher blocks, $C_i$, produced by the $MOE$ at step 
+	x_n \mapsto C_n\}$. Thus, $\sigma$ represents the cipher blocks, $C_i$, produced by the $MOE$ at step 
 $i$. Let $P = \{M_0, M_1, \ldots, M_n\}$ be the set of
 ground terms representing the plaintext messages where
 $M_i$ is a subterm of $C_i$.  The \emph{invertibility} problem
@@ -1556,7 +1587,7 @@ We then obtain the following result.
 
 \begin{lemma}\label{lem:invert_equiv_deduc}
 (\cite{DBLP:journals/tcs/AbadiC06}), The invertibility 
-problem is equivalent to the intruder deduction problem. 
+problem is computationally equivalent to the intruder deduction problem. 
 \end{lemma}
 
 Since the intruder duduction problem is undecidable in 
@@ -1581,70 +1612,93 @@ We denote $\phi \vdash_E t$ if there exists a term $s$ such that $s\sigma =_{E} 
 
 \begin{lemma}\label{lem:deduc_recipe}
 (\cite{DBLP:journals/tcs/AbadiC06})
-Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E M$ iff $\exists$ a recipe of
+Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E M$ iff ~$\exists$ a recipe of
 $M$ in $\phi$ modulo $E$. 
 \end{lemma} 
 
 Therefore, by the equivalence we get. 
 
 \begin{corol}
-Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E^{-1} M$ iff $\exists$ a recipe of $M$ in $\phi$ modulo $E^{-1}$. 
+Let $M$ be a ground term and  $\phi = \nu \tilde{n}.\sigma$ a frame. Then $\phi \vdash_E^{-1} M$ iff ~$\exists$ a recipe of $M$ in $\phi$ modulo $E^{-1}$. 
 \end{corol}
 
 We now look at some the specific xor based cases explored 
 in the decision problem section. 
 
 \subsection{Invertibility in $MOE_{\oplus}$ Frames}
+Here we limit our investigation to signature 
+$\Sigma = \{\oplus, 0, f, f^{-1}\}$ and 
+$MOE_{\oplus}$ modes of encryption. 
 
-\todo{Andrew: hopefully add the new algorithm(s) here }
+The equational theories can be presented as a combination.
+$R_{f} = \{ f(f^{-1}(M)) \rightarrow M, ~f^{-1}(f(M)) \rightarrow M \}$.  $R_{\oplus} = \{x \oplus x \rightarrow 0, ~x \oplus 0 \rightarrow x\}$ and 
+$E_{\oplus} = AC(\oplus)$. We are interested in the 
+invertibility problem for the theory 
+$R_{f} \cup R_{\oplus} \cup E_{\oplus}$.
+
+First consider the deduction problem for 
+$R_{\oplus} \cup E_{\oplus}$ this problem has been 
+solved in the positive in~\cite{DBLP:journals/tcs/AbadiC06}.
+Furthermore, the theory $R_{f}$ is subterm convergent and thus the duduction problem is also solvable for it 
+due to~\cite{Abadi2006}. Therefore we have the following.
+
+\begin{lemma}\label{lem:deduc_xor_dec}
+(\cite{Abadi2006})\\	
+The deduction problem is solvable in both $R_{\oplus} \cup E_{\oplus}$ and $R_{f}$
+\end{lemma}
+\begin{proof}~\\
+\begin{itemize}
+	\item $R_{\oplus} \cup E_{\oplus}$ is proven in
+	~\cite{Abadi2006}.
+	\item $R_{f}$ follows from the fact that $R_{f}$ is
+	subterm convergent and the deduction result on 
+	subterm-convergent theories developed in~\cite{Abadi2006}.
+\end{itemize}
+\end{proof}
+
+Thus, we can consider the combination problem for 
+the theory  $R_{f} \cup \{R_{\oplus} \cup E_{\oplus} \}$.
+Notice that this is a disjoint combination since 
+$\{f, f^{-1}\} \cap \{0, \oplus\} = \emptyset$. 
+Therefore we get the following.
+
+\begin{lemma}\label{lem:ded_full}
+The deduction problem is solvable in the theory 
+$R_{f} \cup \{R_{\oplus} \cup E_{\oplus} \}$.
+\end{lemma}
+\begin{proof}
+Follows from the disjoint combination result 
+of~\cite{Cortier2010}.
+\end{proof}
+
+Therefore, combining Lemma~\ref{lem:ded_full} with 
+Lemma~\ref{lem:invert_equiv_deduc} we get the 
+following.
+
+\begin{corol}\label{cor:xor_inver_decidable}
+The invertibuility problem for the theory 
+$R_{f} \cup \{R_{\oplus} \cup E_{\oplus} \}$ is
+decidable.
+\end{corol}
+
+\subsubsection{Dedicated $MOE_{\oplus}$ Invertibility  Algorithm}\todo{Andrew: Develop a dedicated algorithm building on Brandon's  ideas and show it's more efficient than
+	the combination method.}
+While we know that an algorithm exists for solving the 
+invirtibility problem for the theory $R_{f} \cup \{R_{\oplus} \cup E_{\oplus} \}$ we looked to 
+develop a dedicated algorithm for this theory that could
+be easily implemented into an invitibility checking 
+tool and improve upon the efficiency of the generic 
+combination algorithms. We present that algorithm here.
+
 
 \section{Conclusions}
 
 
 \appendix
 
-\section{Alternative Bounded Session length Encoding}
-For all dominoes $\big( A_i , \; B_i \big)$ except the start domino and the end domino, we create
-\[
-\begin{array}{cl}
-x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := F(A_i \bigoplus  x_2 \; \oplus \;   f(x_1))\; ~ \oplus ~ \; f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus  x_3 \; \oplus \; f(f(x_1))) ~ \oplus ~ \; f(f( y_1 )) \\[+10pt]
-\end{array}
-\]
-
-For the end domino we create
-\[
-\begin{array}{cl}
-x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, F(A_i \bigoplus x_2) \; \oplus \;   f( y_1 ) \\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(B_i \bigoplus x_3) \; \oplus \; f(f( y_1 )) \\[+10pt]
-\end{array}
-\]
 
 
-For the start domino $\big( A_0 , \; B_0 \big)$, we create
-\[
-\begin{array}{cl}
-x_1 & \qquad y_1 \, := \, r \; \oplus \; f( x_1 ) \\[+10pt]
-x_2 & \qquad y_2 \, := \, F(A_0 \bigoplus( x_2  \; \oplus \;   f(x_1) \big)\\[+10pt]
-x_3 & \qquad y_3 \, := \,  F(B_0 \bigoplus( x_3  \; \oplus \; f(f(x_1)) \big)\\[+10pt]
-\end{array}
-\]
 
-The output is $\big[ f(r), \, y_1, \, y_2, \, y_3 \big]$ in all cases.
-
-%\ifthenelse {\value{page} > 1} {\thispagestyle{plain}} %{\thispagestyle{empty}}
-
-\begin{theorem}
-	Assume $M$ is an arbitrary $MOE_{\oplus}$. The problem
-	of determining if $M$, executing with 
-	a unbounded number of sessions and bounded session
-	lengths, ever produces two  $\mathcal{P}$-unifiable cipher blocks is undecidable. 
-\end{theorem}
-\begin{proof}
-	
-\end{proof}
 
 \bibliographystyle{plain}
 \bibliography{MOE_bib}
