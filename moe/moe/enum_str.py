@@ -5,23 +5,44 @@ from copy import deepcopy
 import types
 import sys,imp
 
-def enum_str(D, s, sig):
+def enum_str(D, s, sig, f_depth = 2, nonce = True, chaining = True):
 	"""Generates a random MOE string. D represents the depth, s is meant to be an emptt list, and sig represents the signature"""
 	if D <= 0:
-		(s1, s2) = _get_lists_for_map(list(sig)) #get two lists that have each character in sig mapped to each other character by index exactly one time
-		fList = map(lambda i: "f(" + str(i) + ")", list(sig)) #all possible f()
-		xorList = map((lambda i, j: "xor(" + str(i) + "," + str(j) + ")"), s1, s2) #all possible xor() combinations
+		#get two lists that have each character in sig mapped to each other character by index exactly one time
+		(s1, s2) = _get_lists_for_map(list(sig))
+		
+		#all possible f()
+		if nonce == True:
+			fList = ["f(R)"]
+		else: 
+			fList = map(lambda i: "f(" + str(i) + ")", list(sig))
+		
+		#all possible xor() combinations
+		if chaining == True:
+			 xorList = map((lambda i, j: "xor(" + str(i) + "," + str(j) + ")"), s1, ["C"])
+		else:
+			xorList = map((lambda i, j: "xor(" + str(i) + "," + str(j) + ")"), s1, s2) 
+		
 		for i in fList:
 			s.append(i) #add all f()
 		for j in xorList:
 			s.append(j) #add all xor()
 		return(s)
 	else:
-		rec = enum_str(D-1, s, sig)
+		rec = enum_str(D-1, s, sig, f_depth, nonce, chaining)
 		patch = deepcopy(rec)
-		(p1, p2) = _get_lists_for_map(list(patch)) #get two lists that have each moe string mapped to each other moe string by index exactly one time
-		fList = map(lambda i: "f(" + str(i) + ")", list(patch)) #all possible f(x())
-		xorList = map(lambda i, j: "xor(" + str(i) + "," + str(j) + ")", p1, p2) #all possible xor(x, y()) combinations
+		
+		#get two lists that have each moe string mapped to each other moe string by index exactly one time
+		(p1, p2) = _get_lists_for_map(list(patch)) 
+		
+		#all possible f(x())
+		if f_depth > 0:
+			fList = map(lambda i: "f(" + str(i) + ")", list(patch))
+			f_depth = f_depth -1
+		
+		#all possible xor(x, y()) combinations 
+		xorList = map(lambda i, j: "xor(" + str(i) + "," + str(j) + ")", p1, p2) 
+		
 		for i in fList:
 			s.append(i) #add all f()
 		for j in xorList:
