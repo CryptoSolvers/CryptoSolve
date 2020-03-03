@@ -1,13 +1,44 @@
 from .term import *
-from .dag import TermDAG
 from typing import Set
 
 class SubstituteTerm:
+    """
+    Represents a substitution from variables to terms.
+
+    Examples
+    --------
+    >>> from algebra import *
+    >>> x = Variable("x")
+    >>> a = Constant("a")
+    >>> sigma = SubstituteTerm()
+    >>> sigma.add(x, a)
+    >>> x * s
+    a
+    """
     def __init__(self):
         self.subs : Set[Variable, Term] = set()
     
     def add(self, variable : Variable, term : Term):
-        """Adds a mapping from a variable to a term"""
+        """
+        Adds a mapping from a variable to a term
+        
+        Parameters
+        ----------
+        variable : Variable
+            The variable to replace
+        term : Term
+            The term to replace the variable with.
+
+        Examples
+        --------
+        >>> from algebra import *
+        >>> x = Variable("x")
+        >>> a = Constant("a")
+        >>> sigma = SubstituteTerm()
+        >>> sigma.add(x, a)
+        >>> print(s)
+        { x -> a }
+        """
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         # Check to see if what we're adding already exists in the substitution set
@@ -30,7 +61,7 @@ class SubstituteTerm:
             self.subs = self.subs - x
     
     def replace(self, variable : Variable, term : Term):
-        """Replaces a mapping from a variable to a another term"""
+        """Replaces a mapping from a variable with another term"""
         assert isinstance(variable, Variable)
         assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
         self.remove(variable)
@@ -38,7 +69,11 @@ class SubstituteTerm:
         self.subs.add((variable, term))
     
     def domain(self) -> List[Variable]:
-        """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then range as the ordering is not guarenteed."""
+        """
+        Grabs the domain (the left side) of the substitutions. 
+        
+        Warning: Do not pair this call with range as ordering is not guarenteed.
+        """
         if len(self.subs) > 0:
             v, _ = zip(*self.subs)
             return list(v)
@@ -46,7 +81,11 @@ class SubstituteTerm:
             return list()
     
     def range(self) -> List[Term]:
-        """Grabs the domain (which consists of variables) of the substitutions. Warning: Do not call this and then domain as the ordering is not guarenteed."""
+        """
+        Grabs the range (the right side) of the substitutions. 
+        
+        Warning: Do not pair this call with domain as ordering is not guarenteed.
+        """
         if len(self.subs) > 0:
             _, t = zip(*self.subs)
             return list(t)
@@ -114,6 +153,7 @@ class SubstituteTerm:
             return theta
     
     def __call__(self, term : Term) -> Term:
+        """Apply substitution to term."""
         return self._applysub(term)
     
     def _termSubstituteHelper(self, term : Term) -> Term:

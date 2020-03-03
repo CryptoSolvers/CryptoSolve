@@ -16,7 +16,22 @@ def termToSympy(term : FuncTerm) -> sympy.Function:
     """Converts a functerm to a sympy function"""
 
 def termToSympy(term):
-    """Converts a term to a sympy term"""
+    """
+    Converts a term to a sympy term
+    
+    Parameters
+    ----------
+    term : Term
+        The term from this library to turn into a sympy term.
+    
+    Examples
+    --------
+    >>> from algebra import *
+    >>> f = Function("f", 1)
+    >>> a = Constant("a")
+    >>> termToSympy(f(a))
+    f_1(a_constant)
+    """
     if isinstance(term, Constant):
         return sympy.Symbol(term.symbol + "_constant")
     if isinstance(term, Variable):
@@ -44,7 +59,31 @@ def sympyToTerm(symterm : sympy.Function) -> FuncTerm:
     """Converts a sympy function to a functerm"""
 
 def sympyToTerm(symterm):
-    """Converts a sympy term to a term"""
+    """
+    Converts a sympy term to a term. See notes for caveats.
+    
+    Parameters
+    ----------
+    symterm : {sympy.Symbol, sympy.FunctionClass, sympy.Function}
+        A term from the sympy library. See notes for specifics.
+
+    Notes
+    -----
+    This function isn't meant to take an arbitrary sympy term but one
+    that is formatted the following way:
+    
+    - Variables end in `_variable`
+    - Constants end in `_constant`
+    - Functions with arity x end with `_x`
+    
+    Examples
+    --------
+    >>> from algebra import sympyToTerm
+    >>> from sympy import Symbol
+    >>> f = sympy.Symbol("f_2")
+    >>> sympyToTerm(f)
+    f
+    """
     if isinstance(symterm, sympy.Symbol):
         if symterm.name[-9:] == "_variable":
             return Variable(symterm.name[:-9])

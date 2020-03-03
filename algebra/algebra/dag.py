@@ -16,8 +16,20 @@ from typing import Dict, Tuple, Union
 ## Directed Acyclic Graphs
 #
 class TermDAG:
+    """
+    A directed acyclic graph representation of a term.
+
+    The dag implements struture sharing so that every subterm
+    in the DAG is unique.
+
+    Notes
+    -----
+    You can think of this as a tree. At the top of the tree 
+    is the outermost function/variable/constant. For each argument 
+    that a function has, it will point an array from that function 
+    to the argument.
+    """
     def __init__(self, term: Term):
-        """Create a directed acyclic graph from a term"""
         # Our DAG is an ordered graph because the edges are directional
         # It is considered a MultiGraph due to our structured sharing. 
         # One of the consequences is that finding the parent of a node is ambiguous
@@ -87,26 +99,38 @@ class TermDAG:
 
 # Below is legacy code to support termDAGSubstitute until a new DagSubstitute class is written
 
-def termSubstituteHelper(term, variable, replacement_term):
+def _termSubstituteHelper(term, variable, replacement_term):
     return_value = None
     if term == variable:
         return_value = replacement_term
     elif isinstance(term, FuncTerm):
         arguments = list(term.arguments)
         for i, t in enumerate(arguments):
-            arguments[i] = termSubstituteHelper(t, variable, replacement_term)
+            arguments[i] = _termSubstituteHelper(t, variable, replacement_term)
             term.set_arguments(arguments)
             return_value = term
     else:
         return_value = term
     return return_value
 
-def termSubstitute(term, variable, replacement_term):
+def _termSubstitute(term, variable, replacement_term):
     new_term = deepcopy(term)
-    new_term = termSubstituteHelper(term, variable, replacement_term)
+    new_term = _termSubstituteHelper(term, variable, replacement_term)
     return new_term
 
 def termDAGSubstitute(dag, variable, replacement_term):
+    """
+    Performs a variable substitution in a TermDAG.
+
+    Parameters
+    ----------
+    dag : TermDAG
+        The DAG representation of a term.
+    variable : Variable
+        The variable to replace within the DAG.
+    replacement_term : Term
+        The term to replace the variable in the DAG with.
+    """
     root = list(dag.dag.node)[0]
-    new_root = termSubstitute(root, variable, replacement_term)
+    new_root = _termSubstitute(root, variable, replacement_term)
     return TermDAG(new_root)
