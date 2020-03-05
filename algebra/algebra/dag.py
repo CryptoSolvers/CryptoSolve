@@ -32,8 +32,9 @@ class TermDAG:
     def __init__(self, term: Term):
         # Our DAG is an ordered graph because the edges are directional
         # It is considered a MultiGraph due to our structured sharing. 
+        # It is a digraph since the edges are directed
         # One of the consequences is that finding the parent of a node is ambiguous
-        self.dag = nx.OrderedMultiGraph()
+        self.dag = nx.OrderedMultiDiGraph()
         self.term = term
         self.edge_labels : Dict[Tuple[Term, Term], str] = {}
         self.node_labels : Dict[Term, Union[Variable, Function]] = {}
@@ -92,10 +93,13 @@ class TermDAG:
     
     def parents(self, term):
         """Parents of a term in the TermDAG"""
-        if term in self.dag.node:
+        if term in self.dag:
             return self.dag.predecessors(term)
         else:
             return []
+    def leaves(self):
+        """Leaves of a TermDAG"""
+        return filter(lambda x: self.dag.out_degree(x) == 0, self.dag.nodes())
 
 # Below is legacy code to support termDAGSubstitute until a new DagSubstitute class is written
 
