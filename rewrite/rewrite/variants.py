@@ -1,6 +1,35 @@
 from .rewrite import *
 class Variants:
-    """Construct variants of a term from a set of rewrite rules"""
+    """
+    Construct variants of a term given a rewrite system.
+
+    Parameters
+    ----------
+    term : Term
+       The term to compute the variants from.
+    rules : RewriteSystem
+       The rules from which to compute the variants from.
+    
+    Notes
+    -----
+    A variant of a term $t$ is a term that can be to by applying
+    a set of rewrite rules to $t$. 
+    
+    Examples
+    --------
+    >>> from algebra import *
+    >>> from rewrite import *
+    >>> f = Function("f", 2)
+    >>> x = Variable("x")
+    >>> a = Constant("a")
+    >>> b = Constant("b")
+    >>> r1 = RewriteRule(f(x, x), x)
+    >>> r2 = RewriteRule(f(a, x), b)
+    >>> term = f(a, f(b, b))
+    >>> vt = Variants(term, RewriteSystem({r1, r2}))
+    >>> list(vt)
+    [f(a, f(b, b)), b, f(a, b)]
+    """
     def __init__(self, term : Term, rules : RewriteSystem):
         # Each index represents the depth of the tree
         # Then at each depth of a tree we have a dictionary of terms mapped to what substitutions led to it
@@ -48,7 +77,20 @@ class Variants:
         return next_node
 
 def is_finite(v : Variants, bound : int) -> bool:
-    """Check the variants structure to see if it's finite. Returns true if it is or if the bound is reached on the number of rules applied. Set bound to -1 if you want to try infinitely."""
+    """
+    Check to see if there are a finite number of variants.
+
+    Returns true if the variants are finite or if the bound is reached.
+
+    Parameters
+    ----------
+    v : Variants
+      The variants in which to check if it's finite.
+    bound : int
+      The bound at which to stop checking for variants. 
+      More specifically, the bound represents the maximum number of rewrite rules
+      that the program is checking for. An infinite bound can be specified with -1.
+    """
     iteration = 1
     for variant in v:
         if bound != -1 and iteration > bound:
@@ -57,7 +99,38 @@ def is_finite(v : Variants, bound : int) -> bool:
     return True
 
 def narrow(term : Term, goal_term : Term, rules : RewriteSystem, bound : int) -> Optional[List[Tuple[RewriteRule, Position]]]:
-    """Narrow one term to another term through a set of rewrite rules. If the term cannot be rewritten it'll return None, otherwise it'll return a list of rewrite rules in the order that they need to be applied to produce the new term. Set bound to -1 if you want it to try infinitely"""
+    """
+    Returns the set of rewrite rules necessary to rewrite one term to a goal term.
+    If the term cannot be rewritten, this function will return None.
+    A bound greater than -1 will set the function to stop
+    attempting to reach the goal after a certain number of steps.
+
+    Parameters
+    ----------
+    term : Term
+      The term to start from.
+    goal_term : Term
+      The term to attempt to rewrite to.
+    rules : RewriteSystem
+      The rules from which to rewrite from.
+    bound : int
+      The maximum number of times to attempt rewriting.
+      -1 indicates an infinite bound.
+
+    Examples
+    --------
+    >>> from algebra import *
+    >>> from rewrite import *
+    >>> f = Function("f", 2)
+    >>> x = Variable("x")
+    >>> a = Constant("a")
+    >>> b = Constant("b")
+    >>> r1 = RewriteRule(f(x, x), x)
+    >>> r2 = RewriteRule(f(a, x), b)
+    >>> term = f(a, f(b, b))
+    >>> narrow(term, f(a,b), RewriteSystem({r1, r2}), -1)
+    [(f(x, x) → x, '2')]
+    """
     variants = Variants(term, rules)
     attempt = 1
     for variant in variants:
@@ -68,8 +141,24 @@ def narrow(term : Term, goal_term : Term, rules : RewriteSystem, bound : int) ->
         attempt += 1
     return None
 
+# TODO: Should recheck the logic for this algorithm.
 def normal(element : Term, rewrite_rules : RewriteSystem):
-    """Returns the normal form of an element given a set of convergent term rewrite rules"""
+    """
+    Returns the normal form of an element
+    given a set of convergent term rewrite rules.
+
+    Notes
+    -----
+    If the set of rewrite rules aren't convergent,
+    then it is possible that this function won't terminate.
+
+    Parameters
+    ----------
+    element : Term
+      The term to check the normal form for.
+    rewrite_rules : RewriteSystem
+      Possible rules to apply.
+    """
     element = deepcopy(element)
     element_changed = True
     # We keep on going until the element stops changing

@@ -16,7 +16,23 @@ def freeze(term: FuncTerm) -> FuncTerm:
     """"""
 
 def freeze(term):
-    """Turns all the variables into constants"""
+    """
+    Converts all the variables inside a term into constants.
+
+    Parameters
+    ----------
+    term : Term
+      The term in which to turn the variables into constants.
+    
+    Examples
+    --------
+    >>> from algebra import *
+    >>> from rewrite import freeze
+    >>> f = Function("f", 1)
+    >>> x = Variable("x")
+    >>> freeze(f(x))
+    f(x)
+    """
     term = deepcopy(term)
     if isinstance(term, Variable):
         return Constant(term.symbol)
@@ -64,12 +80,50 @@ def _changeVars(overlaping_vars : List[Variable], term : Term, hypothesis: Term,
 Position = str 
 
 class RewriteRule:
+    """
+    Represents a single rewrite rule.
+    Takes a hypothesis and a conclusion and 
+    applies them to a term when given.
+    """
     def __init__(self, hypothesis : Term, conclusion : Term):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
     
     def apply(self, term : Term, pos : Optional[Position] = None) -> Optional[Union[Dict[Position, Term], Term]]:
-        """Applies the rewrite rule to a certain subterm or all subterms if not specified."""
+        """
+        Applies a rewrite rule to 
+        either a position within a term 
+        or all subterms.
+
+        Parameters
+        ----------
+        term : Term
+          The term in which to apply the RewriteRule
+        pos : str, optional
+          The position inside the term to rewrite. 
+          If no term is given then all possible subterms are rewritten.
+          See notes for details.
+        
+        Notes
+        -----
+        Positions are given as a string representing
+        a sequence of indices in which to go into each subterm.
+        For example, '121' indicates the first argument from the
+        root term. Then, the second argument from that term, and lastly
+        the third argument of that term.
+        f(f(a, f(b, c)),d) | '121' = b
+
+        Examples
+        --------
+        >>> from algebra import *
+        >>> from rewrite import RewriteRule
+        >>> f = Function("f", 1)
+        >>> a = Constant("a")
+        >>> b = Constant("b")
+        >>> r = RewriteRule(f(a), f(b))
+        >>> r.apply(f(f(a)))
+        {'1': f(f(b))}
+        """
         if pos is None:
             result = self._apply_all(term, '', term, dict())
             return result if len(result) != 0 else None
@@ -133,7 +187,22 @@ class RewriteRule:
 
 
 def converse(rule : RewriteRule) -> RewriteRule:
-    """Take the converse of a rewrite rule, meaning flip the hypothesis and conclusion"""
+    """
+    Returns the converse of a rewrite rule.
+
+    This means that the hypothesis and conclusion of the rewrite rule gets flipped.
+
+    Examples
+    --------
+    >>> from algebra import *
+    >>> from rewrite import *
+    >>> f = Function("f", 2)
+    >>> a = Constant("a")
+    >>> b = Constant("b")
+    >>> r = RewriteRule(f(a,b), f(b,a))
+    >>> converse(r)
+    f(b, a) -> f(a, b)
+    """
     new_rule = deepcopy(rule)
     # Flip Hypothesis and Conclusion
     temp = new_rule.hypothesis
@@ -143,6 +212,10 @@ def converse(rule : RewriteRule) -> RewriteRule:
 
 
 class RewriteSystem:
+    """
+    A set of rewrite rules. 
+    Used primarily to hold properties of a rewrite system.
+    """
     def __init__(self, rules : Set[RewriteRule]):
         self.rules = rules
         # self.forward_closure_complete = False
