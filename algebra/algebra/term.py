@@ -373,6 +373,34 @@ def get_vars_or_constants(t, unique = False):
     return set(l) if unique else l
 
 
+def depth(t : Term, depth_level = 0):
+    """
+    Returns the depth of a term.
+
+    Parameters
+    ----------
+    t : Term
+      The term to check the depth of.
+    depth_level: int
+      Used internally to keep track of the recursion
+
+    Examples
+    --------
+    >>> from algebra import *
+    >>> f = Function("f", 2)
+    >>> x = Variable("x")
+    >>> a = Constant("a")
+    >>> depth(f(f(x,a), f(x,a)))
+    2
+    """
+    if isinstance(t, Variable) or isinstance(t, Constant) or isinstance(t, Function):
+        return depth_level
+    # Assume FuncTerm
+    max_depth = 0
+    for ti in t.arguments:
+        max_depth = max(max_depth, depth(ti, depth_level + 1))
+    return max_depth
+
 #
 ## Equation
 #

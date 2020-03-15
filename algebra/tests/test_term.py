@@ -24,4 +24,5 @@ class TestTerm(unittest.TestCase):
         self.assertListEqual(get_constants(f(a, b)), [a, b])
         self.assertListEqual(get_vars(f(x, y)), [x, y])
         self.assertListEqual(get_vars_or_constants(f(x, f(a, b))), [x, a, b])
+        self.assertEqual(depth(f(f(x,a), f(x,a))), 2)
 
