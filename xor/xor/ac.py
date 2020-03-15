@@ -2,7 +2,7 @@
 import typing
 from typing import Union, Any, Optional, List
 from copy import deepcopy
-from algebra import *
+from algebra.algebra import *
 from collections import Counter
 # from rewrite import *
 
