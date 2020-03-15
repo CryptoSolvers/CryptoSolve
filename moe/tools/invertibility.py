@@ -56,3 +56,36 @@ def invert_simple(term):
     return inverseTerm
 
 
+def moe_invert(K : Set[Term], nounces : Set[Constant], S : int) -> bool:
+    """
+    IN PROGRESS
+    Given a set K of MOE interactions and max bound for the depth of a term,
+    state whether or not a MOE term is invertible.
+    """
+    P = Constant("P")
+    f = Function("f", 1)
+    if P not in K:
+        return False
+    # Compute K*
+    K_star = K | nounces
+    # From K* construct C*
+    C_star = deepcopy(K_star)
+    current_length = 0
+    while len(C_star) != current_length:
+        current_length = len(C_star)
+        for t_1 in C_star:
+            # Definition 15 (2a)
+            if isinstance(t_1, FuncTerm) and t.function == f:
+                # Apply f inverse
+                C_star |= t_1.arguments[0]
+            # Definition 15 (2b)
+            for t_2 in C_star:
+                new_term_b = xor(t_1, t_2)
+                if depth(new_term_b) <= S:
+                    C_star |= new_term_b
+            # Definition 15 (2c)
+            new_term_c = f(t_1)
+            if depth(new_term_c) <= S:
+                C_star |= new_term_c
+    # Next goes the checking logic....
+
