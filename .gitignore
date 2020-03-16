@@ -8,3 +8,4 @@ senv/
 *.tox
 *.coverage
 */docs/build
+*Thumbs.db
