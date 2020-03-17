@@ -87,5 +87,7 @@ def moe_invert(K : Set[Term], nounces : Set[Constant], S : int) -> bool:
             new_term_c = f(t_1)
             if depth(new_term_c) <= S:
                 C_star |= new_term_c
-    # Next goes the checking logic....
+    # Check to see if the plaintext block is in any of the ground terms in C_star
+    # xor library automatically maps terms to their ground terms
+    return P in C_star
 
