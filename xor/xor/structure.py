@@ -1,4 +1,4 @@
-from algebra.algebra import *
+from algebra import *
 
 ###############################################
 class Equations:

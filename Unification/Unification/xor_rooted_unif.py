@@ -1,4 +1,4 @@
-from Unification.Unification.bool_unif import *
+from Unification.bool_unif import *
 
 
 def is_maximal(term, terms):

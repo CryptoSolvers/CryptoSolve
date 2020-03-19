@@ -1,4 +1,4 @@
-from Unification.Unification.xor_rooted_unif import *
+from Unification.xor_rooted_unif import *
 
 
 

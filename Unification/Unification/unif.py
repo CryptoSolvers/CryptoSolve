@@ -1,7 +1,7 @@
 #Slow syntactic unification
 
 #!/usr/bin/env python3
-from algebra.algebra import *
+from algebra import *
 from typing import Dict, Set
 	
 # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.

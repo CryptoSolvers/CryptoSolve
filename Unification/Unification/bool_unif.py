@@ -2,8 +2,7 @@ import copy
 import functools
 
 from copy import deepcopy
-from sets import *
-from xor.xor.xorhelper import *
+from xor.xorhelper import *
 
 class BFunction:
     def __init__(self, symbol : str, arity : int):
