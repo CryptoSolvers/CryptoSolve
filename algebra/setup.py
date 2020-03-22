@@ -10,6 +10,5 @@ setup(name="algebra",
         "networkx~=2.3",
         "numpy~=1.17.0",
         "sympy~=1.4",
-        "numpydoc~=0.9.2"
     ]
 )

@@ -19,3 +19,6 @@ setup_package theories
 setup_package Unification
 setup_package rewrite
 setup_package moe
+
+# Developer utilities
+pip install sphinx tox
