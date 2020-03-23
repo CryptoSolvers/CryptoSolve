@@ -1,6 +1,7 @@
-from algebra import *
-from Unification import unif
+from typing import overload, List, Optional, Union, Dict, Set
 from copy import deepcopy
+from algebra import Variable, Constant, Term, Function, FuncTerm, get_vars, SubstituteTerm
+from Unification import unif
 
 @overload
 def freeze(term: Variable) -> Constant:
@@ -38,23 +39,25 @@ def freeze(term):
         return Constant(term.symbol)
     elif isinstance(term, FuncTerm):
         arguments = list(term.arguments)
-        for i,t in enumerate(arguments):
+        for i, t in enumerate(arguments):
             arguments[i] = freeze(t)
         term.set_arguments(arguments)
     return term
 
-def _getOverlapVars(term : Term, hypothesis : Term, conclusion : Term) -> List[Variable]:
+def _getOverlapVars(term: Term, hypothesis: Term, conclusion: Term) -> List[Variable]:
     """Return a list of variables that are overlapping with two terms hypothesis and conclusion"""
-    rewrite_vars = get_vars(hypothesis, unique = True) | get_vars(conclusion, unique = True)
-    term_vars = get_vars(term, unique = True)
+    rewrite_vars = get_vars(hypothesis, unique=True) | get_vars(conclusion, unique=True)
+    term_vars = get_vars(term, unique=True)
     return list(rewrite_vars & term_vars)
 
-def _changeVars(overlaping_vars : List[Variable], term : Term, hypothesis: Term, conclusion: Term):
+def _changeVars(overlaping_vars: List[Variable], term: Term, hypothesis: Term, conclusion: Term):
     """Change variable names in hypothesis & conclusion to not overlap with overlapping_vars"""
     hypothesis = deepcopy(hypothesis)
     conclusion = deepcopy(conclusion)
-    all_vars = get_vars(term, unique = True) | get_vars(hypothesis, unique = True) | get_vars(conclusion, unique = True)
-    new_vars : List[Variable] = []
+    all_vars = get_vars(term, unique=True) | \
+        get_vars(hypothesis, unique=True) | \
+        get_vars(conclusion, unique=True)
+    new_vars: List[Variable] = []
     # Go through all the variables that share the same symbol between the term and rewrite rule
     # and change the variables in the rewrite rule
     for v in overlaping_vars:
@@ -77,22 +80,23 @@ def _changeVars(overlaping_vars : List[Variable], term : Term, hypothesis: Term,
 # f(a, b) | '' = f(a, b)
 
 # New Type for better annotations
-Position = str 
+Position = str
 
 class RewriteRule:
     """
     Represents a single rewrite rule.
-    Takes a hypothesis and a conclusion and 
+    Takes a hypothesis and a conclusion and
     applies them to a term when given.
     """
-    def __init__(self, hypothesis : Term, conclusion : Term):
+    def __init__(self, hypothesis: Term, conclusion: Term):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
     
-    def apply(self, term : Term, pos : Optional[Position] = None) -> Optional[Union[Dict[Position, Term], Term]]:
+    def apply(self, term: Term, pos: Optional[Position] = None) \
+    -> Optional[Union[Dict[Position, Term], Term]]:
         """
-        Applies a rewrite rule to 
-        either a position within a term 
+        Applies a rewrite rule to
+        either a position within a term
         or all subterms.
 
         Parameters
@@ -130,19 +134,20 @@ class RewriteRule:
         return self._apply_pos(term, pos)
 
     
-    def _match(self, term : Term) -> Optional[Term]:
+    def _match(self, term: Term) -> Optional[Term]:
         """Attempts to rewrite the root term with the rewrite rule. Returns False if not possible"""
         # Change common variables in RewriteRule if they exist
         overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         while overlaping_vars:
-            self.hypothesis, self.conclusion = _changeVars(overlaping_vars, term, self.hypothesis, self.conclusion)
+            self.hypothesis, self.conclusion = _changeVars(
+                overlaping_vars, term, self.hypothesis, self.conclusion)
             overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         # Perform matching and substitution
         frozen_term = freeze(term)
         sigma = unif(self.hypothesis, frozen_term)
-        return self.conclusion * sigma if sigma != False else None
+        return self.conclusion * sigma if sigma is not False else None
 
-    def _apply_pos(self, term : Term, pos : Position) -> Optional[Term]:
+    def _apply_pos(self, term: Term, pos: Position) -> Optional[Term]:
         term = deepcopy(term)
         if pos == '':
             return self._match(term)
@@ -162,15 +167,16 @@ class RewriteRule:
         term.arguments = tuple(term.arguments)
         return term
     
-    def _apply_all(self, term : Term, pos : Position, subterm : Term, result : Dict[Position, Term]) -> Dict[Position, Term]:
-        """Applies the rewrite rule to every subterm"""     
+    def _apply_all(self, term: Term, pos: Position,
+                   subterm: Term, result: Dict[Position, Term]) -> Dict[Position, Term]:
+        """Applies the rewrite rule to every subterm"""
         # If the current position is rewritable, add it to result dictionary
         r = self._apply_pos(term, pos)
         if r is not None:
             result[pos] = r
         
         # Recurse down arguments
-        if isinstance(subterm, FuncTerm): 
+        if isinstance(subterm, FuncTerm):
             for i, t in enumerate(subterm.arguments):
                 self._apply_all(term, pos + str(i + 1), t, result)
         
@@ -186,7 +192,7 @@ class RewriteRule:
         return self.hypothesis == other.hypothesis and self.conclusion == other.conclusion
 
 
-def converse(rule : RewriteRule) -> RewriteRule:
+def converse(rule: RewriteRule) -> RewriteRule:
     """
     Returns the converse of a rewrite rule.
 
@@ -213,10 +219,10 @@ def converse(rule : RewriteRule) -> RewriteRule:
 
 class RewriteSystem:
     """
-    A set of rewrite rules. 
+    A set of rewrite rules.
     Used primarily to hold properties of a rewrite system.
     """
-    def __init__(self, rules : Set[RewriteRule]):
+    def __init__(self, rules: Set[RewriteRule]):
         self.rules = rules
         # self.forward_closure_complete = False
     

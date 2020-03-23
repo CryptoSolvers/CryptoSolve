@@ -1,4 +1,7 @@
-from .rewrite import *
+from typing import List, Dict, Tuple, Optional
+from copy import deepcopy
+from algebra import Term
+from .rewrite import RewriteRule, RewriteSystem, Position
 class Variants:
     """
     Construct variants of a term given a rewrite system.
@@ -13,7 +16,7 @@ class Variants:
     Notes
     -----
     A variant of a term $t$ is a term that can be to by applying
-    a set of rewrite rules to $t$. 
+    a set of rewrite rules to $t$.
     
     Examples
     --------
@@ -30,19 +33,20 @@ class Variants:
     >>> list(vt)
     [f(a, f(b, b)), b, f(a, b)]
     """
-    def __init__(self, term : Term, rules : RewriteSystem):
+    def __init__(self, term: Term, rules: RewriteSystem):
         # Each index represents the depth of the tree
-        # Then at each depth of a tree we have a dictionary of terms mapped to what substitutions led to it
-        self.tree : List[Dict[Term, List[Tuple[RewriteRule, Position]]]] = [{term : []}]
+        # Then at each depth of a tree we have a dictionary of terms
+        # mapped to what substitutions led to it.
+        self.tree: List[Dict[Term, List[Tuple[RewriteRule, Position]]]] = [{term : []}]
         self.branch_iter = iter(self.tree[0]) # Where we are at the branch
-        self.rules : RewriteSystem = rules
+        self.rules: RewriteSystem = rules
     
     def __iter__(self):
         return self
     
     # This function will only show for what is currently computed but it is helpful
     # for preventing repeats of the same calculations
-    def __contains__(self, x : Term):
+    def __contains__(self, x: Term):
         for branch in self.tree:
             if x in branch:
                 return True
@@ -50,7 +54,7 @@ class Variants:
     
     def _create_next_branch(self):
         """Compute the new branch of terms in the variant tree"""
-        branch : Dict[Term, List[RewriteRule]] = {}
+        branch: Dict[Term, List[RewriteRule]] = {}
         last_branch_index = len(self.tree) - 1
         # Apply each rewrite rule to the terms in the last branch
         for rule in self.rules:
@@ -59,7 +63,8 @@ class Variants:
                 if new_terms is not None:
                     for pos, new_t in new_terms.items():
                         # Check that the result is not already in the tree
-                        # If new, then set what rewrite rules at what positions produced the term in the branch
+                        # If new, then save the sequence of rewrite rules
+                        # used to produce the term.
                         if new_t not in self:
                             branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
         return branch
@@ -76,7 +81,7 @@ class Variants:
             next_node = next(self.branch_iter)
         return next_node
 
-def is_finite(v : Variants, bound : int) -> bool:
+def is_finite(v: Variants, bound: int) -> bool:
     """
     Check to see if there are a finite number of variants.
 
@@ -92,13 +97,14 @@ def is_finite(v : Variants, bound : int) -> bool:
       that the program is checking for. An infinite bound can be specified with -1.
     """
     iteration = 1
-    for variant in v:
+    for _ in v:
         if bound != -1 and iteration > bound:
             return False
         iteration += 1
     return True
 
-def narrow(term : Term, goal_term : Term, rules : RewriteSystem, bound : int) -> Optional[List[Tuple[RewriteRule, Position]]]:
+def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int) \
+    -> Optional[List[Tuple[RewriteRule, Position]]]:
     """
     Returns the set of rewrite rules necessary to rewrite one term to a goal term.
     If the term cannot be rewritten, this function will return None.
@@ -142,7 +148,7 @@ def narrow(term : Term, goal_term : Term, rules : RewriteSystem, bound : int) ->
     return None
 
 # TODO: Should recheck the logic for this algorithm.
-def normal(element : Term, rewrite_rules : RewriteSystem):
+def normal(element: Term, rewrite_rules: RewriteSystem):
     """
     Returns the normal form of an element
     given a set of convergent term rewrite rules.
