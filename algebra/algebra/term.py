@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-import typing
-from typing import Union, Any, Optional, List, Set, overload
-from typing_extensions import Literal
-from copy import deepcopy
 from abc import ABC, abstractmethod # Abstract Base Class
+from typing import Union, List, Set, overload
+from typing_extensions import Literal
 
 #
 ## Basic Types
@@ -50,10 +48,11 @@ class Sort(AnySort):
     >>> integers < fractions
     True
     """
-    def __init__(self, name, parent_sort = None):
+    def __init__(self, name, parent_sort=None):
         super().__init__()
         self.name = name
-        self.parents = {ANY, parent_sort} | parent_sort.parents if parent_sort is not None else {ANY}
+        self.parents = {ANY, parent_sort} | parent_sort.parents \
+            if parent_sort is not None else {ANY}
     def subset_of(self, sort) -> bool:
         """Returns true is this sort is a subset of the sort given"""
         return sort in self.parents
@@ -73,7 +72,7 @@ class Term(ABC):
     class that provides some shared builtins.
     """
     @abstractmethod # Don't allow this class to be instatiated on its own
-    def __init__(self, symbol : str, sort : AnySort = ANY):
+    def __init__(self, symbol: str, sort: AnySort = ANY):
         self.symbol = symbol
         self.sort = sort # By default the sort will be ANY
     def __repr__(self):
@@ -113,7 +112,9 @@ class Function:
     >>> f(x)
     f(x)
     """
-    def __init__(self, symbol : str, arity : int, domain_sort : Union[AnySort, List[AnySort]] = ANY, range_sort : AnySort = ANY):
+    def __init__(self, symbol: str, arity: int,
+                 domain_sort: Union[AnySort, List[AnySort]] = ANY,
+                 range_sort: AnySort = ANY):
         self.symbol = symbol
         self.domain_sort = domain_sort
         self.range_sort = range_sort
@@ -125,9 +126,13 @@ class Function:
     def __call__(self, *args):
         # Check to see if arguments belong to the domain of the function
         for i, arg in enumerate(args):
-            domain_sort = self.domain_sort if not isinstance(self.domain_sort, list) else self.domain_sort[i]
+            domain_sort = self.domain_sort \
+                if not isinstance(self.domain_sort, list) else self.domain_sort[i]
+            
             if arg.sort != domain_sort and not arg.sort.subset_of(domain_sort):
-                raise ValueError("Domain Mismatch. Expected {}, Got {}.".format(str(domain_sort), str(arg.sort)))
+                raise ValueError("Domain Mismatch. Expected {}, Got {}.".format(
+                    str(domain_sort), str(arg.sort)))
+        
         return FuncTerm(self, args)
     def __repr__(self):
         return self.symbol
@@ -139,7 +144,7 @@ class Function:
             and self.domain_sort == x.domain_sort \
             and self.range_sort == x.range_sort
 
-class Variable(Term): 
+class Variable(Term):
     """
     A symbolic representation of a variable.
 
@@ -156,7 +161,7 @@ class Variable(Term):
     >>> Variable("x")
     x
     """
-    def __init__(self, symbol : str, sort : AnySort = ANY):
+    def __init__(self, symbol: str, sort: AnySort = ANY):
         super().__init__(symbol, sort)
 
 class FuncTerm(Term):
@@ -177,15 +182,15 @@ class FuncTerm(Term):
     >>> a = Constant("a")
     >>> f(a)
     f(a)
-    """ 
-    def __init__(self, function : Function, args): 
+    """
+    def __init__(self, function: Function, args):
         super().__init__(function.symbol, function.range_sort)
         self.function = function
         assert len(args) == self.function.arity
         self.arguments = args
     def set_arguments(self, args):
         self.arguments = tuple(args)
-    def set_function(self, function : Function):
+    def set_function(self, function: Function):
         self.function = function
         self.sort = function.range_sort
     def __repr__(self):
@@ -200,7 +205,9 @@ class FuncTerm(Term):
     def __hash__(self):
         return hash((self.function, tuple(self.arguments)))
     def __eq__(self, x):
-        return type(self) == type(x) and self.function == x.function and self.arguments == x.arguments
+        return type(self) == type(x) and \
+            self.function == x.function and \
+                self.arguments == x.arguments
     def __contains__(self, term):
         inside = False
         for arg in self.arguments:
@@ -232,8 +239,8 @@ class Constant(FuncTerm):
     >>> a
     a
     """
-    def __init__(self, symbol : str, sort : AnySort = ANY):
-        super().__init__(Function(symbol, 0, range_sort = sort), ())
+    def __init__(self, symbol: str, sort: AnySort = ANY):
+        super().__init__(Function(symbol, 0, range_sort=sort), ())
 
 #
 ## get_vars Section
@@ -241,16 +248,16 @@ class Constant(FuncTerm):
 
 @overload
 def get_vars(t: Term, unique: Literal[False]) -> List[Variable]:
-	"""Get the variables inside a term"""
+    """Get the variables inside a term"""
 
 @overload
-def get_vars(t: Term, unique : Literal[True]) -> Set[Variable]:
+def get_vars(t: Term, unique: Literal[True]) -> Set[Variable]:
     """Get the variables inside a term"""
 @overload
 def get_vars(t: Term) -> List[Variable]:
     """Get the variables inside a term"""
 
-def get_vars(t, unique = False):
+def get_vars(t, unique=False):
     """
     Get the variables inside a term
     
@@ -270,10 +277,10 @@ def get_vars(t, unique = False):
     >>> get_vars(f(x, f(x, a)))
     [x, x]
     """
-    if isinstance(t, Variable): 
+    if isinstance(t, Variable):
         return {t} if unique else [t]
 	
-    l : List[Variable] =[]
+    l: List[Variable] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
             l = l + get_vars(i, False)
@@ -296,7 +303,7 @@ def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
 def get_constants(t: Term) -> List[Constant]:
     """Get the constants inside a term"""
 
-def get_constants(t, unique = False):
+def get_constants(t, unique=False):
     """
     Get the constants inside a term
     
@@ -319,7 +326,7 @@ def get_constants(t, unique = False):
     if isinstance(t, Constant): 
         return {t} if unique else [t]
 	
-    l : List[Constant] =[]
+    l: List[Constant] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
             l = l + get_constants(i, False)
@@ -342,7 +349,7 @@ def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable,
 def get_vars_or_constants(t: Term) -> List[Union[Variable, Constant]]:
     """Get the variables and constants inside a term"""
 
-def get_vars_or_constants(t, unique = False):
+def get_vars_or_constants(t, unique=False):
     """
     Get the variables and constants inside a term
     
@@ -365,7 +372,7 @@ def get_vars_or_constants(t, unique = False):
     if isinstance(t, Constant) or isinstance(t, Variable): 
         return {t} if unique else [t]
     
-    l : List[Union[Variable, Constant]] = []
+    l: List[Union[Variable, Constant]] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
             l = l + get_vars_or_constants(i, False)
@@ -373,7 +380,7 @@ def get_vars_or_constants(t, unique = False):
     return set(l) if unique else l
 
 
-def depth(t : Term, depth_level = 0):
+def depth(t: Term, depth_level=0):
     """
     Returns the depth of a term.
 
@@ -423,7 +430,7 @@ class Equation:
     >>> Equation(x, a)
     x = a
     """
-    def __init__(self, l : Term, r : Term):
+    def __init__(self, l: Term, r: Term):
         self.left_side = l
         self.right_side = r
     

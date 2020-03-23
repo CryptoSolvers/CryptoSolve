@@ -2,6 +2,7 @@ from algebra import *
 from Unification import *
 from xor import xor
 from copy import deepcopy
+from typing import Dict, List, Optional
 
 # Note: This file isn't the most clear in terms of naming mostly since the requirements are not well understood
 # As of December, I've attempted to outline the different functions and classes involved, 

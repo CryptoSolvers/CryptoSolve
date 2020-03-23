@@ -1,4 +1,5 @@
-from .term import *
+from typing import Optional, Union, Set, List
+from .term import Variable, Constant, Function, Term
 
 class Parser:
     """
@@ -20,11 +21,11 @@ class Parser:
     f(x, x)
     """
     def __init__(self):
-        self.variables : Set[Variable] = set()
-        self.constants : Set[Constant] = set()
-        self.functions : Set[Function] = set()
+        self.variables: Set[Variable] = set()
+        self.constants: Set[Constant] = set()
+        self.functions: Set[Function] = set()
 
-    def add(self, term : Union[Variable, Constant, Function]):
+    def add(self, term: Union[Variable, Constant, Function]):
         """Adds a term to the parser."""
         if isinstance(term, Variable):
             if self._find_constant(term.symbol) is not None:
@@ -47,7 +48,7 @@ class Parser:
         else:
             raise ValueError("Argument to Parser.add must be a Variable, Constant, or Function")
 
-    def remove(self, term : Union[Variable, Constant, Function]):
+    def remove(self, term: Union[Variable, Constant, Function]):
         """Remove a term from the parser."""
         if isinstance(term, Variable):
             self.variables -= {term}
@@ -56,7 +57,7 @@ class Parser:
         elif isinstance(term, Function):
             self.functions -= {term}
     
-    def parse(self, x : str) -> Term:
+    def parse(self, x: str) -> Union[Term, Function]:
         """Attempt to parse a string given the parser's existing signature."""
         start_i = self._find_first_char("(", x)
         if start_i != -1:
@@ -72,7 +73,7 @@ class Parser:
             argument_strings = self._parse_arguments(x[(start_i + 1):(end_i - 1)])
 
             if len(argument_strings) != function_handle.arity:
-                raise ValueError("Arity Mismatch: Parsed String: " + str(len(argument_strings)) + 
+                raise ValueError("Arity Mismatch: Parsed String: " + str(len(argument_strings)) +
                     ", Function " + function_handle.symbol + ": " + str(function_handle.arity))
             
             args = []
@@ -92,43 +93,44 @@ class Parser:
             # If none of the above matched return an error
             raise ValueError("Symbol " + x + " is undefined in the Parser")
     
-    def _find_function(self, x : str) -> Optional[Function]:
+    def _find_function(self, x: str) -> Optional[Function]:
         for f in self.functions:
             if x == f.symbol:
                 return f
         return None
     
-    def _find_constant(self, x : str) -> Optional[Constant]:
+    def _find_constant(self, x: str) -> Optional[Constant]:
         for c in self.constants:
             if x == c.symbol:
                 return c
         return None
     
-    def _find_variable(self, x : str) -> Optional[Variable]:
+    def _find_variable(self, x: str) -> Optional[Variable]:
         for v in self.variables:
             if x == v.symbol:
                 return v
         return None
     
-    def _find_first_char(self, needle : str, haystack : str) -> int:
+    def _find_first_char(self, needle: str, haystack: str) -> int:
         for i, c in enumerate(haystack):
             if c == needle:
                 return i
         return -1
     
-    def _find_last_char(self, needle : str, haystack : str) -> int:
+    def _find_last_char(self, needle: str, haystack: str) -> int:
         for i, c in enumerate(reversed(haystack)):
             if c == needle:
                 return len(haystack) - i
         return -1
     
     # Splits the arguments up to a list of arguments
-    def _parse_arguments(self, x : str) -> List[str]:
-        args : List[str] = []
+    def _parse_arguments(self, x: str) -> List[str]:
+        args: List[str] = []
         parenthesis = False
         start_i = 0
         for i, c in enumerate(x):
-            # If we saw an opening parenthesis, we need to ignore input until the end parenthesis is matched
+            # If we saw an opening parenthesis,
+            # we need to ignore input until the end parenthesis is matched.
             if parenthesis:
                 if c == ")":
                     parenthesis = False

@@ -1,5 +1,6 @@
-from .term import *
-from typing import Set
+from typing import Set, List
+from copy import deepcopy
+from .term import Variable, Constant, FuncTerm, Term
 
 class SubstituteTerm:
     """
@@ -16,9 +17,9 @@ class SubstituteTerm:
     a
     """
     def __init__(self):
-        self.subs : Set[Variable, Term] = set()
+        self.subs: Set[Variable, Term] = set()
     
-    def add(self, variable : Variable, term : Term):
+    def add(self, variable: Variable, term: Term):
         """
         Adds a mapping from a variable to a term
         
@@ -40,7 +41,10 @@ class SubstituteTerm:
         { x -> a }
         """
         assert isinstance(variable, Variable)
-        assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
+        assert isinstance(term, Constant) or \
+            isinstance(term, FuncTerm) or \
+            isinstance(term, Variable)
+        
         # Check to see if what we're adding already exists in the substitution set
         if len(self.subs) > 0:
             # Separate the variables and terms in the set
@@ -49,7 +53,7 @@ class SubstituteTerm:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
     
-    def remove(self, variable : Variable):
+    def remove(self, variable: Variable):
         """Removes a mapping from a variable"""
         # The removal technique consists of creating a set that contains what you want to remove
         # and then do set subtraction
@@ -60,17 +64,19 @@ class SubstituteTerm:
             x.add((variable, term))
             self.subs = self.subs - x
     
-    def replace(self, variable : Variable, term : Term):
+    def replace(self, variable: Variable, term: Term):
         """Replaces a mapping from a variable with another term"""
         assert isinstance(variable, Variable)
-        assert isinstance(term, Constant) or isinstance(term, FuncTerm) or isinstance(term, Variable)
+        assert isinstance(term, Constant) or \
+            isinstance(term, FuncTerm) or \
+            isinstance(term, Variable)
         self.remove(variable)
         # We don't have to call self.add as we already ensured that the item is removed
         self.subs.add((variable, term))
     
     def domain(self) -> List[Variable]:
         """
-        Grabs the domain (the left side) of the substitutions. 
+        Grabs the domain (the left side) of the substitutions.
         
         Warning: Do not pair this call with range as ordering is not guarenteed.
         """
@@ -82,7 +88,7 @@ class SubstituteTerm:
     
     def range(self) -> List[Term]:
         """
-        Grabs the range (the right side) of the substitutions. 
+        Grabs the range (the right side) of the substitutions.
         
         Warning: Do not pair this call with domain as ordering is not guarenteed.
         """
@@ -104,7 +110,7 @@ class SubstituteTerm:
             return "{ %s ↦ %s }" % (str(variable), str(term))
         str_repr = "{\n"
         i = 1
-        sorted_subs = sorted(self.subs, key = lambda k: k[0].symbol)
+        sorted_subs = sorted(self.subs, key=lambda k: k[0].symbol)
         for variable, term in sorted_subs:
             str_repr += "  " + str(variable) + "↦" + str(term)
             str_repr += ",\n" if i < len(self.subs) else ""
@@ -112,20 +118,24 @@ class SubstituteTerm:
         str_repr += "\n}"
         return str_repr
 
-    def _applysub(self, term : Term) -> Term:
+    def _applysub(self, term: Term) -> Term:
         """Apply a substitution to a term"""
         assert isinstance(term, (Constant, Variable, FuncTerm))
         new_term = deepcopy(term)
         new_term = self._termSubstituteHelper(new_term)
         return new_term
 
-    def __rmul__(self, term : Term) -> Term:
+    def __rmul__(self, term: Term) -> Term:
         return self._applysub(term)
     
     # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
     def __mul__(self, theta):
         if not isinstance(theta, SubstituteTerm):
-            raise ValueError("Expected a substitution to the right of *, perhaps you meant to apply substitution on a term? If so, swap the arguments.")
+            raise ValueError(
+                "Expected a substitution to the right of *, \
+                perhaps you meant to apply substitution on a term? \
+                If so, swap the arguments."
+            )
         if len(self.subs) > 0:
             v, t = zip(*self.subs)
             # Apply theta to every term in its range
@@ -152,11 +162,11 @@ class SubstituteTerm:
         else:
             return theta
     
-    def __call__(self, term : Term) -> Term:
+    def __call__(self, term: Term) -> Term:
         """Apply substitution to term."""
         return self._applysub(term)
     
-    def _termSubstituteHelper(self, term : Term) -> Term:
+    def _termSubstituteHelper(self, term: Term) -> Term:
         return_value = term
         # If there is nothing in the substitution set, return the same term
         if len(self.subs) > 0:

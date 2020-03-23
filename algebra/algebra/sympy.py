@@ -1,18 +1,20 @@
+from typing import Union, overload
 import sympy # type: ignore
-from .term import *
+from .term import Constant, Variable, Function, FuncTerm
+
 
 @overload
-def termToSympy(term : Constant) -> sympy.Symbol:
+def termToSympy(term: Constant) -> sympy.Symbol:
     """Converts a constant to a sympy symbol"""
 @overload
-def termToSympy(term : Variable) -> sympy.Symbol:
+def termToSympy(term: Variable) -> sympy.Symbol:
     """Converts a variable to a sympy symbol"""
 @overload
-def termToSympy(term : Function) -> sympy.FunctionClass:
+def termToSympy(term: Function) -> sympy.FunctionClass:
     """Converts a function to a sympy function class"""
 
 @overload
-def termToSympy(term : FuncTerm) -> sympy.Function:
+def termToSympy(term: FuncTerm) -> sympy.Function:
     """Converts a functerm to a sympy function"""
 
 def termToSympy(term):
@@ -47,15 +49,15 @@ def termToSympy(term):
 
 
 @overload
-def sympyToTerm(symterm : sympy.Symbol) -> Union[Variable, Constant]:
+def sympyToTerm(symterm: sympy.Symbol) -> Union[Variable, Constant]:
     """Converts a sympy symbol to either a variable or constant"""
 
 @overload
-def sympyToTerm(symterm : sympy.FunctionClass) -> Function:
+def sympyToTerm(symterm: sympy.FunctionClass) -> Function:
     """Converts a sympy function class to a function"""
 
 @overload
-def sympyToTerm(symterm : sympy.Function) -> FuncTerm:
+def sympyToTerm(symterm: sympy.Function) -> FuncTerm:
     """Converts a sympy function to a functerm"""
 
 def sympyToTerm(symterm):
