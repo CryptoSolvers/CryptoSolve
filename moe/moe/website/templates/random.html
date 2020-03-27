@@ -1,0 +1,20 @@
+<form action='/random' method='POST'>
+	<table><tbody>
+		<tr>
+       		<td><label for='chaining_req'>Chaining Required:</label></td>
+       		<td><select id='chaining_req' name='chaining_req'>
+    			<option value='Yes'>Yes</option>
+        		<option value='No'>No</option>
+		<tr>
+        	<td><label for='IV_req'>IV Required:</label></td>
+        	<td><select id='IV_req' name='IV_req'>
+        		<option value='Yes'>Yes</option>
+        		<option value='No'>No</option>
+			</select></td>
+        <tr>
+			<td><label for='f_bound'>Encryption F Bound</label></td>
+        	<td><input type='number' min='1' max='100' name='f_bound' id='f_bound' required/></td>
+        </tr>
+	</tbody></table>
+	<input type='submit' value='Begin!'/>
+</form>

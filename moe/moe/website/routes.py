@@ -12,6 +12,7 @@ def render_tool_page(response):
     header =  render_template('header.html', title = "MOE Tool")
     body = render_template('tool.html', response = response)
     return  header + body
+    
 
 def get_unif(x : str):
     if x == "unif":
@@ -117,3 +118,55 @@ def program():
     
     # Assume GET request and return form
     return header + render_template('program_create.html')
+    
+@app.route('/random', methods=['GET', 'POST'])
+def random():
+    header =  render_template('header.html', title = "Random MOE Program")
+
+    #place holder until the random stuff is completed
+    
+    return header + render_template('random.html')
+    
+@app.route('/custom', methods=['GET', 'POST'])
+def custom():
+    header =  render_template('header.html', title = "Custom MOE Program")
+
+    # If you step away from the simulation, destroy the previous session
+    if request.method == "GET" and 'uid' in session:
+        if session['uid'] in moe_sessions.keys():
+            del moe_sessions[session['uid']]
+        session.pop('uid', None)
+
+    if request.method == "POST":
+        if 'uid' in session and session['uid'] in moe_sessions.keys():
+            uid = session['uid']
+            moe_session = moe_sessions[uid]
+            response = None
+            x = None
+            if 'next' in request.form:
+                x = Variable("x_" + str(moe_session.iteration[DEFAULT_SID]))
+                response = moe_session.rcv_block(DEFAULT_SID, x)
+            elif 'end' in request.form:
+                response = moe_session.rcv_stop(DEFAULT_SID)
+                del moe_sessions[uid]
+                session.pop('uid', None)
+            if response is not None or moe_session.schedule == "end":
+                response = response if response is not None else "Sent " + str(x) if x is not None else ""
+                return header + render_template('custom.html', response = str(response))
+        elif 'cmoe' in request.form and 'schedule' in request.form:
+            # Create new session
+            cmoe_string = request.form.get('cmoe')
+            schedule = request.form.get('schedule')
+            moe_session = MOESession(CustomMOE, schedule, cmoe_string)
+            moe_session.rcv_start(DEFAULT_SID)
+            # Send an initial message
+            x = Variable("x_" + str(moe_session.iteration[DEFAULT_SID]))
+            response = moe_session.rcv_block(DEFAULT_SID, x)
+            # Set up a userid and save the moe_session
+            session['uid'] = uuid4()
+            moe_sessions[session['uid']] = moe_session
+            response = response if response is not None else "Sent " + str(x) 
+            return header + render_template('custom.html', response = str(response))
+    
+    # Assume GET request and return form
+    return header + render_template('custom.html')
