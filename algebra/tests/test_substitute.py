@@ -25,4 +25,5 @@ class TestSubstitute(unittest.TestCase):
         # otherwise it won't compose and just both apply to f(x, b)
         self.assertEqual(f(x, b) * (sigma * sigma2), f(g(a, c), b))
         
-
+if __name__ == "__main__":
+    unittest.main()

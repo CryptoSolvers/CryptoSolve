@@ -16,3 +16,6 @@ class TestVariant(unittest.TestCase):
         vt = Variants(term, rs)
         self.assertTrue(is_finite(vt, -1), True)
         self.assertEqual(narrow(term, f(a,b), rs, -1)[0][1], '2')
+
+if __name__ == "__main__":
+    unittest.main()

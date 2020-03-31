@@ -26,3 +26,5 @@ class TestTerm(unittest.TestCase):
         self.assertListEqual(get_vars_or_constants(f(x, f(a, b))), [x, a, b])
         self.assertEqual(depth(f(f(x,a), f(x,a))), 2)
 
+if __name__ == "__main__":
+    unittest.main()

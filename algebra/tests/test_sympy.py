@@ -9,3 +9,6 @@ class TestSympy(unittest.TestCase):
         sterm = termToSympy(f(x, a))
         term = sympyToTerm(sterm)
         self.assertEqual(term, f(x, a))
+
+if __name__ == "__main__":
+    unittest.main()

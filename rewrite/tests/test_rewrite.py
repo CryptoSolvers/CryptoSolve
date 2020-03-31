@@ -25,3 +25,6 @@ class TestRewrite(unittest.TestCase):
         r = RewriteRule(f(x, x), x)
         self.assertEqual(r.apply(term)['1'], f(x, f(x, x)))
         self.assertEqual(r.apply(term, '2'), f(f(x,x), x))
+
+if __name__ == "__main__":
+    unittest.main()

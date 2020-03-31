@@ -19,3 +19,5 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(ValueError):
             p.add(Variable("a"))
 
+if __name__ == "__main__":
+    unittest.main()

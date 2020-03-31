@@ -11,3 +11,6 @@ class TestXor(unittest.TestCase):
         y = Variable("y")
         z = Variable("z")
         self.assertEqual(xor(a, b, x, x, y, a, c), xor(xor(b, y), c))
+
+if __name__ == "__main__":
+    unittest.main()
