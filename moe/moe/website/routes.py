@@ -7,23 +7,26 @@ from flask import request, render_template, session, Markup
 from typing import Dict
 from uuid import uuid4
 
+navigation = [
+    dict(href='/', caption='Tool'),
+    dict(href='/program', caption='Simulation'),
+    dict(href='/custom', caption='Custom'),
+    dict(href='/random', caption='Random')
+]
 
-def render_tool_page(response):
-    header =  render_template('header.html', title = "MOE Tool")
-    body = render_template('tool.html', response = response)
-    return  header + body
-    
+unif_algo = dict(
+    unif=unif,
+    ac_unify=ac_unify,
+    p_unif=p_unif,
+    p_syntactic=p_syntactic
+)
 
-def get_unif(x : str):
-    if x == "unif":
-        return unif
-    if x == "ac_unify":
-        return ac_unify
-    if x == "p_unif":
-        return p_unif
-    if x == "p_syntactic":
-        return p_syntactic
-    return None  
+chaining = dict(
+    CipherBlockChaining=CipherBlockChaining,
+    PropogatingCBC=PropogatingCBC,
+    CipherFeedback=CipherFeedback,
+    HashCBC=HashCBC
+)
 
 def get_chaining(x: str):
     if x == "CipherBlockChaining":
@@ -57,8 +60,8 @@ def format_substitutions(subs: List[SubstituteTerm]):
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        unif = get_unif(request.form.get('unif'))
-        chaining = get_chaining(request.form.get('chaining'))
+        unif = unif_algo.get(request.form.get('unif'))
+        chaining = chaining.get(request.form.get('chaining'))
         schedule = request.form.get('schedule')
         length_bound = int(request.form.get('length_bound'))
         length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
@@ -67,18 +70,17 @@ def index():
         knows_iv = request.form.get('knows_iv') == "knows_iv"
         
         result = MOE(unif, chaining, schedule, length_bound, 1, knows_iv) if unif is not None and chaining is not None else "TRY AGAIN"
-        return render_tool_page(format_substitutions(result)) if result is not None else render_tool_page("NO UNIFIERS FOUND")
+        response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
+        return render_template('tool.html', title = 'MOE Tool', response = response, navigation=navigation)
 
     # Assume GET request and return form
-    return render_tool_page("")
+    return render_template('tool.html', title = 'MOE Tool', navigation=navigation)
 
 moe_sessions : Dict[str, MOESession] = dict()    
 
 DEFAULT_SID = 1 # Since each user can only simulate one MOE at a time
 @app.route('/program', methods=['GET', 'POST'])
 def program():
-    header =  render_template('header.html', title = "MOE Program")
-
     # If you step away from the simulation, destroy the previous session
     if request.method == "GET" and 'uid' in session:
         if session['uid'] in moe_sessions.keys():
@@ -100,10 +102,10 @@ def program():
                 session.pop('uid', None)
             if response is not None or moe_session.schedule == "end":
                 response = response if response is not None else "Sent " + str(x) if x is not None else ""
-                return header + render_template('program.html', response = str(response))
+                return render_template('program.html', response = str(response), navigation=navigation, title="MOE Simulation")
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
-            chaining = get_chaining(request.form.get('chaining'))
+            chaining = chaining.get(request.form.get('chaining'))
             schedule = request.form.get('schedule')
             moe_session = MOESession(chaining, schedule)
             moe_session.rcv_start(DEFAULT_SID)
@@ -114,23 +116,18 @@ def program():
             session['uid'] = uuid4()
             moe_sessions[session['uid']] = moe_session
             response = response if response is not None else "Sent " + str(x) 
-            return header + render_template('program.html', response = str(response))
+            return render_template('program.html', response = str(response), navigation=navigation, title="MOE Simulation")
     
     # Assume GET request and return form
-    return header + render_template('program_create.html')
+    return render_template('program_create.html', navigation=navigation, title="MOE Simulation")
     
 @app.route('/random', methods=['GET', 'POST'])
 def random():
-    header =  render_template('header.html', title = "Random MOE Program")
-
     #place holder until the random stuff is completed
-    
-    return header + render_template('random.html')
+    return render_template('random.html', title='Random MOE Generator', navigation=navigation)
     
 @app.route('/custom', methods=['GET', 'POST'])
 def custom():
-    header =  render_template('header.html', title = "Custom MOE Program")
-
     # If you step away from the simulation, destroy the previous session
     if request.method == "GET" and 'uid' in session:
         if session['uid'] in moe_sessions.keys():
@@ -152,7 +149,7 @@ def custom():
                 session.pop('uid', None)
             if response is not None or moe_session.schedule == "end":
                 response = response if response is not None else "Sent " + str(x) if x is not None else ""
-                return header + render_template('custom.html', response = str(response))
+                return render_template('custom.html', response = str(response), title="Custom MOE Tool", navigation=navigation)
         elif 'cmoe' in request.form and 'schedule' in request.form:
             # Create new session
             cmoe_string = request.form.get('cmoe')
@@ -166,7 +163,7 @@ def custom():
             session['uid'] = uuid4()
             moe_sessions[session['uid']] = moe_session
             response = response if response is not None else "Sent " + str(x) 
-            return header + render_template('custom.html', response = str(response))
+            return render_template('custom.html', response = str(response), title="Custom MOE Tool", navigation=navigation)
     
     # Assume GET request and return form
-    return header + render_template('custom.html')
+    return render_template('custom.html', title="Custom MOE Tool", navigation=navigation)
