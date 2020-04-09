@@ -59,6 +59,8 @@ class Parser:
     
     def parse(self, x: str) -> Union[Term, Function]:
         """Attempt to parse a string given the parser's existing signature."""
+        # First remove all whitespace since it's irrelevant
+        x = x.replace(' ', '')
         start_i = self._find_first_char("(", x)
         if start_i != -1:
             end_i = self._find_last_char(")", x)
