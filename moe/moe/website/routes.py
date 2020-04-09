@@ -121,10 +121,37 @@ def program():
     # Assume GET request and return form
     return render_template('program_create.html', navigation=navigation, title="MOE Simulation")
     
-@app.route('/random', methods=['GET', 'POST'])
+@app.route('/random', methods=['GET'])
 def random():
-    #place holder until the random stuff is completed
-    return render_template('random.html', title='Random MOE Generator', navigation=navigation)
+    # If you step away from the simulation, destroy the previous session
+    if 'uid' in session:
+        if session['uid'] in moe_sessions.keys():
+            del moe_sessions[session['uid']]
+        session.pop('uid', None)
+    # Grab parameters from URL
+    rid = int(request.args.get("rid", 0))
+    chaining_required = True if request.args.get("chaining", "Yes") == "Yes" else False
+    iv_required = True if request.args.get("iv", "Yes") == "Yes" else False
+    f_bound = int(request.args.get("bound", 1))
+    random_moe_term = ""
+    if rid != 0:
+        filtered_gen = FilteredMOEGenerator(
+            max_history=1,
+            max_f_depth=f_bound,
+            must_start_with_IV=iv_required,
+            must_have_chaining=chaining_required
+        )
+        random_moe_term = [next(filtered_gen) for i in range(rid)][-1]
+    return render_template(
+        'random.html',
+        title='Random MOE Generator',
+        navigation=navigation,
+        rid=1 if rid is None else rid + 1,
+        chaining="Yes" if chaining_required else "No",
+        iv="Yes" if iv_required else "No",
+        bound=f_bound,
+        random_moe=random_moe_term
+    )
     
 @app.route('/custom', methods=['GET', 'POST'])
 def custom():
