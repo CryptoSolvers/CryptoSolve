@@ -26,6 +26,15 @@ class FilteredMOEGenerator:
             max_depth = max(max_depth, depth(ti, depth_level + int(t.symbol == "f")))
         return max_depth
     
+    '''check chaining'''
+    def _satisfies_chaining(self, term):
+        if not self.must_have_chaining:
+            return True
+        for a in range(self.max_history):
+            if Variable("C_{i-" + str(a+1) + "}") in term:
+                return True
+        return False
+    
     '''Retrieve the next valid MOE and store it in the memo'''
     def __next__(self):
         next_moe = next(self.filtered_it)
@@ -40,15 +49,11 @@ class FilteredMOEGenerator:
         #make functions to put in filter to generate iterable
         #function for checking if an moe starts with the IV
         c_iv = lambda t : (Constant("r") in t) if self.must_start_with_IV else True
-        
-        #function that checks if it has chaining (I know this line is long but I promise it works)
-        c_chain = lambda t : reduce((lambda x, y: x+y), [int(Variable("C_{i-"+str(a+1)+"}") in t) for a in range(self.max_history)]) > 0 if self.must_have_chaining else True
-        
         #function that checks if you've seen it before
         c_not_seen = lambda t: (t not in self.memo)
-        
-        condition = lambda t : c_not_seen(t) and c_iv(t) and c_chain(t) and self._check_f_depth(t) <= self.max_f_depth
-        return iter(filter(condition, MOE_Generator(self.max_history)))
+        #combined conditions
+        conditions = lambda t : c_not_seen(t) and c_iv(t) and self._satisfies_chaining(t)  and self._check_f_depth(t) <= self.max_f_depth
+        return iter(filter(conditions, MOE_Generator(self.max_history)))
 
 
 
