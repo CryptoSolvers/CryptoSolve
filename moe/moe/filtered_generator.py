@@ -1,5 +1,6 @@
 import random
-from generator import MOE_Generator
+#from generator import MOE_Generator
+from moe import *
 from algebra import *
 from functools import reduce
 
@@ -26,14 +27,14 @@ class FilteredMOEGenerator:
         return max_depth
     
     '''Retrieve the next valid MOE and store it in the memo'''
-    def get_next_moe(self):
+    def __next__(self):
         next_moe = next(self.filtered_it)
         self.memo.append(next_moe)
         return next_moe
     
     '''
     Construct the filtered iterable that generates new MOEs
-    This is its own function just in case it needs to be called in multiple places, but I doubt that it will need to be.
+    This is its own function just in case it needs to be called in multiple places, but that seems unlikely.
     '''
     def _construct_iter(self):
         #make functions to put in filter to generate iterable

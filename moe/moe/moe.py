@@ -22,7 +22,7 @@ class Frame:
 # However, you have to create an oracle for every different chaining function and schedule that you want to use
 # The API is largely taken from "Symbolic Security Criteria for Blockwise Adaptive Secure Modes of Encryption" by Catherine Meadows
 class MOESession:
-    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = "", random_moe=None):
+    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = ""):
         self.chaining_function = chaining_function
         self.schedule : str = schedule
         self.custom_moe_string : str = custom_moe_string
@@ -36,7 +36,6 @@ class MOESession:
             parser.add(Constant("IV"))
             parser.add(Constant("P[0]"))
             parser.parse(custom_moe_string)
-        self.random_moe = random_moe
         self.sessions : List[int] = []
         # The below variables are dictionaries that are indexed by the session id
         self.subs : Dict[int, SubstituteTerm] = {}
@@ -84,8 +83,6 @@ class MOESession:
         sub_var = Variable("y_" + str(self.iteration[session_id]))
         if(self.chaining_function == CustomMOE):
             encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.custom_moe_string)
-        elif(self.chaining_function == BetterCustomMoe):
-            encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.random_moe)
         else:
              encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
         self.subs[session_id].add(sub_var, encrypted_block)
@@ -121,47 +118,6 @@ def CustomMOE(moe, session_id, iteration, moe_string : str):
     if i == 0:
         return parser.parse((moe_string.replace("C[i-1]", "IV")).replace("i", "0"))
     return parser.parse(moe_string)
-
-def RandomMOE(moe, session_id, iteration, term):
-    moe.assertIteration(session_id, iteration)
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
-    f = Function("f", 1)
-    i = iteration - 1
-    t = deepcopy(term)
-    return _recursive_replace(t, i, P, C, IV)
-    #if i == 0:
-        #replace i-x instances with 0
-    #replace i-x instances with actual value of i-x or 0 if i-x < 0
-
-def _recursive_replace(term, i, P, C, IV):
-    if i < 0:
-        i = 0
-    if isinstance(term, FuncTerm):
-        temp_args = list(term.arguments)
-        for ind in range(len(temp_args)):
-            ti = temp_args[ind]
-            if isinstance(ti, FuncTerm):
-                temp_args[ind] = _recursive_replace(ti, i, P, C, IV)
-            elif "C" in ti.symbol:
-                history = int(ti.symbol[5])
-                if i - history < 0:
-                    temp_args[ind] = IV
-                else:
-                    temp_args[ind] = C[i-history]
-            elif "P" in ti.symbol:
-                if ti.symbol == "P_{i}":
-                    temp_args[ind] = P[i]
-                else:
-                    history = int(ti.symbol[5])
-                    temp_args[ind] = P[max(0, i-history)]
-            elif "r" in ti.symbol:
-                temp_args[ind] = IV
-        term.set_arguments(temp_args)
-    return term
-
-
 
 def CipherBlockChaining(moe, session_id, iteration):
     """Cipher Block Chaining"""
