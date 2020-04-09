@@ -3,7 +3,7 @@ from generator import MOE_Generator
 from algebra import *
 from functools import reduce
 
-class Filtered_MOE_Generator:
+class FilteredMOEGenerator:
     '''
     Class for using the MOE_Generator to generate MOEs and filter out those that don't satisfy certain conditions.
     
