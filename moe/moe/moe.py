@@ -22,7 +22,7 @@ class Frame:
 # However, you have to create an oracle for every different chaining function and schedule that you want to use
 # The API is largely taken from "Symbolic Security Criteria for Blockwise Adaptive Secure Modes of Encryption" by Catherine Meadows
 class MOESession:
-    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = "", custom_moe_thing=None):
+    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = "", random_moe=None):
         self.chaining_function = chaining_function
         self.schedule : str = schedule
         self.custom_moe_string : str = custom_moe_string
@@ -36,7 +36,7 @@ class MOESession:
             parser.add(Constant("IV"))
             parser.add(Constant("P[0]"))
             parser.parse(custom_moe_string)
-        self.custom_moe_thing = custom_moe_thing
+        self.random_moe = random_moe
         self.sessions : List[int] = []
         # The below variables are dictionaries that are indexed by the session id
         self.subs : Dict[int, SubstituteTerm] = {}
@@ -85,7 +85,7 @@ class MOESession:
         if(self.chaining_function == CustomMOE):
             encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.custom_moe_string)
         elif(self.chaining_function == BetterCustomMoe):
-            encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.custom_moe_thing)
+            encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.random_moe)
         else:
              encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
         self.subs[session_id].add(sub_var, encrypted_block)
@@ -122,7 +122,7 @@ def CustomMOE(moe, session_id, iteration, moe_string : str):
         return parser.parse((moe_string.replace("C[i-1]", "IV")).replace("i", "0"))
     return parser.parse(moe_string)
 
-def BetterCustomMoe(moe, session_id, iteration, term):
+def RandomMOE(moe, session_id, iteration, term):
     moe.assertIteration(session_id, iteration)
     P = moe.plain_texts[session_id]
     C = moe.cipher_texts[session_id]
