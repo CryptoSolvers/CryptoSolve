@@ -105,9 +105,9 @@ def program():
                 return render_template('program.html', response = str(response), navigation=navigation, title="MOE Simulation")
         elif 'chaining' in request.form and 'schedule' in request.form:
             # Create new session
-            chaining = chaining.get(request.form.get('chaining'))
+            chaining_moe = chaining.get(request.form.get('chaining'))
             schedule = request.form.get('schedule')
-            moe_session = MOESession(chaining, schedule)
+            moe_session = MOESession(chaining_moe, schedule)
             moe_session.rcv_start(DEFAULT_SID)
             # Send an initial message
             x = Variable("x_" + str(moe_session.iteration[DEFAULT_SID]))
