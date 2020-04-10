@@ -61,7 +61,7 @@ def format_substitutions(subs: List[SubstituteTerm]):
 def index():
     if request.method == 'POST':
         unif = unif_algo.get(request.form.get('unif'))
-        chaining = chaining.get(request.form.get('chaining'))
+        chaining_moe = chaining.get(request.form.get('chaining'))
         schedule = request.form.get('schedule')
         length_bound = int(request.form.get('length_bound'))
         length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
@@ -69,7 +69,7 @@ def index():
         session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
         knows_iv = request.form.get('knows_iv') == "knows_iv"
         
-        result = MOE(unif, chaining, schedule, length_bound, 1, knows_iv) if unif is not None and chaining is not None else "TRY AGAIN"
+        result = MOE(unif, chaining_moe, schedule, length_bound, 1, knows_iv) if unif is not None and chaining_moe is not None else "TRY AGAIN"
         response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
         return render_template('tool.html', title = 'MOE Tool', response = response, navigation=navigation)
 
