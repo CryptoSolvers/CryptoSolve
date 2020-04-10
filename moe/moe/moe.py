@@ -109,16 +109,46 @@ def CustomMOE(moe, session_id, iteration, moe_string : str):
     IV = moe.IV[session_id]
     parser = Parser()
     parser.add(Function("f", 1))
-    parser.add(Function("xor", 2))
+    parser.add(xor)
     parser.add(Variable("P[i]"))
     parser.add(Variable("C[i]"))
     parser.add(Variable("C[i-1]"))
     parser.add(Constant("IV"))
     parser.add(Constant("P[0]"))
     i = iteration - 1
-    if i == 0:
-        return parser.parse((moe_string.replace("C[i-1]", "IV")).replace("i", "0"))
-    return parser.parse(moe_string)
+    t = parser.parse(moe_string)
+    return _recursive_custom_moe_replacer(t, i, P, C, IV)
+
+#temporary function to assist parser in the CustomMOE function
+def _recursive_custom_moe_replacer(t, i, P, C, IV):
+    if i < 0:
+        i = 0
+    if isinstance(t, FuncTerm):
+        temp_terms = list(t.arguments)
+        for arg_index in range(len(temp_terms)):
+            inner_term = temp_terms[arg_index]
+            if isinstance(inner_term, FuncTerm):
+                temp_terms[arg_index] = _recursive_custom_moe_replacer(inner_term, i, P, C, IV)
+            elif "P" in inner_term.symbol:
+                if "0" in inner_term.symbol:
+                    temp_terms[arg_index] = P[0]
+                else:
+                    temp_terms[arg_index] = P[i]
+            elif "C" in inner_term.symbol:
+                if len(inner_term.symbol) > 4:
+                    if i-1 < 0:
+                        temp_terms[arg_index] = IV
+                    else:
+                        temp_terms[arg_index] = C[i-1]
+                else:
+                    if i < 0:
+                        temp_terms[arg_index] = IV
+                    else:
+                        temp_terms[arg_index] = C[i]
+            elif "IV" in inner_term.symbol:
+                temp_terms[arg_index] = IV
+        t.set_arguments(temp_terms)
+    return t
 
 def CipherBlockChaining(moe, session_id, iteration):
     """Cipher Block Chaining"""
