@@ -330,9 +330,10 @@ def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
             return True
     return False
 
-def MOE(unif = p_unif, chaining = CipherBlockChaining, schedule : str = 'every', length_bound : int = 10, session_bound : int = 1, knows_iv : bool = True):
+def MOE(unif = p_unif, chaining = CipherBlockChaining, schedule : str = 'every', length_bound : int = 10, session_bound : int = 1, knows_iv : bool = True, 
+moe_string : str = "none"):
     """Simulate an MOE interaction with specific parameters"""
-    m = MOESession(chaining, schedule=schedule)
+    m = MOESession(chaining, schedule, moe_string)
     sid = 0
     m.rcv_start(sid)
     constraints : Dict[Variable, List[Term]] = dict()
