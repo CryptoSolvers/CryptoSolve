@@ -168,7 +168,7 @@ def custom():
 		#moe_session = MOESession(CustomMOE, schedule, cmoe_string)
 		
 		
-		result = MOE(unif, CustomMOE, schedule, length_bound, 1, knows_iv, cmoe_string) if unif is not None and cmoe_string is not "" else "TRY AGAIN"
+		result = MOE(unif, CustomMOE, schedule, length_bound, 1, knows_iv, cmoe_string) if unif is not None and cmoe_string != "" else "TRY AGAIN"
 		response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
 		return render_template('custom.html', title = 'MOE Tool', response = response, navigation=navigation)
 		# Assume GET request and return form
