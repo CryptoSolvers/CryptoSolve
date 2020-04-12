@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 setup_package () {
-  cd $1 && python setup.py develop ; cd ..
+  cd $1 && pip install --editable . ; cd ..
 }
 
 # First uninstall any installed packages
@@ -21,4 +21,4 @@ setup_package rewrite
 setup_package moe
 
 # Developer utilities
-pip install sphinx tox
+pip install sphinx tox pylint
