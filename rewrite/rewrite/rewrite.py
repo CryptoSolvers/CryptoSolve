@@ -41,7 +41,7 @@ def freeze(term):
         arguments = list(term.arguments)
         for i, t in enumerate(arguments):
             arguments[i] = freeze(t)
-        term.set_arguments(arguments)
+        term.arguments = arguments
     return term
 
 def _getOverlapVars(term: Term, hypothesis: Term, conclusion: Term) -> List[Variable]:

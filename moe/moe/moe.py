@@ -147,7 +147,7 @@ def _recursive_custom_moe_replacer(t, i, P, C, IV):
                         temp_terms[arg_index] = C[i]
             elif "IV" in inner_term.symbol:
                 temp_terms[arg_index] = IV
-        t.set_arguments(temp_terms)
+        t.arguments = temp_terms
     return t
 
 def CipherBlockChaining(moe, session_id, iteration):

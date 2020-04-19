@@ -124,7 +124,7 @@ def _termSubstituteHelper(term, variable, replacement_term):
         arguments = list(term.arguments)
         for i, t in enumerate(arguments):
             arguments[i] = _termSubstituteHelper(t, variable, replacement_term)
-            term.set_arguments(arguments)
+            term.arguments = arguments
             return_value = term
     else:
         return_value = term

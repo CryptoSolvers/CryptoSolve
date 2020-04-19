@@ -179,7 +179,7 @@ class SubstituteTerm:
                 arguments = list(term.arguments)
                 for i, t in enumerate(arguments):
                     arguments[i] = self._termSubstituteHelper(t)
-                term.set_arguments(arguments)
+                term.arguments = arguments
                 return_value = term
         return return_value
 
