@@ -37,7 +37,7 @@ class Sort:
     def __init__(self, name, parent_sort=None):
         super().__init__()
         self.name = name
-        self.parents = set(parent_sort) | parent_sort.parents \
+        self.parents = {parent_sort} | parent_sort.parents \
             if parent_sort is not None else set()
     def subset_of(self, sort) -> bool:
         """Returns true is this sort is a subset of the sort given"""

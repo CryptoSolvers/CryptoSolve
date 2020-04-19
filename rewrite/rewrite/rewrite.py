@@ -159,12 +159,12 @@ class RewriteRule:
         if index > len(term.arguments):
             raise ValueError("Position " + pos + " is not valid for term " + str(term))
         
-        term.arguments = list(term.arguments)
-        new_argument = self._apply_pos(term.arguments[index - 1], pos[1:])
+        term_arguments = list(term.arguments)
+        new_argument = self._apply_pos(term_arguments[index - 1], pos[1:])
         if new_argument is None:
             return None
-        term.arguments[index - 1] = new_argument
-        term.arguments = tuple(term.arguments)
+        term_arguments[index - 1] = new_argument
+        term.arguments = tuple(term_arguments)
         return term
     
     def _apply_all(self, term: Term, pos: Position,
