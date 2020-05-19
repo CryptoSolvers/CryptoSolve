@@ -25,10 +25,54 @@
 			<td><label for='bound'>Encryption F Bound</label></td>
         	<td><input type='number' min='1' max='100' name='bound' id='bound' value='{{bound|default(1, true)}}' required/></td>
         </tr>
-	</tbody></table>
+        <tr>
+			<td><label for='moenum'>Bound on number of MOE to Generate</label></td>
+        	<td><input type='number' min='1' max='20' name='moenum' id='moenum' value='{{moenum|default(1, true)}}' required/></td>
+        </tr>
+        <tr>
+       		<td><label for='sectest'>Test Each MOE for Security:</label></td>
+       		<td><select id='sectest' name='sectest' onchange="unhide(this)">
+				<option id='NoSecTest' value="No" >No</option>
+    			<option id='YesSecTest' value="Yes">Yes</option>
+        		
+		<tr>
+</tbody></table>
+
+			<div id="Hidden_options" style="display:none;">
+				<table><tbody>
+				<td><label for='unif'>Unification Algorithm:</label></td>
+					<td><select id='unif' name='unif'>
+							<option value='p_syntactic'>Syntactic</option>
+							<!--<option value='p_ac'>AC</option>-->
+							<option value='p_unif'>Xor</option>
+               		</select></td>
+				</tr>
+				<tr>
+					<td><label for='length_bound'>Session Length Bound</label></td>
+					<td><input type='number' min='1' max='100' name='length_bound' id='length_bound' required/></td>
+				</tr>
+				<tr>
+					<td><label for='session_bound'>Number of Sessions Bound</label></td>
+					<td><input type='number' min='1' max='10' name='session_bound' id='session_bound' required/></td>
+				</tr>
+				<tr>
+					<td><label for='knows_iv'>Advesary knows IV?</label></td>
+					<td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
+				</tr>
+				</tbody></table>
+			</div>
 	<input type='submit' value='Begin!'/>
 </form>
+<script type="text/javascript">
 
+ function unhide(x) {
+        if (x.value == "Yes") {
+            document.getElementById("Hidden_options").style.display = "block";
+        } else {
+            document.getElementById("Hidden_options").style.display = "none";
+        }
+    }
+</script>
 <div class='code'><code>{{random_moe}}</code></div>
 
 {% endblock %}
