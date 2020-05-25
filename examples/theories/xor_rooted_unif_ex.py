@@ -22,7 +22,12 @@ dict1 = {x1: [c], x2: [c, xor(f(c), x1)]}
 
 print("The first example: ")
 p1 = XOR_rooted_security(terms1, dict1)
-p1.solve()
+result = p1.solve()
+if(result == None):
+    print("No attack.")
+else:
+    for res in result:
+        print(res)
 
 print("\n\n\n\n")
 
@@ -32,4 +37,9 @@ dict2 = {x1: [c], x2: [c, xor(f(xor(c, x1)), x1)]}
 
 print("The second example: ")
 p2 = XOR_rooted_security(terms2, dict2)
-p2.solve()
+result = p2.solve()
+if(result == None):
+    print("No attack.")
+else:
+    for res in result:
+        print(res)

@@ -34,6 +34,34 @@ def convert_to_BTerm(t):
         return BFuncTerm(BFunction(t.function.symbol, t.function.arity), new_arguments)
     print("error in convert_to_BTerm")
 
+def convert_to_Term(t):
+    #t is a BTerm
+    type = t.get_type()
+    if (type == "Zero_BTerm"):
+        return Constant("0")
+    if(type == "Var_BTerm"):
+        return Variable(t.name)
+    if (type == "Constant_BTerm"):
+        return Constant(t.name)
+    elif (type == "BFuncTerm"):
+        args = t.arguments
+        func = Function(t.function.symbol, t.function.arity)
+        new_args = list(map(convert_to_Term, args))
+        return FuncTerm(func, new_args)
+    elif (type == "Xor_BTerm"):
+        args = t.arguments
+        #xor = XorFunction()
+        new_args = list(map(convert_to_Term, args))
+        #return xor(*[Constant("a"), Constant("b")])
+        if(len(new_args) == 1):
+            return new_args[0]
+        else:
+            return xor(*new_args)
+    else:
+        print("type error in convert_to_Term.")
+
+    return t
+
 def remove_var_not_under_f(t):
     #Takes a term, which doesn't contain any boolean variables,
     #remove vars that do not occur under function symbols.
@@ -130,16 +158,22 @@ class VarSubstitution:
         return VarSubstitution(self.mappings + another.mappings)
 
     def compose_with_bool_subst(self, b_subst):
-        new_mappings = []
+        #new_mappings = []
+        sigma = SubstituteTerm()
         for m in self.mappings:
             dom = m.domain
             ran = m.range
             new_ran = b_subst.apply_to_term(ran)
-            new_ran = new_ran.simplify()
-            new_mapping = VarMapping(dom, new_ran)
-            new_mappings.append(new_mapping)
 
-        return VarSubstitution(new_mappings)
+            new_dom = convert_to_Term(dom)
+            new_ran = convert_to_Term(new_ran.simplify())
+            sigma.add(new_dom, new_ran)
+
+        return sigma
+            #new_mapping = VarMapping(dom, new_ran)
+            #new_mappings.append(new_mapping)
+
+        #return VarSubstitution(new_mappings)
 
     def print(self):
         for mapping in self.mappings:
@@ -438,22 +472,25 @@ class XOR_rooted_security:
         cancel_done = s.cancel_done
 
         i = 1
+        result = []
         for t in cancel_done:
             term = t.term
             set_of_ints = t.set_of_ints
             b_sub = t.b_sub
             if(term == Zero_BTerm()):
-                print("Attack number", end = " ")
-                print(i)
-                print("Take xor of terms:", end = " ")
-                print(set_of_ints)
-                print("Using the following substitution:")
+                #print("Attack number", end = " ")
+                #print(i)
+                #print("Take xor of terms:", end = " ")
+                #print(set_of_ints)
+                #print("Using the following substitution:")
                 real_subst = self.subst.compose_with_bool_subst(b_sub)
-                real_subst.print()
-                print("\n")
+                result.append(real_subst)
+                #print(real_subst)
+                #print("\n")
                 i = i + 1
         if(i == 1):
-            print("No attack is found.")
-
+            return None
+        else:
+            return result
 
 
