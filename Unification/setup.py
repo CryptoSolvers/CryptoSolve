@@ -8,9 +8,9 @@ setup(name="Unification",
         "algebra",
         "xor",
         # Outside dependencies
-        "mypy>=0.740",
-        "mypy-extensions>=0.4.0",
-        "scipy>=1.3.1",
-        "sympy>=1.4"
+        "mypy~=0.740",
+        "mypy-extensions~=0.4.0",
+        "scipy~=1.3.1",
+        "sympy==1.4"
     ],
 )

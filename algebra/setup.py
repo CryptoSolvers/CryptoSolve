@@ -9,6 +9,6 @@ setup(name="algebra",
         "mypy-extensions~=0.4.0",
         "networkx~=2.3",
         "numpy~=1.17.0",
-        "sympy~=1.4",
+        "sympy==1.4",
     ]
 )

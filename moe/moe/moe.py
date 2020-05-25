@@ -59,13 +59,14 @@ class MOESession:
         # Need to decide how to make it 'random'
         self.IV[session_id] = Constant("r")
     
-    def send(self, session_id : int, encrypted_block : SubstituteTerm) -> Frame:
-        return Frame(session_id, deepcopy(self.plain_texts[session_id][-1]), deepcopy(encrypted_block) )
+    def send(self, session_id: int, last_plaintext: Term, encrypted_blocks: SubstituteTerm) -> Frame:
+        return Frame(session_id, last_plaintext, encrypted_blocks)
     
     def rcv_stop(self, session_id : int) -> Optional[Frame]:
         subs = None
         if self.schedule == "end":
             subs = deepcopy(self.subs[session_id])
+            last_plaintext = deepcopy(self.plain_texts[session_id][-1])
         # Remove information about the session from MOE
         del self.subs[session_id]
         del self.iteration[session_id]
@@ -73,7 +74,7 @@ class MOESession:
         del self.cipher_texts[session_id]
         self.sessions.remove(session_id)
         if self.schedule == "end":
-            return self.send(session_id, subs)
+            return self.send(session_id, last_plaintext, subs)
         return None
 
     def rcv_block(self, session_id : int, message : Term) -> Optional[Frame]:
@@ -90,7 +91,7 @@ class MOESession:
         self.cipher_texts[session_id].append(sub_var)
 
         if self.schedule == "every":
-            return self.send(session_id, self.subs[session_id])
+            return self.send(session_id, self.plain_texts[session_id][-1], self.subs[session_id])
         return None
     
     # Make sure the iteration number is valid for a given session
@@ -386,6 +387,7 @@ moe_string : str = "none"):
             last_ciphertext = unravel(m.cipher_texts[sid][-1], m.subs[sid])
             for ciphertext in m.cipher_texts[sid][:-1]:
                 ciphertext = unravel(ciphertext, m.subs[sid])
+                print(ciphertext)
                 if unif == p_unif: # p_xor requires things in an Equations object
                     unifiers = unif(Equations([Equation(last_ciphertext, ciphertext)]), constraints)
                 else: # p_syntactic takes left_side, right_side, constraints
