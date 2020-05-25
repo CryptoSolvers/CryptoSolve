@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from algebra import *
-from Unification import *
+from copy import deepcopy
 
 
 def setpartitions(S: set):

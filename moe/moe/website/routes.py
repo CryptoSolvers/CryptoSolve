@@ -1,11 +1,15 @@
-from moe.website import app
-from moe import *
-from Unification import *
-from Unification.p_unif import p_unif
-from algebra import *
-from flask import request, render_template, session, Markup
-from typing import Dict
+from typing import Dict, List
 from uuid import uuid4
+from flask import request, render_template, session, Markup
+from algebra import SubstituteTerm, Variable
+from Unification.unif import unif
+from Unification.p_syntactic import p_syntactic
+from Unification.ac_unif import ac_unify
+from Unification.p_unif import p_unif
+from moe.website import app
+from moe.moo import cipher_block_chaining, propogating_cbc, hash_cbc, cipher_feedback
+from moe.moe import MOE, MOESession, CustomMOE
+from moe.filtered_generator import FilteredMOEGenerator
 
 navigation = [
     dict(href='/', caption='Tool'),
@@ -22,30 +26,11 @@ unif_algo = dict(
 )
 
 chaining = dict(
-    CipherBlockChaining=CipherBlockChaining,
-    PropogatingCBC=PropogatingCBC,
-    CipherFeedback=CipherFeedback,
-    HashCBC=HashCBC
+    CipherBlockChaining=cipher_block_chaining,
+    PropogatingCBC=propogating_cbc,
+    HashCBC=hash_cbc,
+    CipherFeedback=cipher_feedback
 )
-
-def get_chaining(x: str):
-    if x == "CipherBlockChaining":
-        return CipherBlockChaining
-    if x == "PropogatingCBC":
-        return PropogatingCBC
-    if x == "CipherFeedback":
-        return CipherFeedback
-    if x == "HashCBC":
-        return HashCBC
-    # if x == "OutputFeedback":
-    #     return OutputFeedback
-    # if x == "CounterMode":
-    #     return CounterMode
-    # if x == "AccumulatedBlockCiper":
-    #     return AccumulatedBlockCiper
-    # if x == "DoubleHashCBC":
-    #     return DoubleHashCBC
-    return None
 
 def format_substitutions(subs: List[SubstituteTerm]):
     text = ""

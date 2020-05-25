@@ -6,10 +6,10 @@ s = Constant("s")
 x = Variable("x")
 
 print("One interaction with oracle example")
-p = MOESession(PropogatingCBC)
+p = MOESession(propogating_cbc)
 p.rcv_start(1)
 print(p.rcv_block(1, x))
 
 # Simulate 10 interactions
 print("Simulating a 10 frame interaction with an oracle")
-print(MOEInteraction(PropogatingCBC, 10))
+print(MOEInteraction(propogating_cbc, 10))

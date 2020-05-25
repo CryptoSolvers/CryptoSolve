@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from algebra import *
-from Unification import *
+from algebra import Variable, SubstituteTerm, FuncTerm
+from Unification.ac_unif import ac_unify
+from Unification.eac_unif import R1
+from Unification.flat import flat
 
 #H_AC(R_1) unification 
 #Using the new hierarrchical method

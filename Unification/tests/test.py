@@ -1,4 +1,4 @@
-from Unification import *
+from Unification.unif import unif
 import unittest
 
 class TestStub(unittest.TestCase):

@@ -1,13 +1,8 @@
-from algebra import *
-from Unification import unif
-from xor.structure import *
-from xor.xor import *
-#from .structure import *
-
 from copy import deepcopy
-
-from math import *
-import functools
+from algebra import Constant, Variable, FuncTerm, Equation, SubstituteTerm
+from Unification.unif import unif
+from .structure import Zero, XORTerm, Equations, Disequations, Disequation
+from .xor import xor
 
 def is_xor_term(t):
     #return (isinstance(t, FuncTerm)) and (isinstance(t.function, Xor))

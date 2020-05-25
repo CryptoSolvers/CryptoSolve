@@ -1,6 +1,9 @@
-
-from Unification import *
-from xor import *
+from copy import deepcopy
+from algebra import SubstituteTerm, Equation, Variable, Constant, Function
+from xor.xor import xor
+from xor.xorhelper import xor_unification, is_XOR_Term, simplify_XOR_Term
+from xor.structure import Zero, XORTerm, Equations, ConstrainedTerm
+from .p_unif import convert_to_xorterm, convert_to_XORTerm
 
 def get_resolution_term_and_remaining_term(t):
     #Assume that t is in XOR form.

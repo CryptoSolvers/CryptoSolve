@@ -65,11 +65,8 @@ class TermMOE:
     """Custom MOE that works with MOE_Generator and MOESession"""
     def __init__(self, term):
         self.term = term
-    def __call__(self, moe, session_id, iteration):
-        moe.assertIteration(session_id, iteration)
-        P = moe.plain_texts[session_id]
-        C = moe.cipher_texts[session_id]
-        IV = moe.IV[session_id]
+    def __call__(self, iteration, nonces, P, C):
+        IV = nonces[0]
         i = iteration - 1
         # Create substitution between symbolic plain and cipher texts
         # and the symbolic instantiations of them in MOESession

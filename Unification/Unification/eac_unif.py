@@ -11,7 +11,8 @@
 
 #!/usr/bin/env python3
 from algebra import *
-from Unification import *
+from Unification.ac_unif import ac_unify
+from Unification.flat import flat
 #from itertools import combinations
 
 

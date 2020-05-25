@@ -1,8 +1,8 @@
 from itertools import *
-from xor.xor import *
 from algebra import *
-from xor.structure import *
-from xor.xorhelper import *
+from xor import xor
+from xor.structure import XORTerm, Zero, Disequations, Disequation, Equations
+from xor.xorhelper import is_xor_term, xor_to_list, list_to_xor, simplify, xor_unification
 
 class P_unif_problem:
     def __init__(self, eqs, constraints, diseqs):

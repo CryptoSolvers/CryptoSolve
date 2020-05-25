@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from algebra import *
-from Unification import *
+from Unification.ac_unif import ac_unify
+
 f = Function("f", 2)
 g = Function("g", 1)
 x = Variable("x")

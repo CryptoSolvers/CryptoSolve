@@ -1,6 +1,7 @@
 #eac_unif_ex.py
 from algebra import *
-from Unification import *
+from Unification.eac_unif import eac_unif
+
 exp = Function("exp", 2)
 x = Variable("x")
 y = Variable("y")
@@ -29,9 +30,6 @@ U.add(e3)
 U.add(e4)
 eac_unif(U)
 
-
-from algebra import *
-from Unification import *
 exp = Function("exp", 2)
 x = Variable("x")
 y = Variable("y")
@@ -47,8 +45,6 @@ U.add(e5)
 U.add(e6)
 eac_unif(U)
 
-from algebra import *
-from Unification import *
 exp = Function("exp", 2)
 x = Variable("x")
 y = Variable("y")
@@ -64,8 +60,6 @@ U.add(e6)
 U.add(e5)
 eac_unif(U)
 
-from algebra import *
-from Unification import *
 exp = Function("exp", 2)
 x = Variable("x")
 y = Variable("y")

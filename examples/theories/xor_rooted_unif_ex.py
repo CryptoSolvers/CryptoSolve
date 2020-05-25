@@ -1,3 +1,4 @@
+from algebra import Constant, Variable, Function
 from Unification.xor_rooted_unif import *
 
 

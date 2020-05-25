@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from algebra import *
-from Unification import *
+from Unification.unif import unif
 
 # Setting up terms
 f = Function("f", 2)

@@ -1,7 +1,7 @@
-from algebra import *
-from .ac import *
 from collections import Counter
-from .structure import *
+from .ac import ACFunction, ACTerm
+from .structure import Zero
+
 class Xor(ACFunction):
     def __init__(self):
         super().__init__("xor", 2)

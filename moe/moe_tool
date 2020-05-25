@@ -15,7 +15,7 @@ print("length_bound: (int) the bound on the length of interactions between adves
 print("session_bound: (int) the bound on the number of concurrent sessions allowed")
 print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
-print("Ex: MOE(unif = unif, chaining = CipherBlockChaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
+print("Ex: MOE(unif = unif, chaining = cipher_block_chaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
 
 print("For help, type help(argument_name) where argument_name is a string")
 print("Ex: help('unif')")
@@ -34,15 +34,15 @@ def help(argument):
     elif argument == "chaining":
         print("Note that no quotes are needed for chaining functions.")
         print("Available Chaining Functions:")
-        print("  CipherBlockChaining : Cipher Block Chaining")
-        print("  PropogatingCBC  : Propogating Cipher Block Chaining")
-        print("  CipherFeedback : Cipher Feedback")
-        print("  HashCBC : Hash Cipher Block Chaining")
+        print("  cipher_block_chaining : Cipher Block Chaining")
+        print("  propogating_cbc  : Propogating Cipher Block Chaining")
+        print("  hash_cbc : Hash Cipher Block Chaining")
+        print("  cipher_Feedback : Cipher Feedback")
         print("Currently planned but not implemented chaining functions:")
-        print("  OutputFeedback : Output Feedback")
-        print("  CounterMode : Counter Mode")
-        print("  AccumulatedBlockCiper : Accumulated Block Cipher")
-        print("  DoubleHashCBC : Double Hash Cipher Block Chaining")
+        print("  output_feedback : Output Feedback")
+        print("  counter_mode : Counter Mode")
+        print("  accumulated_block_cipher : Accumulated Block Cipher")
+        print("  double_hash_cbc : Double Hash Cipher Block Chaining")
     elif argument == "schedule":
         print("Available schedules:")
         print("  'every' the oracle will send a frame everytime the adversary sends a message")

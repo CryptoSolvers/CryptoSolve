@@ -1,4 +1,4 @@
-from algebra import *
+from algebra import Constant, FuncTerm
 
 ###############################################
 class Equations:

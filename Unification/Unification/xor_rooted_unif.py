@@ -1,3 +1,4 @@
+from algebra import Function
 from Unification.bool_unif import *
 
 

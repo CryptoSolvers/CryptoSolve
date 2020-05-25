@@ -1,7 +1,7 @@
 from typing import overload, List, Optional, Union, Dict, Set
 from copy import deepcopy
 from algebra import Variable, Constant, Term, Function, FuncTerm, get_vars, SubstituteTerm
-from Unification import unif
+from Unification.unif import unif
 
 @overload
 def freeze(term: Variable) -> Constant:

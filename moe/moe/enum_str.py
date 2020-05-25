@@ -1,5 +1,4 @@
 from algebra import *
-from Unification import *
 from xor import xor
 from copy import deepcopy
 import types

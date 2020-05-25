@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from algebra import Function, Variable, Constant
 from xor.xorhelper import *
 from xor.structure import *
 

@@ -1,8 +1,9 @@
-from algebra import *
-from Unification import *
+from collections import defaultdict
+from algebra import Term, Parser, Function, Variable, Constant, SubstituteTerm, Equation
 from xor import xor
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
+from .moo import *
 
 # Note: This file isn't the most clear in terms of naming mostly since the requirements are not well understood
 # As of December, I've attempted to outline the different functions and classes involved, 
@@ -12,7 +13,7 @@ from typing import Dict, List, Optional
 # The session id is what is used by the Oracle to keep track of the different messages
 # The whole message can be recovered by apply the substition to the message. 
 class Frame:
-    def __init__(self, session_id : int, message : Term, subs):
+    def __init__(self, session_id: int, message: Term, subs):
         self.session_id = session_id
         self.message = message
         self.subs = subs
@@ -23,10 +24,10 @@ class Frame:
 # However, you have to create an oracle for every different chaining function and schedule that you want to use
 # The API is largely taken from "Symbolic Security Criteria for Blockwise Adaptive Secure Modes of Encryption" by Catherine Meadows
 class MOESession:
-    def __init__(self, chaining_function, schedule : str = "every", custom_moe_string : str = ""):
+    def __init__(self, chaining_function, schedule: str = "every", custom_moe_string: str = ""):
         self.chaining_function = chaining_function
-        self.schedule : str = schedule
-        self.custom_moe_string : str = custom_moe_string
+        self.schedule: str = schedule
+        self.custom_moe_string: str = custom_moe_string
         if(self.chaining_function == CustomMOE):
             parser = Parser()
             parser.add(Function("f", 1))
@@ -37,14 +38,13 @@ class MOESession:
             parser.add(Constant("IV"))
             parser.add(Constant("P[0]"))
             parser.parse(custom_moe_string)
-        self.sessions : List[int] = []
+        self.sessions: List[int] = []
         # The below variables are dictionaries that are indexed by the session id
-        self.subs : Dict[int, SubstituteTerm] = {}
-        self.iteration : Dict[int, int] = {}
-        # IV = Initialization Vector
-        self.IV : Dict[int, Constant] = {}
-        self.plain_texts : Dict[int, List[Term]] = {}
-        self.cipher_texts : Dict[int, List[Term]] = {}
+        self.subs: Dict[int, SubstituteTerm] = {}
+        self.iteration: Dict[int, int] = {}
+        self.nonces: Dict[int, List[Constant]] = defaultdict(list)
+        self.plain_texts: Dict[int, List[Term]] = defaultdict(list)
+        self.cipher_texts: Dict[int, List[Term]] = defaultdict(list)
     
     def rcv_start(self, session_id : int):
         if session_id in self.sessions:
@@ -53,16 +53,14 @@ class MOESession:
         # Initialize all the session variables
         self.subs[session_id] = SubstituteTerm()
         self.iteration[session_id] = 0
-        self.plain_texts[session_id] = []
-        self.cipher_texts[session_id] = []
         # TODO: IV should be a random nounce
         # Need to decide how to make it 'random'
-        self.IV[session_id] = Constant("r")
+        self.nonces[session_id].append(Constant("r"))
     
     def send(self, session_id: int, last_plaintext: Term, encrypted_blocks: SubstituteTerm) -> Frame:
         return Frame(session_id, last_plaintext, encrypted_blocks)
     
-    def rcv_stop(self, session_id : int) -> Optional[Frame]:
+    def rcv_stop(self, session_id: int) -> Optional[Frame]:
         subs = None
         if self.schedule == "end":
             subs = deepcopy(self.subs[session_id])
@@ -77,7 +75,9 @@ class MOESession:
             return self.send(session_id, last_plaintext, subs)
         return None
 
-    def rcv_block(self, session_id : int, message : Term) -> Optional[Frame]:
+    def rcv_block(self, session_id: int, message: Term) -> Optional[Frame]:
+        if session_id not in self.sessions:
+            raise ValueError(f"Session id {session_id} not found. Please call rcv_start first.")
         self.iteration[session_id] += 1
         self.plain_texts[session_id].append(message)
 
@@ -86,17 +86,19 @@ class MOESession:
         if(self.chaining_function == CustomMOE):
             encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id], self.custom_moe_string)
         else:
-             encrypted_block = self.chaining_function(self, session_id, self.iteration[session_id])
+            encrypted_block = self.chaining_function(
+                self.iteration[session_id],
+                self.nonces[session_id],
+                self.plain_texts[session_id],
+                self.cipher_texts[session_id]
+            )
         self.subs[session_id].add(sub_var, encrypted_block)
         self.cipher_texts[session_id].append(sub_var)
 
         if self.schedule == "every":
             return self.send(session_id, self.plain_texts[session_id][-1], self.subs[session_id])
         return None
-    
-    # Make sure the iteration number is valid for a given session
-    def assertIteration(self, session_id : int, iteration : int):
-        assert iteration <= len(self.plain_texts[session_id]) + 1 and iteration >= 0
+
 
 
 ##
@@ -104,10 +106,9 @@ class MOESession:
 ##
 
 def CustomMOE(moe, session_id, iteration, moe_string : str):
-    moe.assertIteration(session_id, iteration)
     P = moe.plain_texts[session_id]
     C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
+    IV = moe.nonces[session_id][0]
     parser = Parser()
     parser.add(Function("f", 1))
     parser.add(xor)
@@ -151,164 +152,7 @@ def _recursive_custom_moe_replacer(t, i, P, C, IV):
         t.arguments = temp_terms
     return t
 
-def CipherBlockChaining(moe, session_id, iteration):
-    """Cipher Block Chaining"""
-    moe.assertIteration(session_id, iteration)
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
-    f = Function("f", 1)
-    i = iteration - 1
-    if i == 0:
-        return f(
-            xor(P[0], IV)
-        )
-    return f(
-        xor(P[i], C[i-1])
-    )
 
-def PropogatingCBC(moe, session_id, iteration):
-    """Propogating Cipher Block Chaining"""
-    moe.assertIteration(session_id, iteration)
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
-    f = Function("f", 1)
-    i = iteration - 1
-    if i == 0:
-        return f(
-            xor(P[0], IV)
-        )
-    return f(
-        xor(
-            P[i],
-            P[i - 1],
-            C[i - 1]
-        )
-    )
-
-def CipherFeedback(moe, session_id, iteration):
-    """Cipher Feedback"""
-    moe.assertIteration(session_id, iteration)
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    IV = moe.IV[session_id]
-    i = iteration - 1
-    f = Function("f", 1)
-    if i == 0:
-        return f(IV)
-    return xor(
-        f(C[i-1]), 
-        P[i]
-    )
-
-# Questionable implementations...
-# def OutputFeedback(moe, session_id, iteration):
-#     """Output Feedback"""
-#     moe.assertIteration(session_id, iteration)
-#     P = moe.plain_texts[session_id]
-#     i = iteration - 1
-#     xor = Function("xor", 2)
-#     f = Function("f", 1)
-#     return xor(
-#         f(OutputFeedback(moe, session_id, iteration - 1)), 
-#         P[i]
-#     )
-
-# def CounterMode(moe, session_id, iteration):
-#     """Counter Mode"""
-#     moe.assertIteration(session_id, iteration)
-#     P = moe.plain_texts[session_id]
-#     C = moe.cipher_texts[session_id]
-#     i = iteration - 1
-#     xor = Function("xor", 2)
-#     f = Function("f", 1)
-#     return xor(
-#         f(
-#             xor(P[i], C[i-1])
-#         ),
-#         P[i - 1]
-#     )
-
-# Helper function for AccumulatedBlockCiper
-def _calcQ(moe, session_id, i):
-    P = moe.plain_texts[session_id]
-    IV = moe.IV[session_id]
-    h = Function("h", 1)
-    if i == 0:
-        return xor(
-            P[0],
-            h(IV)
-        )
-    return xor(
-        P[i], 
-        h(_calcQ(moe, session_id, i - 1))
-    )
-
-# C1 isn't defined yet
-# def AccumulatedBlockCipher(moe, session_id, iteration):
-#     """Accumulated Block Cipher"""
-#     moe.assertIteration(session_id, iteration)
-#     C = moe.cipher_texts[session_id]
-#     f = Function("f", 1)
-#     i = iteration - 2
-#     Q = {}
-#     Q[i] = _calcQ(moe, session_id, i)
-#     Q[i-1] = _calcQ(moe, session_id, i - 1)
-#     return xor(
-#         f(
-#             xor(Q[i], C[i - 1])
-#         ),
-#         Q[i - 1]
-#     )
-
-
-def HashCBC(moe, session_id, iteration):
-    """Hash Cipher Block Chaining"""
-    moe.assertIteration(session_id, iteration)
-    IV = moe.IV[session_id]
-    P = moe.plain_texts[session_id]
-    C = moe.cipher_texts[session_id]
-    f = Function("f", 1)
-    h = Function("h", 1)
-    i = iteration - 1
-    if i == 0:
-        return f(
-            xor(
-                h(IV),
-                P[0]
-            )
-        )
-    return f(
-        xor(
-            h(C[i - 1]),
-            P[i]
-        )
-    )
-
-# # Don't understand what the || symbol means
-# def DoubleHashCBC(moe, session_id, iteration):
-#     """Double Hash Cipher Block Chaining"""
-#     moe.assertIteration(session_id, iteration)
-#     IV = moe.IV[session_id]
-#     P = moe.plain_texts[session_id]
-#     C = moe.cipher_texts[session_id]
-#     f = Function("f", 1)
-#     h = Function("h", 1)
-#     i = iteration - 2
-#     if i == 0:
-#         return f(
-#             xor(
-#                 h(IV), # || goes here
-#                 P[0]
-#             )
-#         )
-#     return f(
-#         xor(
-#             h(C[i-1]),
-#             P[i]
-#         )
-#     )
 
 
 # Runs through a certain number of interactions between the oracle and the advesary
@@ -361,13 +205,14 @@ def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
             return True
     return False
 
-def MOE(unif = p_unif, chaining = CipherBlockChaining, schedule : str = 'every', length_bound : int = 10, session_bound : int = 1, knows_iv : bool = True, 
-moe_string : str = "none"):
+def MOE(unif_algo: Callable = p_unif, chaining: Callable = cipher_block_chaining,
+        schedule: str = 'every', length_bound: int = 10, session_bound: int = 1,
+        knows_iv: bool = True, moe_string: str = "none"):
     """Simulate an MOE interaction with specific parameters"""
     m = MOESession(chaining, schedule, moe_string)
     sid = 0
     m.rcv_start(sid)
-    constraints : Dict[Variable, List[Term]] = dict()
+    constraints: Dict[Variable, List[Term]] = dict()
     xor_zero = Zero()
 
     # Start interactions
@@ -376,7 +221,7 @@ moe_string : str = "none"):
 
         # Update constraints
         if i == 1:
-            constraints[x] = [m.IV[sid], xor_zero] if knows_iv else [xor_zero]
+            constraints[x] = [m.nonces[sid][0], xor_zero] if knows_iv else [xor_zero]
         else:
             last_x = Variable("x_" + str(i - 1))
             constraints[x] = constraints[last_x] + [last_x] + [unravel(m.cipher_texts[sid][i - 2], m.subs[sid])]
@@ -388,24 +233,24 @@ moe_string : str = "none"):
             for ciphertext in m.cipher_texts[sid][:-1]:
                 ciphertext = unravel(ciphertext, m.subs[sid])
                 print(ciphertext)
-                if unif == p_unif: # p_xor requires things in an Equations object
-                    unifiers = unif(Equations([Equation(last_ciphertext, ciphertext)]), constraints)
+                if unif_algo == p_unif: # p_xor requires things in an Equations object
+                    unifiers = unif_algo(Equations([Equation(last_ciphertext, ciphertext)]), constraints)
                 else: # p_syntactic takes left_side, right_side, constraints
-                    unifiers = unif(last_ciphertext, ciphertext, constraints)
+                    unifiers = unif_algo(last_ciphertext, ciphertext, constraints)
                 # Return right away if we get a unifier
                 if any_unifiers(unifiers):
                     return unifiers
     
     # Stop Interaction
-    m.rcv_stop(sid)
+    result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
     if schedule == "end":
         problems = create_unification_problems(result)
         for problem in problems:
-            if unif == p_unif:
-                unifiers = unif(Equations([problem]), constraints)
+            if unif_algo == p_unif:
+                unifiers = unif_algo(Equations([problem]), constraints)
             else:
-                unifiers = unif(problem.left_side, problem.right_side, constraints)
+                unifiers = unif_algo(problem.left_side, problem.right_side, constraints)
             if any_unifiers(unifiers):
                 return unifiers
 
