@@ -172,6 +172,7 @@ def MOEInteraction(chaining_function, num_interactions):
 from xor.xorhelper import *
 from xor.structure import *
 from Unification.p_unif import p_unif
+from Unification.p_syntactic import p_syntactic
 
 def pairwise(xs) -> List[Equation]:
     """Return a list of equtions where terms are paired up from a list"""
@@ -200,6 +201,12 @@ def any_unifiers(unifiers : List[SubstituteTerm]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""
     if unifiers == False:
         return False
+    """Added this if because for p_syntactic we get a single mgu not a list of mgu"""
+    if isinstance(unifiers, SubstituteTerm):
+        if len(unifiers) == 0:
+            return False
+        else:
+            return True
     for u in unifiers:
         if len(u) > 0:
             return True

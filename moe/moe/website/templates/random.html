@@ -36,43 +36,43 @@
     			<option id='YesSecTest' value="Yes">Yes</option>
         		
 		<tr>
+		<td><label for='unif'>Unification Algorithm:</label></td>
+			<td><select id='unif' name='unif'>
+				<option value='p_syntactic'>Syntactic</option>
+					<!--<option value='p_ac'>AC</option>-->
+					<option value='p_unif'>Xor</option>
+			</select></td>
+		</tr>
+		<tr>
+		<td><label for='schedule'>Schedule:</label></td>
+		<td><select id='schedule' name='schedule'>
+			<option value='every'>Every</option>
+			<option value='end'>End</option>
+		</select></td>
+		</tr>
+		<tr>
+			<td><label for='length_bound'>Session Length Bound</label></td>
+			<td><input type='number' min='1' max='100' name='length_bound' id='length_bound' value='{{length_bound|default(1, true)}}' required/></td>
+		</tr>
+		<tr>
+			<td><label for='session_bound'>Number of Sessions Bound</label></td>
+			<td><input type='number' min='1' max='10' name='session_bound' id='session_bound' value='{{session_bound|default(1, true)}}' required/></td>
+		</tr>
+		<tr>
+			<td><label for='knows_iv'>Advesary knows IV?</label></td>
+			<td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
+		</tr>
 </tbody></table>
 
-			<div id="Hidden_options" style="display:none;">
-				<table><tbody>
-				<td><label for='unif'>Unification Algorithm:</label></td>
-					<td><select id='unif' name='unif'>
-							<option value='p_syntactic'>Syntactic</option>
-							<!--<option value='p_ac'>AC</option>-->
-							<option value='p_unif'>Xor</option>
-               		</select></td>
-				</tr>
-				<tr>
-					<td><label for='length_bound'>Session Length Bound</label></td>
-					<td><input type='number' min='1' max='100' name='length_bound' id='length_bound' required/></td>
-				</tr>
-				<tr>
-					<td><label for='session_bound'>Number of Sessions Bound</label></td>
-					<td><input type='number' min='1' max='10' name='session_bound' id='session_bound' required/></td>
-				</tr>
-				<tr>
-					<td><label for='knows_iv'>Advesary knows IV?</label></td>
-					<td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
-				</tr>
-				</tbody></table>
-			</div>
 	<input type='submit' value='Begin!'/>
 </form>
-<script type="text/javascript">
-
- function unhide(x) {
-        if (x.value == "Yes") {
-            document.getElementById("Hidden_options").style.display = "block";
-        } else {
-            document.getElementById("Hidden_options").style.display = "none";
-        }
-    }
-</script>
-<div class='code'><code>{{random_moe}}</code></div>
+<!--
+<div class='code'>
+	<code>{{random_moe}}</code>
+</div>
+-->
+<div class='code'>
+	<code>{{response}}</code>
+</div>
 
 {% endblock %}
