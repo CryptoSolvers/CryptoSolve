@@ -8,24 +8,24 @@ print("Welcome to the MOE Tool")
 print("We've exposed the MOE function for you to use\n")
 
 print("Arguments:")
-print("unif: The unification algorithm to use")
+print("unif_algo: The unification algorithm to use")
 print("chaining: The function defining how blocks are chained together")
 print("schedule: (str) 'every' or 'end'")
 print("length_bound: (int) the bound on the length of interactions between advesary and oracle")
 print("session_bound: (int) the bound on the number of concurrent sessions allowed")
 print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
-print("Ex: MOE(unif = unif, chaining = cipher_block_chaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
+print("Ex: MOE(unif_algo = unif, chaining = cipher_block_chaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
 
 print("For help, type help(argument_name) where argument_name is a string")
-print("Ex: help('unif')")
+print("Ex: help('unif_algo')")
 
 
 ##
 ### Help Function
 ##
 def help(argument):
-    if argument == 'unif':
+    if argument == 'unif_algo':
         print("Available unification algorithms:")
         print("  'p_syntactic' for P Syntactic Unification")
         print("  'p_unif' for P XOR Unification")
@@ -56,6 +56,6 @@ def help(argument):
         print("A boolean (True/False) indicating whether or not the advesary knows the initialization vector")
     else:
         print("Argument '%s' is not an argument of MOE" % argument)
-        print("Arguments of MOE: unif, chaining, schedule, length_bound, session_bound")
+        print("Arguments of MOE: unif_algo, chaining, schedule, length_bound, session_bound")
 
 
