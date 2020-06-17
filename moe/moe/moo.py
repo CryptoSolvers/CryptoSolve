@@ -5,7 +5,7 @@ that can be used by the MOO-Program.
 from algebra import Function
 from xor import xor
 
-__all__ = ['cipher_block_chaining', 'propogating_cbc', 'hash_cbc', 'cipher_feedback']
+__all__ = ['cipher_block_chaining', 'propogating_cbc', 'hash_cbc', 'cipher_feedback', 'output_feedback']
 
 def cipher_block_chaining(iteration, nonces, P, C):
     """Cipher Block Chaining"""
@@ -70,17 +70,19 @@ def cipher_feedback(iteration, nonces, P, C):
     )
 
 
+def output_feedback(iteration, nonces, P, _):
+    """Output Feedback"""
+    IV = nonces[0]
+    i = iteration - 1
+    f = Function("f", 1)
+    keystream = f(IV)
+    for _ in range(i):
+        keystream = f(keystream)
+    return xor(P[i], keystream)
 
-# Questionable implementations...
-# def output_feedback(iteration, nonces, P, C):
-#     """Output Feedback"""
-#     i = iteration - 1
-#     f = Function("f", 1)
-#     return xor(
-#         f(output_feedback(iteration - 1, nonces, P, C)), 
-#         P[i]
-#     )
 
+# Implementations we haven't developed theory around yet...
+# Also the commented out implementations are questionable.
 # def counter_mode(iteration, nonces, P, C):
 #     """Counter Mode"""
 #     i = iteration - 1
@@ -131,7 +133,7 @@ def cipher_feedback(iteration, nonces, P, C):
 #     if i == 0:
 #         return f(
 #             xor(
-#                 h(IV), # || goes here
+#                 h(IV), # || (concatenation) goes here
 #                 P[0]
 #             )
 #         )
