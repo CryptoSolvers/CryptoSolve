@@ -6,12 +6,12 @@ from typing import Dict, List, Optional, Callable
 from .moo import *
 
 # Note: This file isn't the most clear in terms of naming mostly since the requirements are not well understood
-# As of December, I've attempted to outline the different functions and classes involved, 
+# As of December, I've attempted to outline the different functions and classes involved,
 # but likely these have changed by the time you read this.
 
 # A frame is supposed to help you keep track with the interactions between an advesary and an oracle.
 # The session id is what is used by the Oracle to keep track of the different messages
-# The whole message can be recovered by apply the substition to the message. 
+# The whole message can be recovered by apply the substition to the message.
 class Frame:
     def __init__(self, session_id: int, message: Term, subs):
         self.session_id = session_id
@@ -45,7 +45,7 @@ class MOESession:
         self.nonces: Dict[int, List[Constant]] = defaultdict(list)
         self.plain_texts: Dict[int, List[Term]] = defaultdict(list)
         self.cipher_texts: Dict[int, List[Term]] = defaultdict(list)
-    
+
     def rcv_start(self, session_id : int):
         if session_id in self.sessions:
             raise ValueError("Session id %s already started" % (str(session_id)))
@@ -56,10 +56,10 @@ class MOESession:
         # TODO: IV should be a random nounce
         # Need to decide how to make it 'random'
         self.nonces[session_id].append(Constant("r"))
-    
+
     def send(self, session_id: int, last_plaintext: Term, encrypted_blocks: SubstituteTerm) -> Frame:
         return Frame(session_id, last_plaintext, encrypted_blocks)
-    
+
     def rcv_stop(self, session_id: int) -> Optional[Frame]:
         subs = None
         if self.schedule == "end":
@@ -173,6 +173,7 @@ from xor.xorhelper import *
 from xor.structure import *
 from Unification.p_unif import p_unif
 from Unification.p_syntactic import p_syntactic
+from Unification.xor_rooted_unif import XOR_rooted_security
 
 def pairwise(xs) -> List[Equation]:
     """Return a list of equtions where terms are paired up from a list"""
@@ -219,35 +220,44 @@ def MOE(unif_algo: Callable = p_unif, chaining: Callable = cipher_block_chaining
     m = MOESession(chaining, schedule, moe_string)
     sid = 0
     m.rcv_start(sid)
+    IV = m.nonces[sid][0]
     constraints: Dict[Variable, List[Term]] = dict()
+    known_terms: List[Term] = [IV]
+    x_constraints: Dict[Variable, List[Term]] = dict()
     xor_zero = Zero()
 
     # Start interactions
     for i in range(1, length_bound + 1):
         x = Variable("x_" + str(i))
-
         # Update constraints
         if i == 1:
-            constraints[x] = [m.nonces[sid][0], xor_zero] if knows_iv else [xor_zero]
+            constraints[x] = [IV, xor_zero] if knows_iv else [xor_zero]
         else:
             last_x = Variable("x_" + str(i - 1))
             constraints[x] = constraints[last_x] + [last_x] + [unravel(m.cipher_texts[sid][i - 2], m.subs[sid])]
-        
+
         result = m.rcv_block(sid, x)
+        last_ciphertext = unravel(m.cipher_texts[sid][-1], m.subs[sid])
+
+        # Update known terms (for Xor Rooted Security)
+        known_terms.append(last_ciphertext)
+        x_constraints[x] = deepcopy(known_terms)
+
         # Try to find unifiers if schedule is every
         if schedule == "every":
-            last_ciphertext = unravel(m.cipher_texts[sid][-1], m.subs[sid])
             for ciphertext in m.cipher_texts[sid][:-1]:
                 ciphertext = unravel(ciphertext, m.subs[sid])
                 print(ciphertext)
                 if unif_algo == p_unif: # p_xor requires things in an Equations object
                     unifiers = unif_algo(Equations([Equation(last_ciphertext, ciphertext)]), constraints)
+                if unif_algo == XOR_rooted_security:
+                    unifiers = unif_algo(known_terms, x_constraints).solve()
                 else: # p_syntactic takes left_side, right_side, constraints
                     unifiers = unif_algo(last_ciphertext, ciphertext, constraints)
                 # Return right away if we get a unifier
                 if any_unifiers(unifiers):
                     return unifiers
-    
+
     # Stop Interaction
     result = m.rcv_stop(sid)
     # If schedule is end then try to find unifiers now
