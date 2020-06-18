@@ -49,6 +49,14 @@ def convert_to_Term(t):
         func = Function(t.function.symbol, t.function.arity)
         new_args = list(map(convert_to_Term, args))
         return FuncTerm(func, new_args)
+    elif (type == "Variable_BTerm"):
+        return Variable(t.name)
+    elif (type == "Mul_BTerm"):
+        func = Function("Mul", 2)
+        return func(
+            convert_to_Term(t.left),
+            convert_to_Term(t.right)
+        )
     elif (type == "Xor_BTerm"):
         args = t.arguments
         #xor = XorFunction()
