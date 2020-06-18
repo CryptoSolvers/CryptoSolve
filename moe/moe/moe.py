@@ -174,6 +174,7 @@ from xor.structure import *
 from Unification.p_unif import p_unif
 from Unification.p_syntactic import p_syntactic
 from Unification.xor_rooted_unif import XOR_rooted_security
+from moe.moe_sec_helper import *
 
 def pairwise(xs) -> List[Equation]:
     """Return a list of equtions where terms are paired up from a list"""
@@ -225,6 +226,10 @@ def MOE(unif_algo: Callable = p_unif, chaining: Callable = cipher_block_chaining
     known_terms: List[Term] = [IV]
     x_constraints: Dict[Variable, List[Term]] = dict()
     xor_zero = Zero()
+    #new
+    multi_subs = dict()
+    known_ground_terms = list()
+    
 
     # Start interactions
     for i in range(1, length_bound + 1):
@@ -232,12 +237,36 @@ def MOE(unif_algo: Callable = p_unif, chaining: Callable = cipher_block_chaining
         # Update constraints
         if i == 1:
             constraints[x] = [IV, xor_zero] if knows_iv else [xor_zero]
+            #new
+            #!!Update to be either IV and 0 or just 0 !! 
+            known_ground_terms.append(IV)
+            known_ground_terms.append(xor_zero)
+            prev_ground_term=IV
         else:
             last_x = Variable("x_" + str(i - 1))
             constraints[x] = constraints[last_x] + [last_x] + [unravel(m.cipher_texts[sid][i - 2], m.subs[sid])]
 
         result = m.rcv_block(sid, x)
         last_ciphertext = unravel(m.cipher_texts[sid][-1], m.subs[sid])
+        
+        ##################################################################
+        ##       New section on experimental syntactic method           ##
+        ##################################################################
+        #basicily creating a multi-set substitution using a dict
+        multi_subs[x] = known_ground_terms.copy()
+        sigma = SubstituteTerm()
+        for var in multi_subs:
+            #!!!!!This is not complete!!!!
+            #Need to test old possible < cipher blocks I think
+            sigma.add(var, multi_subs[var][-1])
+        new_ground_term = last_ciphertext * sigma
+        known_ground_terms.append(new_ground_term)
+        syn_sec_test=moe_syn_security(new_ground_term, prev_ground_term)
+        prev_ground_term=new_ground_term
+        print(syn_sec_test)
+
+        
+
 
         # Update known terms (for Xor Rooted Security)
         known_terms.append(last_ciphertext)
