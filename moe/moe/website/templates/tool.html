@@ -8,7 +8,8 @@
                		<td><select id='unif' name='unif'>
                    			<option value='p_syntactic'>Syntactic</option>
                    			<!--<option value='p_ac'>AC</option>-->
-                	   		<option value='p_unif'>Xor</option>
+							<option value='p_unif'>F-Rooted P-Xor</option>
+							<option value='xor_rooted_security'>Xor-Rooted P-Xor</option>
                		</select></td>
 		</tr>
 		<tr>
@@ -16,9 +17,9 @@
        		<td><select id='chaining' name='chaining'>
     			<option value='CipherBlockChaining'>Cipher Block Chaining</option>
         		<option value='PropogatingCBC'>Propogating Cipher Block Chaining</option>
-        		<!-- <option value='CipherFeedback'>Cipher Feedback</option> -->
-        		<!-- <option value='HashCBC'>Hash Cipher Block Chaining</option> -->
-            	<!--<option value='OutputFeedback'>Output Feedback</option>-->
+        		<option value='HashCBC'>Hash Cipher Block Chaining</option>
+				<option value='CipherFeedback'>Cipher Feedback</option>
+            	<option value='OutputFeedback'>Output Feedback</option>
             	<!--<option value='CounterMode'>Counter Mode</option>-->
             	<!--<option value='AccumulatedBlockCiper'>Accumulated Block Cipher</option>-->
             	<!--<option value='DoubleHashCBC'>Double Hash Cipher Block Chaining</option>-->
@@ -48,5 +49,5 @@
 <div class='code'>
 	<code>{{response}}</code>
 </div>
-
+<script src="{{url_for('static', filename='unifchaincheck.js')}}"></script>
 {% endblock %}

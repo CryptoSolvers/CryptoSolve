@@ -28,7 +28,8 @@ def help(argument):
     if argument == 'unif_algo':
         print("Available unification algorithms:")
         print("  'p_syntactic' for P Syntactic Unification")
-        print("  'p_unif' for P XOR Unification")
+        print("  'p_unif' for P (f-rooted) XOR Unification")
+        print("  'XOR_rooted_security for P (xor-rooted) XOR Unification")
         print("Currently planned but not implemeneted unification algorithms:")
         print("  'p_ac' for P-AC Unification")
     elif argument == "chaining":
@@ -38,8 +39,8 @@ def help(argument):
         print("  propogating_cbc  : Propogating Cipher Block Chaining")
         print("  hash_cbc : Hash Cipher Block Chaining")
         print("  cipher_Feedback : Cipher Feedback")
-        print("Currently planned but not implemented chaining functions:")
         print("  output_feedback : Output Feedback")
+        print("Currently planned but not implemented chaining functions:")
         print("  counter_mode : Counter Mode")
         print("  accumulated_block_cipher : Accumulated Block Cipher")
         print("  double_hash_cbc : Double Hash Cipher Block Chaining")
@@ -57,5 +58,3 @@ def help(argument):
     else:
         print("Argument '%s' is not an argument of MOE" % argument)
         print("Arguments of MOE: unif_algo, chaining, schedule, length_bound, session_bound")
-
-
