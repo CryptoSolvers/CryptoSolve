@@ -56,7 +56,7 @@ def overlaps(low1: int, high1: int, low2: int, high2: int) -> bool:
     """
     Returns true if the two regions
     [low1, high1] and [low2, high2]
-    overlaps.
+    overlap.
     """
     return high1 >= low2 and high2 >= low1
 
@@ -64,7 +64,7 @@ def moe_f_depth(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None)
     """
     Returns the range of the possible number
     of nested f symbols in t under all possible
-    substitutions for a ***ground*** term.
+    substitutions for a term.
     """
     if isinstance(t, Variable):
         if possible_subs is None or t not in possible_subs.keys() or len(possible_subs[t]) == 0:
