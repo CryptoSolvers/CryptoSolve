@@ -10,12 +10,49 @@ from xor import xor
 from xor.structure import Zero
 
 __all__ = [
-    'moe_syntactic_condition', 'moe_syn_security',
-    'moe_has_random', 'moe_f_depth'
+    'moo_quick_syntactic_check', 'moo_depth_random_check'
 ]
 
 f = Function("f", 1)
 zero = Zero()
+
+def moo_quick_syntactic_check(last_block: Term, block: Term,
+                              plaintext: Variable = Variable("x_i")) -> bool:
+    """
+    Given two sequential ciphertexts, quickly determine
+    syntactically whether the mode of operation is secure.
+
+    False in this context means a maybe.
+    """
+    if xor(last_block, plaintext) in block:
+        return False
+
+    if f(plaintext) in block:
+        return False
+
+    if not last_block_under_f(last_block, block):
+        return False
+
+    # At this point it passed the syntactic conditions
+    return True
+
+
+def moo_depth_random_check(last_block: Term, block: Term,
+                           possible_subs: Optional[Dict[Term, List[Term]]] = None) -> bool:
+    """
+    Given two sequential ciphertexts, infer whether the
+    mode of operation is secure by analyzing the depths
+    of encryption applied and whether it has randomness.
+
+    False in this context means a maybe.
+    """
+    _, last_high = moo_f_depth(last_block, possible_subs)
+    low, high = moo_f_depth(block, possible_subs)
+    return low == high and \
+           high > last_high and \
+           moo_has_random(last_block, possible_subs) and \
+           moo_has_random(block, possible_subs)
+
 
 def last_block_under_f(last_block: Term, block: Term) -> bool:
     """
@@ -31,26 +68,6 @@ def last_block_under_f(last_block: Term, block: Term) -> bool:
         )
     return False
 
-def moe_syntactic_condition(last_block: Term, block: Term) -> bool:
-    """
-    Given two sequential cipher texts, analyze whether
-    or not the mode of operation is secure.
-
-    False in this context means a maybe.
-    """
-    plaintext = Variable("x_i")
-
-    if xor(last_block, plaintext) in block:
-        return False
-
-    if f(plaintext) in block:
-        return False
-
-    if not last_block_under_f(last_block, block):
-        return False
-
-    # At this point it passed the syntactic conditions
-    return True
 
 def overlaps(low1: int, high1: int, low2: int, high2: int) -> bool:
     """
@@ -60,7 +77,8 @@ def overlaps(low1: int, high1: int, low2: int, high2: int) -> bool:
     """
     return high1 >= low2 and high2 >= low1
 
-def moe_f_depth(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None) -> Tuple[int, int]:
+
+def moo_f_depth(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None) -> Tuple[int, int]:
     """
     Returns the range of the possible number
     of nested f symbols in t under all possible
@@ -69,7 +87,7 @@ def moe_f_depth(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None)
     if isinstance(t, Variable):
         if possible_subs is None or t not in possible_subs.keys() or len(possible_subs[t]) == 0:
             raise ValueError(f"Unable to determine possible substitutions for variable {t}.")
-        possible_f_depths = [moe_f_depth(ti, possible_subs) for ti in possible_subs[t]]
+        possible_f_depths = [moo_f_depth(ti, possible_subs) for ti in possible_subs[t]]
         lows, highs = zip(*possible_f_depths)
         return min(lows), max(highs)
 
@@ -78,20 +96,20 @@ def moe_f_depth(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None)
 
     if isinstance(t, FuncTerm):
         if t.function == f:
-            low, high = moe_f_depth(t.arguments[0], possible_subs)
+            low, high = moo_f_depth(t.arguments[0], possible_subs)
             return low + 1, high + 1
 
         if t.function == xor:
-            low1, high1 = moe_f_depth(t.arguments[0], possible_subs)
-            low2, high2 = moe_f_depth(t.arguments[1], possible_subs)
+            low1, high1 = moo_f_depth(t.arguments[0], possible_subs)
+            low2, high2 = moo_f_depth(t.arguments[1], possible_subs)
             if overlaps(low1, high1, low2, high2):
                 return 0, max(high1, high2)
             return max(low1, low2), max(high1, high2)
 
-    raise ValueError("Function outside valid signature for moe_f_depth.")
+    raise ValueError("Function outside valid signature for moo_f_depth.")
 
 
-def moe_has_random(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None) -> bool:
+def moo_has_random(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None) -> bool:
     """
     Returns true if and only if a
     term t always contains a constant
@@ -101,7 +119,7 @@ def moe_has_random(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = No
     if isinstance(t, Variable):
         if possible_subs is None or t not in possible_subs.keys() or len(possible_subs[t]) == 0:
             raise ValueError(f"Unable to determine possible substitutions for variable {t}.")
-        return all(moe_has_random(arg, possible_subs) for arg in possible_subs[t])
+        return all(moo_has_random(arg, possible_subs) for arg in possible_subs[t])
 
     if t == zero:
         return False
@@ -111,31 +129,17 @@ def moe_has_random(t: Term, possible_subs: Optional[Dict[Term, List[Term]]] = No
 
     if isinstance(t, FuncTerm):
         if t.function == f:
-            return moe_has_random(t.arguments[0], possible_subs)
+            return moo_has_random(t.arguments[0], possible_subs)
 
         if t.function == xor:
             # Make sure at least one of the arguments
             # has randomness
-            if not moe_has_random(t.arguments[0], possible_subs) and \
-                not moe_has_random(t.arguments[1], possible_subs):
+            if not moo_has_random(t.arguments[0], possible_subs) and \
+                not moo_has_random(t.arguments[1], possible_subs):
                 return False
 
-            low1, high1 = moe_f_depth(t.arguments[0], possible_subs)
-            low2, high2 = moe_f_depth(t.arguments[1], possible_subs)
+            low1, high1 = moo_f_depth(t.arguments[0], possible_subs)
+            low2, high2 = moo_f_depth(t.arguments[1], possible_subs)
             return not overlaps(low1, high1, low2, high2)
 
-    raise ValueError("Function outside valid signature for moe_f_depth.")
-
-
-def moe_syn_security(block: Term, next_block: Term, possible_subs: Optional[Dict[Term, List[Term]]] = None) -> bool:
-    """
-    Given two sequential blocks from a
-    mode of operation, return whether
-    the mode of operation is secure.
-    """
-    _, high1 = moe_f_depth(block, possible_subs)
-    low2, high2 = moe_f_depth(next_block, possible_subs)
-    return low2 == high2 and \
-           high2 > high1 and \
-           moe_has_random(block, possible_subs) and \
-           moe_has_random(next_block, possible_subs)
+    raise ValueError("Function outside valid signature for moo_f_depth.")

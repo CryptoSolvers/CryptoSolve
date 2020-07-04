@@ -8,6 +8,7 @@ from Unification.p_unif import p_unif
 from xor.structure import Zero
 from .moo_program import MOOProgram
 from .collisions import find_collision
+from .moe_sec_helper import moo_quick_syntactic_check, moo_depth_random_check
 
 def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'every',
               unif_algo: Callable = p_unif, length_bound: int = 10,
@@ -43,16 +44,24 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         constraints[plaintext] = deepcopy(known_terms)
         known_terms.append(plaintext)
 
-        # TODO: Placeholder to check for syntactic security
-
         result = program.rcv_block(plaintext)
-
-        # Check for collisions if we receive a ciphertext block
         if result is not None:
             ciphertext = unravel(result.message, result.substitutions)
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
+
+            # Check for syntactic security
+            # TODO: Figure out how to format possible subs
+            if len(ciphertexts_received) > 1:
+                last_ciphertext = ciphertexts_received[-2]
+                if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
+                   moo_depth_random_check(last_ciphertext, ciphertext):
+                    return
+
+            # Check for collisions
             collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
+            if any_unifiers(collisions):
+                return collisions
 
 
     # Stop Interaction
@@ -69,6 +78,8 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     print("No unifiers found.")
 
 
+# TODO: Investigate this signature, it seems to conflict with any_unifiers that
+# can take a list of substitutions and not None.
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
                          constraints: Dict[Variable, List[Term]],
                          unif_algo: Callable) -> Optional[SubstituteTerm]:
