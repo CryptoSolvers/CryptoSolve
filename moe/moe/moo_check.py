@@ -8,7 +8,7 @@ from Unification.p_unif import p_unif
 from xor.structure import Zero
 from .moo_program import MOOProgram
 from .collisions import find_collision
-from .moe_sec_helper import moo_quick_syntactic_check, moo_depth_random_check
+from .moo_syntactic_check import moo_quick_syntactic_check, moo_depth_random_check
 
 def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'every',
               unif_algo: Callable = p_unif, length_bound: int = 10,
