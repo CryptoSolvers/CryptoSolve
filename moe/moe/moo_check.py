@@ -78,11 +78,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     print("No unifiers found.")
 
 
-# TODO: Investigate this signature, it seems to conflict with any_unifiers that
-# can take a list of substitutions and not None.
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
                          constraints: Dict[Variable, List[Term]],
-                         unif_algo: Callable) -> Optional[SubstituteTerm]:
+                         unif_algo: Callable) -> Optional[Union[SubstituteTerm, List[SubstituteTerm]]]:
     """
     Search through the known ciphertext history and see if there are any collisions
     between the current ciphertext and a past one.
@@ -100,12 +98,13 @@ def unravel(t: Term, s: SubstituteTerm) -> Term:
         t = t * s
     return t
 
-def any_unifiers(unifiers: Union[SubstituteTerm, List[SubstituteTerm]]) -> bool:
+def any_unifiers(unifiers: Optional[Union[SubstituteTerm, List[SubstituteTerm]]]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""
     if isinstance(unifiers, SubstituteTerm):
         if len(unifiers) > 0:
             return True
-    for u in unifiers:
-        if len(u) > 0:
-            return True
+    if unifiers is not None:
+        return any(
+            (len(u) > 0 for u in unifiers)
+        )
     return False
