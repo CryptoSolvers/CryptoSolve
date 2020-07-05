@@ -1,12 +1,19 @@
-from algebra import *
-from copy import deepcopy
-from xor import xor
+"""
+Collection of functions to check if a mode
+of operation is invertible.
+"""
 from collections import Counter
+from copy import deepcopy
+from typing import Set
+from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable
+from xor import xor
+
+__all__ = ['invert_simple', 'moo_invert']
 
 def invert_simple(term):
     """
     Algorithm to get the plaintext P_{i} out of a MOE.
-    
+
     Works by moving up in the DAG from the plaintext variable
     Applying the reverse transformation as it moves along
     f -> f^{-1}
@@ -16,78 +23,82 @@ def invert_simple(term):
       - Previous plaintexts aren't in the term
       - The plaintext is only in one position
     """
-    P = Variable("P_{i}")
-    f = Function("f", 1)
-    finv = Function("f^{-1}", 1)
-
-    inverseTerm = Variable("x")
+    inverse_term = Variable("x")
     transforms = []
 
+    # Create a TermDAG and check to see
+    # that the plaintext is only in one position.
     d = TermDAG(term)
-    # Check second assumption
-    assert Counter(d.leaves())[P] == 1
+    assert Counter(d.leaves())[_P] == 1
 
-    currentTerm = deepcopy(P)
-    parentTerm = list(d.parents(currentTerm))
-    while parentTerm != []:
-        # Second assumption check
-        assert len(parentTerm) == 1
-        parentTerm = parentTerm[0]
-        if parentTerm.function == f:
-            transforms.append((finv,))
-        elif parentTerm.function == xor:
+    # Move up the DAG starting from the plaintext
+    # leaf and add inverse operations to the
+    # transforms list.
+    current_term = deepcopy(_P)
+    parent_term = list(d.parents(current_term))
+    while parent_term != []:
+        parent_term = parent_term[0]
+
+        if parent_term.function == _f:
+            transforms.append((_finv,))
+
+        elif parent_term.function == xor:
             # Cancel out the xor by xoring with
             # the other argument again.
-            if parentTerm.arguments[0] == currentTerm:
-                transforms.append((xor, parentTerm.arguments[1]))
+            if parent_term.arguments[0] == current_term:
+                transforms.append((xor, parent_term.arguments[1]))
             else:
-                transforms.append((xor, parentTerm.arguments[0]))
+                transforms.append((xor, parent_term.arguments[0]))
+
         else:
             raise ValueError("A function other than f or xor detected")
-        currentTerm = deepcopy(parentTerm)
-        parentTerm = list(d.parents(parentTerm))
-    
+
+        current_term = deepcopy(parent_term)
+        parent_term = list(d.parents(parent_term))
+
+    # Construct inverse term
     for transform in reversed(transforms):
-        if transform[0] == finv:
-            inverseTerm = finv(inverseTerm)
+        if transform[0] == _finv:
+            inverse_term = _finv(inverse_term)
         else: # Assume xor
-            inverseTerm = xor(inverseTerm, transform[1])
-    
-    return inverseTerm
+            inverse_term = xor(inverse_term, transform[1])
+
+    return inverse_term
 
 
-def moe_invert(K : Set[Term], nounces : Set[Constant], S : int) -> bool:
+def moo_invert(K: Set[Term], nonces: Set[Constant], S: int) -> bool:
     """
     IN PROGRESS
     Given a set K of MOE interactions and max bound for the depth of a term,
     state whether or not a MOE term is invertible.
     """
-    P = Constant("P")
-    f = Function("f", 1)
-    if P not in K:
+    if _P not in K:
         return False
     # Compute K*
-    K_star = K | nounces
+    k_star = K | nonces
     # From K* construct C*
-    C_star = deepcopy(K_star)
+    c_star = deepcopy(k_star)
     current_length = 0
-    while len(C_star) != current_length:
-        current_length = len(C_star)
-        for t_1 in C_star:
+    while len(c_star) != current_length:
+        current_length = len(c_star)
+        for t_1 in c_star:
             # Definition 15 (2a)
-            if isinstance(t_1, FuncTerm) and t.function == f:
+            if isinstance(t_1, FuncTerm) and t_1.function == _f:
                 # Apply f inverse
-                C_star |= t_1.arguments[0]
+                c_star |= t_1.arguments[0]
             # Definition 15 (2b)
-            for t_2 in C_star:
+            for t_2 in c_star:
                 new_term_b = xor(t_1, t_2)
                 if depth(new_term_b) <= S:
-                    C_star |= new_term_b
+                    c_star |= new_term_b
             # Definition 15 (2c)
-            new_term_c = f(t_1)
+            new_term_c = _f(t_1)
             if depth(new_term_c) <= S:
-                C_star |= new_term_c
-    # Check to see if the plaintext block is in any of the ground terms in C_star
+                c_star |= new_term_c
+    # Check to see if the plaintext block is in any of the ground terms in c_star
     # xor library automatically maps terms to their ground terms
-    return P in C_star
+    return _P in c_star
 
+_P = Variable("P_{i}")
+_f = Function("f", 1)
+_finv = Function("f^{-1}", 1)
