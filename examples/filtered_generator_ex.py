@@ -1,7 +1,18 @@
-from moe import *
+"""
+Example usage of the FilteredMOOGenerator.
+"""
+from moe.filtered_generator import FilteredMOOGenerator
+from moe.moo_custom import CustomMOO
+from moe.moo_check import moo_check
+from Unification.p_unif import p_unif
 
 # Creates the generator
-g = FilteredMOEGenerator(max_history=2, max_f_depth=3, must_start_with_IV=False, must_have_chaining=False)
+g = FilteredMOOGenerator(
+    max_history=2,
+    max_f_depth=3,
+    requires_iv=False,
+    requires_chaining=False
+)
 
 # Get 7th term
 t = [next(g) for i in range(7)][-1]
@@ -9,12 +20,13 @@ t = [next(g) for i in range(7)][-1]
 print("The 7th term generated.") 
 print(t)
 
-# Wrap the MOESession Interfacer
-tm = TermMOE(t)
+# Register the custom MOO
+tm = CustomMOO(t)
 
-# Pass it into the MOE solver
-MOE(p_unif, tm, 'every', 5, 1)
+# Check the mode of operation
+moo_check(tm.name, 'every', p_unif, 5)
 
-print("Generate 5 more MOE")
-for i in range(5):
+print("We can also generate more random MOEs if we'd like")
+print("The next 5 random MOE:")
+for _ in range(5):
     print(next(g))
