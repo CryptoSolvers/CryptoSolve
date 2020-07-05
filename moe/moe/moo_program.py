@@ -55,8 +55,8 @@ class MOOProgram:
         """
         self.stopped = True
         return MOOFrame(
-            deepcopy(self.substitutions),
-            deepcopy(self.cipher_texts[-1])
+            deepcopy(self.cipher_texts[-1]),
+            deepcopy(self.substitutions)
         )
 
     def rcv_block(self, message: Term) -> Optional[MOOFrame]:
@@ -83,7 +83,7 @@ class MOOProgram:
         # If the schedule allows, return a MOO Frame
         if self.schedule(self.iteration):
             return MOOFrame(
-                deepcopy(self.substitutions),
-                deepcopy(new_cipher_var)
+                deepcopy(new_cipher_var),
+                deepcopy(self.substitutions)
             )
         return None
