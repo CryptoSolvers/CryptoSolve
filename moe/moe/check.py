@@ -1,14 +1,16 @@
-##
-### Begin Tool
-##
+"""
+Module to check security of modes of operations.
+"""
 from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Union
 from algebra import SubstituteTerm, Term, Variable
 from Unification.p_unif import p_unif
 from xor.structure import Zero
-from .moo_program import MOOProgram
+from .program import MOOProgram
 from .collisions import find_collision
-from .moo_syntactic_check import moo_quick_syntactic_check, moo_depth_random_check
+from .syntactic_check import moo_quick_syntactic_check, moo_depth_random_check
+
+__all__ = ['moo_check']
 
 def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'every',
               unif_algo: Callable = p_unif, length_bound: int = 10,
@@ -46,20 +48,27 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
 
         result = program.rcv_block(plaintext)
         if result is not None:
+            print(result.message)
+            print(result.substitutions)
             ciphertext = unravel(result.message, result.substitutions)
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
 
             # Check for syntactic security
             # TODO: Figure out how to format possible subs
-            if len(ciphertexts_received) > 1:
-                last_ciphertext = ciphertexts_received[-2]
-                if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
-                   moo_depth_random_check(last_ciphertext, ciphertext):
-                    return
+            # if len(ciphertexts_received) > 1:
+            #     last_ciphertext = ciphertexts_received[-2]
+            #     if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
+            #        moo_depth_random_check(last_ciphertext, ciphertext):
+            #         return None
 
             # Check for collisions
-            collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
+            collisions = search_for_collision(
+                ciphertext,
+                ciphertexts_received,
+                constraints,
+                unif_algo
+            )
             if any_unifiers(collisions):
                 return collisions
 
@@ -76,6 +85,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
 
     # If we got this far then no unifiers were found
     print("No unifiers found.")
+    return None
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],

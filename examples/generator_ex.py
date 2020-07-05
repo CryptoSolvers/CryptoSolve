@@ -2,8 +2,8 @@
 Example usage of the MOOGenerator.
 """
 from moe.generator import MOOGenerator
-from moe.moo_custom import CustomMOO
-from moe.moo_check import moo_check
+from moe.custom import CustomMOO
+from moe.check import moo_check
 from Unification.p_unif import p_unif
 
 

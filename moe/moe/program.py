@@ -7,7 +7,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 from algebra import Constant, Term, SubstituteTerm, Variable
-from .moo_schedule import MOO_Schedule
+from .schedule import MOO_Schedule
 from .moo import MOO
 
 __all__ = ['MOOFrame', 'MOOProgram']

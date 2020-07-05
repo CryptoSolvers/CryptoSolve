@@ -2,7 +2,7 @@
 Example for setting up a MOOProgram
 """
 from algebra import Constant, Variable
-from moe.moo_program import MOOProgram
+from moe.program import MOOProgram
 
 # Setting up terms
 s = Constant("s")

@@ -4,7 +4,7 @@ Examples from Hai's presentation on May 23rd 2020
 from algebra import Function, Variable, Constant
 from xor import xor
 from xor.structure import Zero
-from moe.moo_syntactic_check import moo_quick_syntactic_check, moo_depth_random_check, \
+from moe.syntactic_check import moo_quick_syntactic_check, moo_depth_random_check, \
      moo_has_random, moo_f_depth
 
 

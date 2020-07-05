@@ -2,8 +2,8 @@
 Example usage of the FilteredMOOGenerator.
 """
 from moe.filtered_generator import FilteredMOOGenerator
-from moe.moo_custom import CustomMOO
-from moe.moo_check import moo_check
+from moe.custom import CustomMOO
+from moe.check import moo_check
 from Unification.p_unif import p_unif
 
 # Creates the generator
