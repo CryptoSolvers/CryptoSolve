@@ -17,7 +17,7 @@ class CustomMOO:
         IV = nonces[0]
         i = iteration - 1
         # Create substitution between symbolic plain and cipher texts
-        # and the symbolic instantiations of them in MOESession
+        # and the symbolic instantiations of them in MOOProgram
         sigma = SubstituteTerm()
         subterms = get_vars(self.term)
         for subterm in subterms:

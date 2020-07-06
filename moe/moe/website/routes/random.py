@@ -65,10 +65,10 @@ def random():
 
     # Communicate to the user the results
     if len(moo_safe_list) == 0:
-        response = "No Safe MOEs Found. The follow MOE were tested:" + Markup("<br />")
+        response = "No Safe MOOs Found. The follow MOO were tested:" + Markup("<br />")
         response += format_term_list(moo_list)
     else:
-        response = "Safe MOEs Found. The following MOE(s) pass the security Test:" + Markup("<br />")
+        response = "Safe MOOs Found. The following MOO(s) pass the security Test:" + Markup("<br />")
         response += format_term_list(moo_safe_list)
 
     return render_moo_template(

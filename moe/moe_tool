@@ -4,15 +4,14 @@ from moe import *
 ##
 ### Welcome Message
 ##
-print("Welcome to the MOE Tool")
-print("We've exposed the MOE function for you to use\n")
+print("Welcome to the MOO Tool")
+print("We've exposed the MOO function for you to use\n")
 
 print("Arguments:")
 print("unif_algo: The unification algorithm to use")
 print("chaining: The function defining how blocks are chained together")
 print("schedule: (str) 'every' or 'end'")
 print("length_bound: (int) the bound on the length of interactions between advesary and oracle")
-print("session_bound: (int) the bound on the number of concurrent sessions allowed")
 print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
 print("Ex: MOE(unif_algo = unif, chaining = cipher_block_chaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
@@ -50,9 +49,6 @@ def help(argument):
         print("  'end' the oracle will only send a frame when the advesary marks the end of an interaction")
     elif argument == "length_bound":
         print("An integer argument bounding the length of interactions between the adversary and the oracle")
-    elif argument == "session_bound":
-        print("Currently not implemented")
-        print("An integer argument bounding the number of concurrent session allowed")
     elif argument == "knows_iv":
         print("A boolean (True/False) indicating whether or not the advesary knows the initialization vector")
     else:

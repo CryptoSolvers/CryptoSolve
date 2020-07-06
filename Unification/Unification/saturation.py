@@ -174,12 +174,12 @@ def combine_list_of_substitutions(lst):
     return combine_list_of_substitutions_helper(lst, [sigma])
 
 def is_original_variable(var):
-    #Checks if var is an original variable appearing in some MOE program P.
+    #Checks if var is an original variable appearing in some MOO program P.
     first_letter = var.symbol[0]
     return first_letter == 'x'
 
 def contains_original_var_only(sigma):
-    #Checks if sigma only contains original variables appearing in some MOE program P.
+    #Checks if sigma only contains original variables appearing in some MOO program P.
     domain = sigma.domain()
     for var in domain:
         if(not is_original_variable(var)):

@@ -26,7 +26,7 @@ tm = CustomMOO(t)
 # Check the mode of operation
 moo_check(tm.name, 'every', p_unif, 5)
 
-print("We can also generate more random MOEs if we'd like")
-print("The next 5 random MOE:")
+print("We can also generate more random MOOs if we'd like")
+print("The next 5 random MOO:")
 for _ in range(5):
     print(next(g))

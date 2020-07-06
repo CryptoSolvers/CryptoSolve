@@ -12,7 +12,7 @@ __all__ = ['invert_simple', 'moo_invert']
 
 def invert_simple(term):
     """
-    Algorithm to get the plaintext P_{i} out of a MOE.
+    Algorithm to get the plaintext P_{i} out of a MOO.
 
     Works by moving up in the DAG from the plaintext variable
     Applying the reverse transformation as it moves along
@@ -69,8 +69,8 @@ def invert_simple(term):
 def moo_invert(K: Set[Term], nonces: Set[Constant], S: int) -> bool:
     """
     IN PROGRESS
-    Given a set K of MOE interactions and max bound for the depth of a term,
-    state whether or not a MOE term is invertible.
+    Given a set K of MOO interactions and max bound for the depth of a term,
+    state whether or not a MOO term is invertible.
     """
     if _P not in K:
         return False
