@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from algebra import *
+from algebra import Constant, Function, Variable, Equation
 from xor.xorhelper import *
 from xor.structure import *
 from Unification.p_unif import p_unif

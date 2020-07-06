@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from rewrite import *
-from algebra import *
+from algebra import Constant, Function, Variable
+from rewrite import RewriteRule
+
 a = Constant("a")
 b = Constant("b")
 c = Constant("c")

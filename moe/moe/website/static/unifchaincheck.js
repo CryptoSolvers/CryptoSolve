@@ -20,9 +20,9 @@ function unifchaincheck() {
     } else {
         let supportedAlgos = [];
         if (unifChosen == 'p_unif') {
-            supportedAlgos.push(...['CipherBlockChaining', 'PropogatingCBC', 'HashCBC']);
+            supportedAlgos.push(...['cipher_block_chaining', 'propogating_cbc', 'hash_cbc']);
         } else { // xor_rooted_security
-            supportedAlgos.push(...['CipherFeedback', 'OutputFeedback']);
+            supportedAlgos.push(...['cipher_feedback', 'output_feedback']);
         }
         emptySelect(chainSelect);
         for (let i = 0; i < allChainingAlgos.length; i++) {

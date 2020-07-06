@@ -1,5 +1,5 @@
 #eac_unif_ex.py
-from algebra import *
+from algebra import Function, Equation, Variable
 from Unification.eac_unif import eac_unif
 
 exp = Function("exp", 2)

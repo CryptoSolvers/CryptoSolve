@@ -1,8 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form action='/program' method='POST'>
+<form action='/' method='POST'>
     <table><tbody>
+        <tr>
+            <td><label for='unif'>Unification Algorithm:</label></td>
+                       <td><select id='unif' name='unif'>
+                               <option value='p_syntactic'>Syntactic</option>
+                               <!--<option value='p_ac'>AC</option>-->
+                            <option value='p_unif'>F-Rooted P-Xor</option>
+                            <option value='xor_rooted_security'>Xor-Rooted P-Xor</option>
+                       </select></td>
+        </tr>
         <tr>
                <td><label for='chaining'>Chaining Function:</label></td>
                <td><select id='chaining' name='chaining'>
@@ -22,7 +31,19 @@
                 <option value='end'>End</option>
             </select></td>
         </tr>
+        <tr>
+            <td><label for='length_bound'>Session Length Bound</label></td>
+            <td><input type='number' min='1' max='100' name='length_bound' id='length_bound' required/></td>
+        </tr>
+        <tr>
+            <td><label for='knows_iv'>Advesary knows IV?</label></td>
+            <td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
+        </tr>
     </tbody></table>
-    <input type='submit' value='Begin!'/>
+    <input type='submit' value='Execute!'/>
 </form>
+<div class='code'>
+    <code>{{response}}</code>
+</div>
+<script src="{{url_for('static', filename='unifchaincheck.js')}}"></script>
 {% endblock %}

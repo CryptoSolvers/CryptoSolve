@@ -1,22 +1,39 @@
+"""
+Generates modes of operations that can be later used in a MOOProgram.
+"""
+from typing import Iterator, List
+from algebra import Constant, Function, Term, Variable
 from xor.xor import xor
-from xor.structure import Zero
-from algebra import Function, Variable, Constant, SubstituteTerm, get_vars
 
-class MOE_Generator:
-    """Construct modes of encryption"""
-    def __init__(self, max_history = 2):
-        """Creates an MOE generator that only is able to look at the last two cipher or plaintext blocks"""
+# TODO: Possibly introduce nonces as an additional argument of MOOGenerator where you can
+# pass it a fixed arbitrary number of nonces that the generator can use.
+
+__all__ = ['MOOGenerator']
+
+class MOOGenerator:
+    """Class that iteratively constructs modes of operation."""
+    def __init__(self, max_history: int = 2):
+        """
+        Create a MOO Generator that procedurally generates different modes of
+        operation.
+
+        Parameters
+        ==========
+        max_history: int
+          The maximum number of past cipher blocks to consider for
+          constructing a mode of operation.
+        """
         self.f = Function("f", 1)
         self.r = Constant("r") # Only one nounce currently
-        self.P = lambda x: Variable("P_{i-" + str(x) +"}") if x > 0 else Variable("P_{i}")
-        self.C = lambda x: Variable("C_{i-" + str(x) +"}")
+        self.P = lambda x: Variable(f"P[i-{x}]") if x > 0 else Variable("P[i]")
+        self.C = lambda x: Variable(f"C[i-{x}]")
         self.max_history = max_history
-        self.tree = [[self.f(self.P(0)), xor(self.r, self.P(0))]]
-        self.branch_iter = iter(self.tree[0]) # Where we are at the branch
-    
+        self.tree: List[List[Term]] = [[self.f(self.P(0)), xor(self.r, self.P(0))]]
+        self.branch_iter: Iterator[Term] = iter(self.tree[0]) # Where we are at the branch
+
     def __iter__(self):
         return self
-    
+
     # This function will only show for what is currently computed but it is helpful
     # for preventing repeats of the same calculations
     def __contains__(self, x):
@@ -24,12 +41,12 @@ class MOE_Generator:
             if x in branch:
                 return True
         return False
-    
+
     def _create_next_branch(self):
-        """Compute the set of random MOE terms of the next depth"""
-        branch = []
+        """Create mode of operations of the next depth size."""
+        branch: List[Term] = []
         for m in self.tree[-1]:
-            temp = []
+            temp: List[Term] = []
             temp.append(self.f(m))
             temp.append(xor(m, self.r))
             temp.append(xor(m, self.P(0)))
@@ -37,19 +54,18 @@ class MOE_Generator:
             for i in range(min(len(self.tree), self.max_history)):
                 temp.append(xor(m, self.P(i + 1)))
                 temp.append(xor(m, self.C(i + 1)))
-            # Make sure none of the terms generated are already in the tree
-            # or simplifies to just a variable of constant like
-            # f(0), 0, P, C, r
-            temp = filter(lambda x: 
-                x not in self and \
-                not isinstance(x, Variable) and \
-                not isinstance(x, Constant)
-            , temp)
+            # Filter out terms that are already generated or
+            # have a depth of less than one.
+            temp = filter(lambda x:
+                          x not in self and \
+                          not isinstance(x, Variable) and \
+                          not isinstance(x, Constant),
+                          temp)
             branch.extend(temp)
         return branch
-    
+
     def __next__(self):
-        """Returns the next random MOE term"""
+        """Returns the next mode of operation term."""
         try:
             next_node = next(self.branch_iter)
         except StopIteration:
@@ -60,39 +76,3 @@ class MOE_Generator:
             self.branch_iter = iter(self.tree[-1])
             next_node = next(self.branch_iter)
         return next_node
-
-class TermMOE:
-    """Custom MOE that works with MOE_Generator and MOESession"""
-    def __init__(self, term):
-        self.term = term
-    def __call__(self, iteration, nonces, P, C):
-        IV = nonces[0]
-        i = iteration - 1
-        # Create substitution between symbolic plain and cipher texts
-        # and the symbolic instantiations of them in MOESession
-        sigma = SubstituteTerm()
-        subterms = get_vars(self.term)
-        for subterm in subterms:
-            if subterm.symbol[0] == "P":
-                if '-' not in subterm.symbol:
-                    # Assume we mean current plaintext
-                    sigma.add(subterm, P[-1])
-                else:
-                    j = int(subterm.symbol[4:-1])
-                    if j > i:
-                        # If we request for a cipher block that doesn't exist yet 
-                        # due to the current session length
-                        # then map the subterm to a different nounce
-                        sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
-                    else:
-                        sigma.add(subterm, P[-j])
-            elif subterm.symbol[0] == "C":
-                j = int(subterm.symbol[5:-1])
-                if j > i:
-                    # If we request for a cipher block that doesn't exist yet 
-                    # due to the current session length
-                    # then map the subterm to a different nounce
-                    sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
-                else:
-                    sigma.add(subterm, C[-j])
-        return self.term * sigma

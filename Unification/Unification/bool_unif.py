@@ -135,7 +135,7 @@ class Variable_BTerm(BTerm):
         return (self.type == x.get_type()) and (self.name == x.name)
 
 class Var_BTerm(BTerm):
-    #real variables that occur in the MOE programs
+    #real variables that occur in the MOO programs
     def __init__(self, name):
         self.name = name
         self.type = "Var_BTerm"

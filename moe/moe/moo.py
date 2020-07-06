@@ -4,9 +4,13 @@ that can be used by the MOO-Program.
 """
 from algebra import Function
 from xor import xor
+from .callable_registry import CallableRegistry
 
-__all__ = ['cipher_block_chaining', 'propogating_cbc', 'hash_cbc', 'cipher_feedback', 'output_feedback']
+__all__ = ['MOO']
 
+MOO = CallableRegistry(enforce_arity=4)
+
+@MOO.register('cipher_block_chaining')
 def cipher_block_chaining(iteration, nonces, P, C):
     """Cipher Block Chaining"""
     IV = nonces[0]
@@ -20,6 +24,7 @@ def cipher_block_chaining(iteration, nonces, P, C):
         xor(P[i], C[i-1])
     )
 
+@MOO.register('propogating_cbc')
 def propogating_cbc(iteration, nonces, P, C):
     """Propogating Cipher Block Chaining"""
     IV = nonces[0]
@@ -37,6 +42,7 @@ def propogating_cbc(iteration, nonces, P, C):
         )
     )
 
+@MOO.register('hash_cbc')
 def hash_cbc(iteration, nonces, P, C):
     """Hash Cipher Block Chaining"""
     IV = nonces[0]
@@ -57,6 +63,7 @@ def hash_cbc(iteration, nonces, P, C):
         )
     )
 
+@MOO.register('cipher_feedback')
 def cipher_feedback(iteration, nonces, P, C):
     """Cipher Feedback"""
     IV = nonces[0]
@@ -69,7 +76,7 @@ def cipher_feedback(iteration, nonces, P, C):
         P[i]
     )
 
-
+@MOO.register('output_feedback')
 def output_feedback(iteration, nonces, P, _):
     """Output Feedback"""
     IV = nonces[0]
@@ -83,6 +90,7 @@ def output_feedback(iteration, nonces, P, _):
 
 # Implementations we haven't developed theory around yet...
 # Also the commented out implementations are questionable.
+# @MOO.register('counter_mode')
 # def counter_mode(iteration, nonces, P, C):
 #     """Counter Mode"""
 #     i = iteration - 1
@@ -109,6 +117,7 @@ def output_feedback(iteration, nonces, P, _):
 #     )
 
 # # C1 isn't defined yet
+# @MOO.register('accumulated_block_cipher')
 # def accumulated_block_cipher(iteration, nonces, P, C):
 #     """Accumulated Block Cipher"""
 #     f = Function("f", 1)
@@ -124,6 +133,7 @@ def output_feedback(iteration, nonces, P, _):
 #     )
 
 # # Don't understand what the || symbol means
+# @MOO.register('double_hash_cbc')
 # def double_hash_cbc(iteration, nonces, P, C):
 #     """Double Hash Cipher Block Chaining"""
 #     IV = nonces[0]

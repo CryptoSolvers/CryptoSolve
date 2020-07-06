@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from algebra import *
+from algebra import Constant, Equation, Function, Sort, \
+     SubstituteTerm, TermDAG, Variable
 
 # Setting up terms
 f = Function("f", 2)
@@ -25,7 +26,7 @@ one = Constant("1", non_zeros)
 zero = Constant("0", reals)
 try:
     divide(one, zero)
-except:
+except Exception:
     print("Cannot divide by zero. Check.")
 
 # Directed Acyclic Graphs

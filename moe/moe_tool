@@ -1,38 +1,32 @@
 #!/usr/bin/env python3 -i
 from moe import *
+from Unification.p_unif import p_unif
+from Unification.p_syntactic import p_syntactic
+from Unification.xor_rooted_unif import XOR_rooted_security
 
 ##
 ### Welcome Message
 ##
-print("Welcome to the MOE Tool")
-print("We've exposed the MOE function for you to use\n")
+print("Welcome to the MOO Tool")
+print("We've exposed the moo_check function for you to use\n")
 
 print("Arguments:")
+print("moo_name: String refering to the mode of operation to use.")
 print("unif_algo: The unification algorithm to use")
-print("chaining: The function defining how blocks are chained together")
 print("schedule: (str) 'every' or 'end'")
 print("length_bound: (int) the bound on the length of interactions between advesary and oracle")
-print("session_bound: (int) the bound on the number of concurrent sessions allowed")
 print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
-print("Ex: MOE(unif_algo = unif, chaining = cipher_block_chaining, schedule = 'every', length_bound = 10, session_bound = 1, knows_iv = True)\n")
+print("Ex: moo_check(moo_name = 'cipher_block_chaining', schedule_name = 'every', unif_algo = p_syntactic, length_bound = 10, knows_iv = True)\n")
 
 print("For help, type help(argument_name) where argument_name is a string")
 print("Ex: help('unif_algo')")
-
 
 ##
 ### Help Function
 ##
 def help(argument):
-    if argument == 'unif_algo':
-        print("Available unification algorithms:")
-        print("  'p_syntactic' for P Syntactic Unification")
-        print("  'p_unif' for P (f-rooted) XOR Unification")
-        print("  'XOR_rooted_security for P (xor-rooted) XOR Unification")
-        print("Currently planned but not implemeneted unification algorithms:")
-        print("  'p_ac' for P-AC Unification")
-    elif argument == "chaining":
+    if argument == "moo_name":
         print("Note that no quotes are needed for chaining functions.")
         print("Available Chaining Functions:")
         print("  cipher_block_chaining : Cipher Block Chaining")
@@ -44,17 +38,21 @@ def help(argument):
         print("  counter_mode : Counter Mode")
         print("  accumulated_block_cipher : Accumulated Block Cipher")
         print("  double_hash_cbc : Double Hash Cipher Block Chaining")
-    elif argument == "schedule":
+    elif argument == "schedule_name":
         print("Available schedules:")
         print("  'every' the oracle will send a frame everytime the adversary sends a message")
         print("  'end' the oracle will only send a frame when the advesary marks the end of an interaction")
+    elif argument == 'unif_algo':
+        print("Available unification algorithms:")
+        print("  'p_syntactic' for P Syntactic Unification")
+        print("  'p_unif' for P (f-rooted) XOR Unification")
+        print("  'XOR_rooted_security for P (xor-rooted) XOR Unification")
+        print("Currently planned but not implemeneted unification algorithms:")
+        print("  'p_ac' for P-AC Unification")
     elif argument == "length_bound":
         print("An integer argument bounding the length of interactions between the adversary and the oracle")
-    elif argument == "session_bound":
-        print("Currently not implemented")
-        print("An integer argument bounding the number of concurrent session allowed")
     elif argument == "knows_iv":
         print("A boolean (True/False) indicating whether or not the advesary knows the initialization vector")
     else:
-        print("Argument '%s' is not an argument of MOE" % argument)
-        print("Arguments of MOE: unif_algo, chaining, schedule, length_bound, session_bound")
+        print("Argument '%s' is not an argument of moo_check" % argument)
+        print("Arguments of moo_check: moo_name, schedule_name, unif_algo, length_bound, knows_iv")
