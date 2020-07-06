@@ -1,78 +1,69 @@
 {% extends 'base.html' %}
 
 {% macro is_selected(user_provided, other) -%}
-	{% if user_provided == other %}
-	selected
-	{% endif %}
+    {% if user_provided == other %}
+    selected
+    {% endif %}
 {%- endmacro %}
 
 {% block content %}
 <form action='/random' method='GET'>
-	<table><tbody>
-		<tr hidden><input type="number" min="1" max="100" name="rid" value="{{rid|default(1, true)}}" hidden/></tr>
-		<tr>
-       		<td><label for='chaining'>Chaining Required:</label></td>
-       		<td><select id='chaining' name='chaining'>
-    			<option value='Yes' {{is_selected(chaining, "Yes")}}>Yes</option>
-        		<option value='No' {{is_selected(chaining, "No")}}>No</option>
-		<tr>
-        	<td><label for='iv'>IV Required:</label></td>
-        	<td><select id='iv' name='iv'>
-        		<option value='Yes' {{is_selected(iv, "Yes")}}>Yes</option>
-        		<option value='No' {{is_selected(iv, "No")}}>No</option>
-			</select></td>
+    <table><tbody>
+        <tr hidden><input type="number" min="1" max="100" name="rid" value="{{rid|default(1, true)}}" hidden/></tr>
         <tr>
-			<td><label for='bound'>Encryption F Bound</label></td>
-        	<td><input type='number' min='1' max='100' name='bound' id='bound' value='{{bound|default(1, true)}}' required/></td>
+               <td><label for='chaining'>Chaining Required:</label></td>
+               <td><select id='chaining' name='chaining'>
+                <option value='Yes' {{is_selected(chaining, "Yes")}}>Yes</option>
+                <option value='No' {{is_selected(chaining, "No")}}>No</option>
+        <tr>
+            <td><label for='iv'>IV Required:</label></td>
+            <td><select id='iv' name='iv'>
+                <option value='Yes' {{is_selected(iv, "Yes")}}>Yes</option>
+                <option value='No' {{is_selected(iv, "No")}}>No</option>
+            </select></td>
+        <tr>
+            <td><label for='bound'>Encryption F Bound</label></td>
+            <td><input type='number' min='1' max='100' name='bound' id='bound' value='{{bound|default(1, true)}}' required/></td>
         </tr>
         <tr>
-			<td><label for='moenum'>Bound on number of MOE to Generate</label></td>
-        	<td><input type='number' min='1' max='20' name='moenum' id='moenum' value='{{moenum|default(1, true)}}' required/></td>
+            <td><label for='moenum'>Bound on number of MOE to Generate</label></td>
+            <td><input type='number' min='1' max='20' name='moenum' id='moenum' value='{{moenum|default(1, true)}}' required/></td>
         </tr>
         <tr>
-       		<td><label for='sectest'>Test Each MOE for Security:</label></td>
-       		<td><select id='sectest' name='sectest' onchange="unhide(this)">
-				<option id='NoSecTest' value="No" >No</option>
-    			<option id='YesSecTest' value="Yes">Yes</option>
-        		
-		<tr>
-		<td><label for='unif'>Unification Algorithm:</label></td>
-			<td><select id='unif' name='unif'>
-				<option value='p_syntactic'>Syntactic</option>
-					<!--<option value='p_ac'>AC</option>-->
-					<option value='p_unif'>Xor</option>
-			</select></td>
-		</tr>
-		<tr>
-		<td><label for='schedule'>Schedule:</label></td>
-		<td><select id='schedule' name='schedule'>
-			<option value='every'>Every</option>
-			<option value='end'>End</option>
-		</select></td>
-		</tr>
-		<tr>
-			<td><label for='length_bound'>Session Length Bound</label></td>
-			<td><input type='number' min='1' max='100' name='length_bound' id='length_bound' value='{{length_bound|default(1, true)}}' required/></td>
-		</tr>
-		<tr>
-			<td><label for='session_bound'>Number of Sessions Bound</label></td>
-			<td><input type='number' min='1' max='10' name='session_bound' id='session_bound' value='{{session_bound|default(1, true)}}' required/></td>
-		</tr>
-		<tr>
-			<td><label for='knows_iv'>Advesary knows IV?</label></td>
-			<td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
-		</tr>
+               <td><label for='sectest'>Test Each MOE for Security:</label></td>
+               <td><select id='sectest' name='sectest' onchange="unhide(this)">
+                <option id='NoSecTest' value="No" >No</option>
+                <option id='YesSecTest' value="Yes">Yes</option>
+
+        <tr>
+        <td><label for='unif'>Unification Algorithm:</label></td>
+            <td><select id='unif' name='unif'>
+                <option value='p_syntactic'>Syntactic</option>
+                    <!--<option value='p_ac'>AC</option>-->
+                    <option value='p_unif'>Xor</option>
+            </select></td>
+        </tr>
+        <tr>
+        <td><label for='schedule'>Schedule:</label></td>
+        <td><select id='schedule' name='schedule'>
+            <option value='every'>Every</option>
+            <option value='end'>End</option>
+        </select></td>
+        </tr>
+        <tr>
+            <td><label for='length_bound'>Session Length Bound</label></td>
+            <td><input type='number' min='1' max='100' name='length_bound' id='length_bound' value='{{length_bound|default(1, true)}}' required/></td>
+        </tr>
+        <tr>
+            <td><label for='knows_iv'>Advesary knows IV?</label></td>
+            <td><input type="checkbox" name="knows_iv" value="knows_iv" id="knows_iv" checked/></td>
+        </tr>
 </tbody></table>
 
-	<input type='submit' value='Begin!'/>
+    <input type='submit' value='Begin!'/>
 </form>
-<!--
 <div class='code'>
-	<code>{{random_moe}}</code>
-</div>
--->
-<div class='code'>
-	<code>{{response}}</code>
+    <code>{{response}}</code>
 </div>
 
 {% endblock %}

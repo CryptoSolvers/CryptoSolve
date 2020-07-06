@@ -35,7 +35,7 @@ class CustomMOO:
                     else:
                         sigma.add(subterm, P[-j])
             elif subterm.symbol[0] == "C":
-                j = int(subterm.symbol[5:-1])
+                j = int(subterm.symbol[4:-1])
                 if j > i:
                     # If we request for a cipher block that doesn't exist yet
                     # due to the current session length

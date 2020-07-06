@@ -36,7 +36,9 @@ def program():
             ciphertext = moo_session.rcv_stop()
             del moo_sessions[uid]
             session.pop('uid', None)
-            response = str(ciphertext) if ciphertext is not None else ""
+            response = str(ciphertext) if ciphertext is not None else None
+            if response is None:
+                return render_moo_template('program_create.html')
             return render_moo_template('program.html', response=response)
 
     # If we are creating a session of a MOOProgram....

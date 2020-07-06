@@ -1,24 +1,77 @@
+"""
+Webpage for checking that user supplied
+cryptographic modes of operation are secure.
+"""
+from functools import partial
+from flask import request
+from algebra import Variable, Function, Constant, Parser, Term, FuncTerm
 from moe.website import app
-from flask import request, render_template, session, Markup
-from .utils import render_moo_template
+from moe.check import moo_check
+from moe.custom import CustomMOO
+from Unification.p_unif import p_unif
+from Unification.xor_rooted_unif import XOR_rooted_security
+from xor import xor
+from .utils import format_substitutions, render_moo_template, \
+    restrict_to_range, unif_algo
+
 @app.route('/custom', methods=['GET', 'POST'])
 def custom():
-    if request.method == 'POST':
-        cmoe_string = request.form.get('cmoe')
-        unif = unif_algo.get(request.form.get('unif'))
-        #chaining_moe = chaining.get(request.form.get('chaining'))
-        schedule = request.form.get('schedule')
-        length_bound = int(request.form.get('length_bound'))
-        length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
-        session_bound = int(request.form.get('session_bound'))
-        session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
-        knows_iv = request.form.get('knows_iv') == "knows_iv"
-        #moe_session = MOESession(CustomMOE, schedule, cmoe_string)
+    """
+    A way to check a custom mode of operation
+    for security.
+    """
+    render_page = partial(render_moo_template, 'custom.html')
+    if request.method != 'POST':
+        return render_page()
 
+    unif_choice = unif_algo.get(request.form.get('unif'))
+    if unif_choice is None:
+        return render_page(response="TRY AGAIN.")
 
-        result = MOE(unif, CustomMOE, schedule, length_bound, 1, knows_iv, cmoe_string) if unif is not None and cmoe_string != "" else "TRY AGAIN"
-        response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
-        return render_moo_template('custom.html', response=response)
-        # Assume GET request and return form
-    return render_moo_template('custom.html')
+    chaining_moo = _temporary_parser(request.form.get('cmoe'))
+    if not _valid_moo_unif_pair(chaining_moo, unif_choice):
+        return render_page(response="INVALID UNIFICATION AND CHAINING COMBO")
 
+    registered_moo = CustomMOO(chaining_moo)
+
+    schedule = request.form.get('schedule')
+    length_bound = restrict_to_range(
+        int(request.form.get('length_bound')),
+        lower_bound=0,
+        upper_bound=100
+    )
+    knows_iv = request.form.get('knows_iv') == "knows_iv"
+    result = moo_check(registered_moo.name, schedule, unif_choice, length_bound, knows_iv)
+    response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
+    return render_page(response=response)
+
+# TODO: Replace with a more robust parser
+def _temporary_parser(moo_string: str) -> Term:
+    """
+    A temporary parser to parse a user
+    supplied cryptographic mode of operation.
+    This function is limited in what it can parse.
+    """
+    parser = Parser()
+    parser.add(Function("f", 1))
+    parser.add(Function("xor", 2))
+    parser.add(Variable("P[i]"))
+    parser.add(Variable("C[i]"))
+    parser.add(Variable("C[i-1]"))
+    parser.add(Constant("r"))
+    parser.add(Constant("P[0]"))
+    return parser.parse(moo_string)
+
+def _valid_moo_unif_pair(moo: Term, unif_choice) -> bool:
+    """
+    Responds true if the unification algorithm chosen
+    and the chaining method chosen are compatible.
+    """
+    if unif_choice != p_unif and unif_choice != XOR_rooted_security:
+        return True
+    if not isinstance(moo, FuncTerm) or moo.function.arity < 1:
+        return False
+    if unif_choice == p_unif:
+        return moo.function == Function("f", 1)
+    # XOR_rooted_security
+    return moo.function == xor

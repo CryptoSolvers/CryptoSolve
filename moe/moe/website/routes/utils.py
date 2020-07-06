@@ -46,5 +46,28 @@ def format_substitutions(subs: Union[SubstituteTerm, List[SubstituteTerm]]):
         text += Markup('<br />')
     return text
 
+def restrict_to_range(x: int, lower_bound: int, upper_bound: int):
+    """
+    Takes an integer x and restricts its range by the following:
+    - If x is above the upper_bound, make x the upper_bound.
+    - If x is below the lower_bound, make x the lower_bound.
+    - Otherwise leave x the same.
+    """
+    return min(max(x, lower_bound), upper_bound)
+
+
+def valid_moo_unif_pair(moo_string: str, unif_choice) -> bool:
+    """
+    Responds true if the unification algorithm chosen
+    and the mode of operation chosen are compatible.
+    """
+    if unif_choice != p_unif and unif_choice != XOR_rooted_security:
+        return True
+    if unif_choice == p_unif:
+        supported_chaining = ['cipher_block_chaining', 'propogating_cbc', 'hash_cbc']
+    else: # XOR_rooted_security
+        supported_chaining = ['cipher_feedback', 'output_feedback']
+    return moo_string in supported_chaining
+
 
 render_moo_template = partial(render_template, title="MOO Tool", navigation=navigation)

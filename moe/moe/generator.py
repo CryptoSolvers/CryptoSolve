@@ -25,8 +25,8 @@ class MOOGenerator:
         """
         self.f = Function("f", 1)
         self.r = Constant("r") # Only one nounce currently
-        self.P = lambda x: Variable("P_{i-" + str(x) +"}") if x > 0 else Variable("P_{i}")
-        self.C = lambda x: Variable("C_{i-" + str(x) +"}")
+        self.P = lambda x: Variable(f"P[i-{x}]") if x > 0 else Variable("P[i]")
+        self.C = lambda x: Variable(f"C_[i-{x}]")
         self.max_history = max_history
         self.tree: List[List[Term]] = [[self.f(self.P(0)), xor(self.r, self.P(0))]]
         self.branch_iter: Iterator[Term] = iter(self.tree[0]) # Where we are at the branch

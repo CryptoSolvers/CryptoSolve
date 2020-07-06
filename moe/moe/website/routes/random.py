@@ -1,74 +1,89 @@
-from flask import request, render_template, session, Markup
+"""
+Webpage to generate and check cryptographic
+modes of operation.
+"""
+from typing import List
+from flask import request, Markup
+from algebra import Term
+from moe.filtered_generator import FilteredMOOGenerator
+from moe.custom import CustomMOO
+from moe.check import moo_check
 from moe.website import app
+from .utils import unif_algo, restrict_to_range, render_moo_template
 
 @app.route('/random', methods=['GET'])
 def random():
-    # If you step away from the simulation, destroy the previous session
-    if 'uid' in session:
-        if session['uid'] in moe_sessions.keys():
-            del moe_sessions[session['uid']]
-        session.pop('uid', None)
-    # Grab parameters from URL
-    rid = int(request.args.get("rid", 0))
-    chaining_required = True if request.args.get("chaining", "Yes") == "Yes" else False
-    iv_required = True if request.args.get("iv", "Yes") == "Yes" else False
-    f_bound = int(request.args.get("bound", 1))
-    moe_bound = int(request.args.get("moenum", 1))
-    security_required = True if request.args.get("sectest", "Yes") == "Yes" else False
-    unif = unif_algo.get(request.args.get('unif'))
-    schedule = request.args.get('schedule')
-    length_bound = int(request.args.get("length_bound", 1))
-    length_bound = length_bound if length_bound < 100 and length_bound > 0 else 100
-    session_bound = int(request.args.get("session_bound", 1))
-    session_bound = session_bound if session_bound < 10 and session_bound > 0 else 10
-    knows_iv = request.form.get('knows_iv') == "knows_iv"
-    random_moe_term = ""
-    response = ""
-    moe_list=[]
-    moe_safe_list=[]
-    moe_unsafe_list=[]
-    result = []
-    if rid != 0:
-        filtered_gen = FilteredMOEGenerator(
-            max_history=1,
-            max_f_depth=f_bound,
-            must_start_with_IV=iv_required,
-            must_have_chaining=chaining_required
+    # If no arguments are supplied, present the page
+    # without computing random terms.
+    if len(request.args) == 0:
+        return render_moo_template(
+            'random.html',
+            chaining="No",
+            iv="No",
+            bound=6,
+            moenum=4,
+            sectest="Yes",
         )
-        #random_moe_term = [next(filtered_gen) for i in range(rid)][-1]
-        for i in range(moe_bound):
-            moe_list.append(next(filtered_gen))
 
-        print("----Print moe_list:")
-        for i in moe_list:
-            print(i)
+    # Grab parameters from URL
+    chaining_required = request.args.get("chaining", "Yes") == "Yes"
+    iv_required = request.args.get("iv", "Yes") == "Yes"
+    f_bound = int(request.args.get("bound", 1))
+    security_required = request.args.get("sectest", "Yes") == "Yes"
+    unif_choice = unif_algo.get(request.args.get('unif'))
+    schedule = request.args.get('schedule')
+    length_bound = restrict_to_range(
+        int(request.form.get('length_bound', 1)),
+        lower_bound=0,
+        upper_bound=100
+    )
+    moo_bound = restrict_to_range(
+        int(request.args.get("moenum", 1)),
+        lower_bound=1,
+        upper_bound=100
+    )
+    knows_iv = request.form.get('knows_iv') == "knows_iv"
 
-        for random_moe_term in moe_list:
-            tm = TermMOE(random_moe_term)
-            temp = MOE(unif, tm, schedule, length_bound, session_bound)
-            result = temp if temp is not None else list()
-            if len(result) == 0:
-                moe_safe_list.append(random_moe_term)
-            else:
-                moe_unsafe_list.append(random_moe_term)
-        if len(moe_safe_list) == 0:
-            response = "No Safe MOEs Found. The follow MOE were tested: \n"
-            for i in moe_list:
-                response = response + str(i) + "\n"
-        else:
-            response = "Safe MOEs Found. The following MOE(s) pass the security Test: \n"
-            for i in moe_safe_list:
-                response = response + str(i) +"\n"
-    return render_template(
+    # Generate random modes of operation
+    filtered_gen = FilteredMOOGenerator(
+        max_history=1,
+        max_f_depth=f_bound,
+        requires_iv=iv_required,
+        requires_chaining=chaining_required
+    )
+    print("MOO Bound", moo_bound)
+    moo_list = (next(filtered_gen) for i in range(moo_bound))
+
+    # Check security of the modes of operation
+    moo_safe_list: List[Term] = list()
+    for random_moo_term in moo_list:
+        print("Considering...", random_moo_term)
+        cm = CustomMOO(random_moo_term)
+        collisions = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv)
+        if collisions is None:
+            moo_safe_list.append(random_moo_term)
+
+    # Communicate to the user the results
+    if len(moo_safe_list) == 0:
+        response = "No Safe MOEs Found. The follow MOE were tested:" + Markup("<br />")
+        response += format_term_list(moo_list)
+    else:
+        response = "Safe MOEs Found. The following MOE(s) pass the security Test:" + Markup("<br />")
+        response += format_term_list(moo_safe_list)
+
+    return render_moo_template(
         'random.html',
-        title='Random MOE Generator',
-        navigation=navigation,
-        rid=1 if rid is None else rid + 1,
         chaining="Yes" if chaining_required else "No",
         iv="Yes" if iv_required else "No",
         bound=f_bound,
-        moenum=moe_bound,
+        moenum=moo_bound,
         sectest="Yes" if security_required else "No",
-        random_moe=random_moe_term,
-        response = response
+        response=response
     )
+
+def format_term_list(term_list: List[Term]) -> str:
+    """Formats a list of terms to be readable through HTML"""
+    text = ""
+    for term in term_list:
+        text += Markup.escape(str(term)) + Markup('<br />')
+    return text

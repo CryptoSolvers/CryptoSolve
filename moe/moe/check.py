@@ -51,13 +51,11 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             print(result.message)
             print(result.substitutions)
             ciphertext = unravel(result.message, result.substitutions)
-            known_terms.append(ciphertext)
-            ciphertexts_received.append(ciphertext)
 
             # Check for syntactic security
             # TODO: Figure out how to format possible subs
             # if len(ciphertexts_received) > 1:
-            #     last_ciphertext = ciphertexts_received[-2]
+            #     last_ciphertext = ciphertexts_received[-1]
             #     if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
             #        moo_depth_random_check(last_ciphertext, ciphertext):
             #         return None
@@ -71,6 +69,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             )
             if any_unifiers(collisions):
                 return collisions
+
+            known_terms.append(ciphertext)
+            ciphertexts_received.append(ciphertext)
 
 
     # Stop Interaction
@@ -108,8 +109,10 @@ def unravel(t: Term, s: SubstituteTerm) -> Term:
         t = t * s
     return t
 
-def any_unifiers(unifiers: Optional[Union[SubstituteTerm, List[SubstituteTerm]]]) -> bool:
+def any_unifiers(unifiers: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""
+    if not unifiers:
+        return False
     if isinstance(unifiers, SubstituteTerm):
         if len(unifiers) > 0:
             return True
