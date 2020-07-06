@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from algebra import *
+from algebra import Constant, Function, Variable, Equation
 from Unification.ac_unif import ac_unify
 
 f = Function("f", 2)

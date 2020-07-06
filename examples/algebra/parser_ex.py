@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from algebra import *
+from algebra import Constant, Function, Parser, Variable
+
 f = Function("f", 2)
 a = Constant("a")
 x = Variable("x")

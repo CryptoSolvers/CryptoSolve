@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from algebra import *
+from algebra import Function, Variable, Constant
 from Unification.unif import unif
 
 # Setting up terms
