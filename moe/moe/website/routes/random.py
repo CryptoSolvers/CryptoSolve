@@ -59,8 +59,8 @@ def random():
     for random_moo_term in moo_list:
         print("Considering...", random_moo_term)
         cm = CustomMOO(random_moo_term)
-        collisions = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv)
-        if collisions is None:
+        moo_result = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv)
+        if moo_result.secure:
             moo_safe_list.append(random_moo_term)
 
     # Communicate to the user the results

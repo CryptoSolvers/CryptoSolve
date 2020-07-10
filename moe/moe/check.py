@@ -2,6 +2,7 @@
 Module to check security of modes of operations.
 """
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
 from algebra import SubstituteTerm, Term, Variable
 from Unification.p_unif import p_unif
@@ -14,7 +15,7 @@ __all__ = ['moo_check']
 
 def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'every',
               unif_algo: Callable = p_unif, length_bound: int = 10,
-              knows_iv: bool = True):
+              knows_iv: bool = True) -> 'MOOCheckResult':
     """
     Simulates a MOOProgram interaction and checks if any conditions for security fails.
     Currently it checks syntactically and for collisions.
@@ -55,7 +56,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
                 last_ciphertext = ciphertexts_received[-1]
                 if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
                    moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return SubstituteTerm()
+                    return MOOCheckResult(None, True)
 
             # Check for collisions
             collisions = search_for_collision(
@@ -65,7 +66,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
                 unif_algo
             )
             if any_unifiers(collisions):
-                return collisions
+                return MOOCheckResult(collisions, False)
 
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
@@ -79,11 +80,11 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         ciphertext = unravel(last_result.message, last_result.substitutions)
         collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
         if any_unifiers(collisions):
-            return collisions
+            return MOOCheckResult(collisions, False)
 
     # If we got this far then no unifiers were found
     print("No unifiers found.")
-    return None
+    return MOOCheckResult(None, False)
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
@@ -118,3 +119,28 @@ def any_unifiers(unifiers: Optional[Union[bool, SubstituteTerm, List[SubstituteT
             (len(u) > 0 for u in unifiers)
         )
     return False
+
+
+@dataclass
+class MOOCheckResult:
+    """
+    Result of the moo_check function.
+
+    Parameters
+    ==========
+    collisions
+      Result of the unification algorithm attempting to find a
+      substitution that causes two ciphertexts to collapse to zero.
+    syntactic_result
+      Whether or not it passes the syntactic conditions.
+    """
+    collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
+    syntactic_result: bool
+
+    @property
+    def secure(self) -> bool:
+        """
+        State whether the MOOCheckResult implies
+        secureness or not.
+        """
+        return self.syntactic_result or not any_unifiers(self.collisions)

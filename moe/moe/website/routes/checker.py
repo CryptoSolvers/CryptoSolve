@@ -35,5 +35,13 @@ def index():
     )
     knows_iv = request.form.get('knows_iv') == "knows_iv"
     result = moo_check(chaining_moo, schedule, unif_choice, length_bound, knows_iv)
-    response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
+    response = ""
+    if result.secure:
+        response = "MOO IS SECURE: "
+        if result.syntactic_result:
+            response += "PASSES SYNTACTIC CHECK"
+        else:
+            response += "NO UNIFIERS FOUND"
+    else:
+        result = format_substitutions(result.collisions)
     return render_page(response=response)
