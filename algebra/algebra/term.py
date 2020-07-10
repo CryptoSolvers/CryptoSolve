@@ -213,10 +213,9 @@ class FuncTerm(AbstractTerm):
     def __contains__(self, term):
         inside = False
         for arg in self.arguments:
+            inside = inside or (term == arg)
             if isinstance(arg, FuncTerm) and arg.function.arity > 0:
                 inside = inside or (term in arg)
-            else:
-                inside = inside or (term == arg)
         return inside
 
 class Constant(FuncTerm):
