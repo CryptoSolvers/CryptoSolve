@@ -11,7 +11,7 @@ import numpy as np
 
 __all__ = ['invert_simple', 'moo_invert', 'invert_gaussian']
 
-def invert_gaussian(TermSet: Set[Term], P: Constant) -> bool:
+def invert_gaussian(TermSet: Set[Term], P: Constant):
 	"""
 	IN PROGRESS: 
 	Based on the method developed by Veena. Goal is the plaintext
@@ -53,6 +53,14 @@ def invert_gaussian(TermSet: Set[Term], P: Constant) -> bool:
 		M.append(temp)
 	B = np.zeros(new_cons)
 	#Need to handle three cases here: (1) Square M, (2) Non-Square and row > col, (3) Non-Square col > row 
+	if row_len == len(M): # m x n and m=n
+		sol = np.linalg.solve(M, B)
+	else: # m x n and m < n or m > n ### I think this works but may not get a unique solution!
+		sol = np.linalg.lstsq(M,B,rcond=-1)[0]
+	
+	print(sol)
+	
+	
 
 def invert_simple(term):
     """
