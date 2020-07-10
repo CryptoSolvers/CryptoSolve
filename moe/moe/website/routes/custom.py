@@ -63,7 +63,7 @@ def _temporary_parser(moo_string: str) -> Term:
     """
     parser = Parser()
     parser.add(Function("f", 1))
-    parser.add(Function("xor", 2))
+    parser.add(xor)
     parser.add(Variable("P[i]"))
     parser.add(Variable("C[i]"))
     parser.add(Variable("C[i-1]"))
