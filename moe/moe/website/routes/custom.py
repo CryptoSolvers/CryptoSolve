@@ -42,7 +42,16 @@ def custom():
     )
     knows_iv = request.form.get('knows_iv') == "knows_iv"
     result = moo_check(registered_moo.name, schedule, unif_choice, length_bound, knows_iv)
-    response = format_substitutions(result) if result is not None else "NO UNIFIERS FOUND"
+    response = ""
+    if result.secure:
+        response = "MOO IS SECURE: "
+        if result.syntactic_result:
+            response += "PASSES SYNTACTIC CHECK"
+        else:
+            response += "NO UNIFIERS FOUND"
+    else:
+        response = "MOO IS INSECURE. COLLISION WITH SUBSTITUTION(S) " + \
+            format_substitutions(result.collisions)
     return render_page(response=response)
 
 # TODO: Replace with a more robust parser
@@ -54,7 +63,7 @@ def _temporary_parser(moo_string: str) -> Term:
     """
     parser = Parser()
     parser.add(Function("f", 1))
-    parser.add(Function("xor", 2))
+    parser.add(xor)
     parser.add(Variable("P[i]"))
     parser.add(Variable("C[i]"))
     parser.add(Variable("C[i-1]"))
