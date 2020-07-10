@@ -54,9 +54,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             # Check for syntactic security
             if len(ciphertexts_received) > 1:
                 last_ciphertext = ciphertexts_received[-1]
-                if moo_quick_syntactic_check(last_ciphertext, ciphertext) or \
+                if moo_quick_syntactic_check(last_ciphertext, ciphertext, plaintext) or \
                    moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return MOOCheckResult(None, True)
+                    return MOOCheckResult(True, None)
 
             # Check for collisions
             collisions = search_for_collision(
@@ -66,7 +66,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
                 unif_algo
             )
             if any_unifiers(collisions):
-                return MOOCheckResult(collisions, False)
+                return MOOCheckResult(False, collisions)
 
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
@@ -80,11 +80,11 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         ciphertext = unravel(last_result.message, last_result.substitutions)
         collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
         if any_unifiers(collisions):
-            return MOOCheckResult(collisions, False)
+            return MOOCheckResult(False, collisions)
 
     # If we got this far then no unifiers were found
     print("No unifiers found.")
-    return MOOCheckResult(None, False)
+    return MOOCheckResult(False, None)
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
@@ -128,14 +128,14 @@ class MOOCheckResult:
 
     Parameters
     ==========
+    syntactic_result
+      Whether or not it passes the syntactic conditions.
     collisions
       Result of the unification algorithm attempting to find a
       substitution that causes two ciphertexts to collapse to zero.
-    syntactic_result
-      Whether or not it passes the syntactic conditions.
     """
-    collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
     syntactic_result: bool
+    collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
 
     @property
     def secure(self) -> bool:
