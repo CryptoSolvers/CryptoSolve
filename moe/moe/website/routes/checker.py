@@ -43,5 +43,6 @@ def index():
         else:
             response += "NO UNIFIERS FOUND"
     else:
-        result = format_substitutions(result.collisions)
+        response = "MOO IS INSECURE. COLLISION WITH SUBSTITUTION(S) " + \
+            format_substitutions(result.collisions)
     return render_page(response=response)
