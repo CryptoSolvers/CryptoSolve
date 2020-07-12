@@ -13,7 +13,7 @@ class SubstituteTerm:
     >>> a = Constant("a")
     >>> sigma = SubstituteTerm()
     >>> sigma.add(x, a)
-    >>> x * s
+    >>> x * sigma
     a
     """
     def __init__(self):
@@ -37,7 +37,7 @@ class SubstituteTerm:
         >>> a = Constant("a")
         >>> sigma = SubstituteTerm()
         >>> sigma.add(x, a)
-        >>> print(s)
+        >>> print(sigma)
         { x -> a }
         """
         assert isinstance(variable, Variable)

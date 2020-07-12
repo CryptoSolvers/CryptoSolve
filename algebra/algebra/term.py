@@ -30,7 +30,7 @@ class Sort:
     --------
     >>> from algebra import Sort
     >>> fractions = Sort("Q")
-    >>> integers = Sort("Z")
+    >>> integers = Sort("Z", parent_sort=fractions)
     >>> integers < fractions
     True
     """
@@ -351,7 +351,7 @@ def get_vars_or_constants(t, unique=False):
     >>> f = Function("f", 2)
     >>> x = Variable("x")
     >>> a = Constant("a")
-    >>> get_constants(f(x, f(x, a)))
+    >>> get_vars_or_constants(f(x, f(x, a)))
     [x, x, a]
     """
     return _get_type(t, unique, (Constant, Variable))

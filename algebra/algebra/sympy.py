@@ -81,8 +81,8 @@ def sympyToTerm(symterm):
     Examples
     --------
     >>> from algebra import sympyToTerm
-    >>> from sympy import Symbol
-    >>> f = sympy.Symbol("f_2")
+    >>> import sympy
+    >>> f = sympy.Function("f_2")
     >>> sympyToTerm(f)
     f
     """
