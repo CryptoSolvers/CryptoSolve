@@ -121,39 +121,46 @@ def invert_simple(term):
     return inverse_term
 
 
-def moo_invert(K: Set[Term], nonces: Set[Constant], S: int) -> bool:
-    """
-    IN PROGRESS
-    Given a set K of MOO interactions and max bound for the depth of a term,
-    state whether or not a MOO term is invertible.
-    """
-    if _P not in K:
-        return False
-    # Compute K*
-    k_star = K | nonces
-    # From K* construct C*
-    c_star = deepcopy(k_star)
-    current_length = 0
-    while len(c_star) != current_length:
-        current_length = len(c_star)
-        for t_1 in c_star:
-            # Definition 15 (2a)
-            if isinstance(t_1, FuncTerm) and t_1.function == _f:
-                # Apply f inverse
-                c_star |= t_1.arguments[0]
-            # Definition 15 (2b)
-            for t_2 in c_star:
-                new_term_b = xor(t_1, t_2)
-                if depth(new_term_b) <= S:
-                    c_star |= new_term_b
-            # Definition 15 (2c)
-            new_term_c = _f(t_1)
-            if depth(new_term_c) <= S:
-                c_star |= new_term_c
-    # Check to see if the plaintext block is in any of the ground terms in c_star
-    # xor library automatically maps terms to their ground terms
-    return _P in c_star
+def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Term) -> bool:
+	"""
+	IN PROGRESS
+	Given a set K of MOO interactions and max bound for the depth of a term,
+	state whether or not a MOO term is invertible.
+	Note, this is intentionally more general than is needed for the 
+	strict invert problem for MOO programs and plaintext/var/con. 
+	It can also consider terms and some constructed terms. 
+	"""
+	# Compute K*
+	k_star = K | nonces
+	# From K* construct C*
+	c_star = deepcopy(k_star)
+	current_length = 0
+	while len(c_star) != current_length:
+		current_length = len(c_star)
+		temp = set()
+		for t_1 in c_star:
+			# Definition 11 (2a)
+			if isinstance(t_1, FuncTerm) and str(t_1.function) == 'f':
+				# Apply f inverse
+				temp.update({t_1.arguments[0]})
+			# Definition 11 (2b)
+			for t_2 in c_star:
+				new_term_b = xor(t_1, t_2)
+				if depth(new_term_b) <= S:
+					temp.add(new_term_b)
+			# Definition 11 (2c)
+			new_term_c = _f(t_1)
+			if depth(new_term_c) <= S:
+				temp.add(new_term_c)
+		c_star.update(temp)
+	# Check to see if the plaintext block is in any of the ground terms in c_star
+	# xor library automatically maps terms to their ground terms
+	#return _P in c_star
+	for t in c_star:
+		if P == t:
+			return True
+	return False
 
-_P = Variable("P_{i}")
+_#P = Variable("P_{i}")
 _f = Function("f", 1)
 _finv = Function("f^{-1}", 1)
