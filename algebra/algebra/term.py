@@ -385,6 +385,29 @@ def depth(t: Term, depth_level: int = 0):
         max_depth = max(max_depth, depth(ti, depth_level + 1))
     return max_depth
 
+def count_occurence(subterm: Term, term: Term):
+	"""
+	Count the number of occurences
+	of the subterm in the term.
+
+    Examples
+    ========
+    >>> from algebra import *
+    >>> f = Function("f", 2)
+    >>> h = Function("h", 1)
+    >>> x = Variable("x")
+    >>> count_occurence(h(x), f(h(x), f(x, h(x))))
+    2
+	"""
+	if subterm == term:
+		return 1
+	if isinstance(term, (Variable, Constant)):
+		return 0
+	count = 0
+	for t in term.arguments:
+		count += count_occurence(subterm, t)
+	return count
+
 #
 ## Equation
 #

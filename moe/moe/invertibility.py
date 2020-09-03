@@ -5,65 +5,69 @@ of operation is invertible.
 from collections import Counter
 from copy import deepcopy
 from typing import Set
-from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable, get_constants, get_vars, get_vars_or_constants
+from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable, get_constants, get_vars, get_vars_or_constants, count_occurence
 from xor import xor
 import numpy as np
 
 __all__ = ['invert_simple', 'moo_invert', 'invert_gaussian']
 
+_P = Variable("P_{i}")
+_f = Function("f", 1)
+_finv = Function("f^{-1}", 1)
+
 def invert_gaussian(TermSet: Set[Term], P: Constant) -> bool:
-	"""
-	IN PROGRESS: 
-	Based on the method developed by Veena. Goal is the plaintext
-	constant P from a set of terms. Currently doesn't deal with 
-	f.
-	"""
-	Vars = set()
-	Cons = set()
-	
-	#Set of all the variables and constants for all the terms
-	for t in TermSet:
-		Vars.update(get_vars(t))
-		Cons.update(get_constants(t))
-	
-	#Create an ordering for the variables
-	term_items = list()
-	for x in Cons.union(Vars):
-		term_items.append(x)
-	
-	#create the linear system
-	new_cons = len(TermSet)
-	row_len = len(term_items) + new_cons
-	M = []
-	term_count = 0
-	for t in TermSet:
-		temp=[]
-		for i in range(row_len):
-			if i < len(term_items):
-				if term_items[i] in get_vars_or_constants(t):
-					temp.append(1)
-				else:
-					temp.append(0)
-			else:
-				if i - len(term_items) == term_count:
-					temp.append(-1)
-				else:
-					temp.append(0)
-		term_count = term_count + 1
-		M.append(temp)
-	B = np.zeros(new_cons)
-	#Need to handle three cases here: (1) Square M, (2) Non-Square and row > col, (3) Non-Square col > row 
-	if row_len == len(M): # m x n and m=n
-		sol = np.linalg.solve(M, B)
-	else: # m x n and m < n or m > n ### I think this works but may not get a unique solution!
-		sol = np.linalg.lstsq(M,B,rcond=-1)[0]
-	
-	if sol.any():
-		return(True)
-	else:
-		return(False)
-	
-	
+    """
+    IN PROGRESS:
+    Based on the method developed by Veena. Goal is the plaintext
+    constant P from a set of terms. Currently doesn't deal with
+    f.
+    """
+    Vars = set()
+    Cons = set()
+
+    #Set of all the variables and constants for all the terms
+    for t in TermSet:
+        Vars.update(get_vars(t))
+        Cons.update(get_constants(t))
+
+    #Create an ordering for the variables
+    term_items = list()
+    for x in Cons.union(Vars):
+        term_items.append(x)
+
+    #create the linear system
+    new_cons = len(TermSet)
+    row_len = len(term_items) + new_cons
+    M = []
+    term_count = 0
+    for t in TermSet:
+        temp=[]
+        for i in range(row_len):
+            if i < len(term_items):
+                if term_items[i] in get_vars_or_constants(t):
+                    temp.append(1)
+                else:
+                    temp.append(0)
+            else:
+                if i - len(term_items) == term_count:
+                    temp.append(-1)
+                else:
+                    temp.append(0)
+        term_count = term_count + 1
+        M.append(temp)
+    B = np.zeros(new_cons)
+    #Need to handle three cases here: (1) Square M, (2) Non-Square and row > col, (3) Non-Square col > row
+    if row_len == len(M): # m x n and m=n
+        sol = np.linalg.solve(M, B)
+    else: # m x n and m < n or m > n ### I think this works but may not get a unique solution!
+        sol = np.linalg.lstsq(M,B,rcond=-1)[0]
+
+    if sol.any():
+        return(True)
+    else:
+        return(False)
+
+
 
 def invert_simple(term):
     """
@@ -122,45 +126,84 @@ def invert_simple(term):
 
 
 def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Term) -> bool:
-	"""
-	IN PROGRESS
-	Given a set K of MOO interactions and max bound for the depth of a term,
-	state whether or not a MOO term is invertible.
-	Note, this is intentionally more general than is needed for the 
-	strict invert problem for MOO programs and plaintext/var/con. 
-	It can also consider terms and some constructed terms. 
-	"""
-	# Compute K*
-	k_star = K | nonces
-	# From K* construct C*
-	c_star = deepcopy(k_star)
-	current_length = 0
-	while len(c_star) != current_length:
-		current_length = len(c_star)
-		temp = set()
-		for t_1 in c_star:
-			# Definition 11 (2a)
-			if isinstance(t_1, FuncTerm) and str(t_1.function) == 'f':
-				# Apply f inverse
-				temp.update({t_1.arguments[0]})
-			# Definition 11 (2b)
-			for t_2 in c_star:
-				new_term_b = xor(t_1, t_2)
-				if depth(new_term_b) <= S:
-					temp.add(new_term_b)
-			# Definition 11 (2c)
-			new_term_c = _f(t_1)
-			if depth(new_term_c) <= S:
-				temp.add(new_term_c)
-		c_star.update(temp)
-	# Check to see if the plaintext block is in any of the ground terms in c_star
-	# xor library automatically maps terms to their ground terms
-	#return _P in c_star
-	for t in c_star:
-		if P == t:
-			return True
-	return False
+    """
+    IN PROGRESS
+    Given a set K of MOO interactions and max bound for the depth of a term,
+    state whether or not a MOO term is invertible.
+    Note, this is intentionally more general than is needed for the
+    strict invert problem for MOO programs and plaintext/var/con.
+    It can also consider terms and some constructed terms.
+    """
+    # Compute K*
+    k_star = K | nonces
+    # From K* construct C*
+    c_star = deepcopy(k_star)
+    current_length = 0
+    while len(c_star) != current_length:
+        current_length = len(c_star)
+        temp = set()
+        for t_1 in c_star:
+            # Definition 11 (2a)
+            if isinstance(t_1, FuncTerm) and str(t_1.function) == 'f':
+                # Apply f inverse
+                temp.update({t_1.arguments[0]})
+            # Definition 11 (2b)
+            for t_2 in c_star:
+                new_term_b = xor(t_1, t_2)
+                if depth(new_term_b) <= S:
+                    temp.add(new_term_b)
+            # Definition 11 (2c)
+            new_term_c = _f(t_1)
+            if depth(new_term_c) <= S:
+                temp.add(new_term_c)
+        c_star.update(temp)
+    # Check to see if the plaintext block is in any of the ground terms in c_star
+    # xor library automatically maps terms to their ground terms
+    #return _P in c_star
+    for t in c_star:
+        if P == t:
+            return True
+    return False
 
-_#P = Variable("P_{i}")
-_f = Function("f", 1)
-_finv = Function("f^{-1}", 1)
+def deducible(term: Term, known_constants: Set[Constant]):
+    """
+    Implementation of Lemma 11 from the Indocrypt paper.
+
+    Parameters
+    ==========
+    term:
+        Term we want to deduce from
+    known_constants:
+        Constants known by a valid decryptor
+
+    Examples
+    ========
+    >>> from algebra import *
+    >>> from moe.invertibility import deducible
+    >>> x = Constant("x")
+    >>> p = Constant("p_i")
+    >>> f = Function("f", 2)
+    >>> deducible(f(x, p), {x})
+    True
+    >>> deducible(f(x, p), {})
+    False
+    """
+    # First check if term is ground
+    if len(get_vars(term)) > 0:
+        return False
+
+    # Get constants from term without p_i
+    p_i = Constant("p_i")
+    constants_from_term = get_constants(term, unique=True)
+    constants_from_term.difference_update({p_i})
+
+    # Check that all constants other than p_i are known
+    if len(constants_from_term.difference(known_constants)) > 0:
+        return False
+
+    # Make sure p_i only appears once
+    if count_occurence(p_i, term) != 1:
+        return False
+
+    # Passes all the criteria
+    return True
