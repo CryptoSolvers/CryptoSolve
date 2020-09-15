@@ -1,7 +1,14 @@
+"""
+The rewrite module is responsible for maintaining
+definitions of rewrite rules and rewrite systems,
+as well as performing some useful operations with them.
+"""
 from typing import overload, List, Optional, Union, Dict, Set
 from copy import deepcopy
 from algebra import Variable, Constant, Term, Function, FuncTerm, get_vars, SubstituteTerm
 from Unification.unif import unif
+
+__all__ = ['freeze', 'converse', 'RewriteRule', 'RewriteSystem', 'Position']
 
 @overload
 def freeze(term: Variable) -> Constant:
@@ -24,10 +31,10 @@ def freeze(term):
     ----------
     term : Term
       The term in which to turn the variables into constants.
-    
+
     Examples
     --------
-    >>> from algebra import *
+    >>> from algebra import Function, Variable
     >>> from rewrite import freeze
     >>> f = Function("f", 1)
     >>> x = Variable("x")
@@ -91,7 +98,7 @@ class RewriteRule:
     def __init__(self, hypothesis: Term, conclusion: Term):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
-    
+
     def apply(self, term: Term, pos: Optional[Position] = None) \
     -> Optional[Union[Dict[Position, Term], Term]]:
         """
@@ -104,14 +111,14 @@ class RewriteRule:
         term : Term
           The term in which to apply the RewriteRule
         pos : str, optional
-          The position inside the term to rewrite. 
-          If no term is given then all possible subterms are rewritten.
+          The position inside the term to rewrite.
+          If no position is given then all possible subterms are rewritten.
           See notes for details.
-        
+
         Notes
         -----
-        Positions are given as a string representing
-        a sequence of indices in which to go into each subterm.
+        Positions are given as a string sequence, with each
+        character indicating the argument to consider in the FuncTerm.
         For example, '121' indicates the first argument from the
         root term. Then, the second argument from that term, and lastly
         the third argument of that term.
@@ -119,7 +126,7 @@ class RewriteRule:
 
         Examples
         --------
-        >>> from algebra import *
+        >>> from algebra import Constant, Function
         >>> from rewrite import RewriteRule
         >>> f = Function("f", 1)
         >>> a = Constant("a")
@@ -133,7 +140,7 @@ class RewriteRule:
             return result if len(result) != 0 else None
         return self._apply_pos(term, pos)
 
-    
+
     def _match(self, term: Term) -> Optional[Term]:
         """Attempts to rewrite the root term with the rewrite rule. Returns False if not possible"""
         # Change common variables in RewriteRule if they exist
@@ -151,14 +158,14 @@ class RewriteRule:
         term = deepcopy(term)
         if pos == '':
             return self._match(term)
-        
+
         # Recurse down to appropriate position
         if isinstance(term, Constant) or isinstance(term, Variable):
             raise ValueError("Position " + pos + " is not valid for term " + str(term))
         index = int(pos[0])
         if index > len(term.arguments):
             raise ValueError("Position " + pos + " is not valid for term " + str(term))
-        
+
         term_arguments = list(term.arguments)
         new_argument = self._apply_pos(term_arguments[index - 1], pos[1:])
         if new_argument is None:
@@ -166,7 +173,7 @@ class RewriteRule:
         term_arguments[index - 1] = new_argument
         term.arguments = tuple(term_arguments)
         return term
-    
+
     def _apply_all(self, term: Term, pos: Position,
                    subterm: Term, result: Dict[Position, Term]) -> Dict[Position, Term]:
         """Applies the rewrite rule to every subterm"""
@@ -174,20 +181,20 @@ class RewriteRule:
         r = self._apply_pos(term, pos)
         if r is not None:
             result[pos] = r
-        
+
         # Recurse down arguments
         if isinstance(subterm, FuncTerm):
             for i, t in enumerate(subterm.arguments):
                 self._apply_all(term, pos + str(i + 1), t, result)
-        
+
         return result
-    
+
     def __repr__(self):
         return str(self.hypothesis) + " → " + str(self.conclusion)
-    
+
     def __hash__(self):
         return hash((self.hypothesis, self.conclusion))
-    
+
     def __eq__(self, other):
         return self.hypothesis == other.hypothesis and self.conclusion == other.conclusion
 
@@ -200,8 +207,8 @@ def converse(rule: RewriteRule) -> RewriteRule:
 
     Examples
     --------
-    >>> from algebra import *
-    >>> from rewrite import *
+    >>> from algebra import Constant, Function
+    >>> from rewrite import converse, RewriteRule
     >>> f = Function("f", 2)
     >>> a = Constant("a")
     >>> b = Constant("b")
@@ -225,19 +232,19 @@ class RewriteSystem:
     def __init__(self, rules: Set[RewriteRule]):
         self.rules = rules
         # self.forward_closure_complete = False
-    
+
     def append(self, rule):
         """Add a single rule to the rewrite system"""
         self.rules.append(rule)
-    
+
     # TODO: Does this affect the foward closure member variable?
     def extend(self, system):
         """Add a list of rules to a rewrite system"""
         self.rules.extend(system.rules)
-    
+
     def __iter__(self):
         return iter(self.rules)
-    
+
     # TODO: Write the machinary needed for the below method to work
     # # By Daniel Kemp
     # def forward_closure(self, bound = 1):
@@ -245,12 +252,12 @@ class RewriteSystem:
     #     # Don't execute again if already completed
     #     if self.forward_closure_complete:
     #         return self
-        
+
     #     initial_rules = self.rules # R2 from the paper
     #     current_new_rules = deepcopy(self) # R1 from the paper
     #     # Start with FC0 := R, this will eventually be R3 from the paper
     #     current_fc = deepcopy(self)
-        
+
     #     iteration = 0
     #     for iteration in range(0, bound):
     #         # Start FOV
@@ -267,7 +274,7 @@ class RewriteSystem:
     #                 self.rules = current_fc.rules
     #                 self.clean_variable_names()
     #                 return self
-                
+
     #             print("Non-redundant rules: \n", new_rules)
 
     #             current_new_rules = deepcopy(new_rules)
@@ -280,7 +287,6 @@ class RewriteSystem:
     #         self.forward_closure_complete = False
     #         return self
 
-    
     def __repr__(self):
         if len(self.rules) == 0:
             return "{}"

@@ -1,7 +1,14 @@
+"""
+The variants module is responsible for computing variants
+and identifying some properties about them.
+"""
 from typing import List, Dict, Tuple, Optional
 from copy import deepcopy
 from algebra import Term
 from .rewrite import RewriteRule, RewriteSystem, Position
+
+__all__ = ['Variants', 'is_finite', 'narrow', 'normal']
+
 class Variants:
     """
     Construct variants of a term given a rewrite system.
@@ -12,16 +19,16 @@ class Variants:
        The term to compute the variants from.
     rules : RewriteSystem
        The rules from which to compute the variants from.
-    
+
     Notes
     -----
-    A variant of a term $t$ is a term that can be to by applying
-    a set of rewrite rules to $t$.
-    
+    A variant of a term $t$ is a term that can be obtained by applying
+    a sequence of rewrite rules to $t$.
+
     Examples
     --------
-    >>> from algebra import *
-    >>> from rewrite import *
+    >>> from algebra import Constant, Function, Variable
+    >>> from rewrite import RewriteRule, RewriteSystem, Variants
     >>> f = Function("f", 2)
     >>> x = Variable("x")
     >>> a = Constant("a")
@@ -40,10 +47,10 @@ class Variants:
         self.tree: List[Dict[Term, List[Tuple[RewriteRule, Position]]]] = [{term : []}]
         self.branch_iter = iter(self.tree[0]) # Where we are at the branch
         self.rules: RewriteSystem = rules
-    
+
     def __iter__(self):
         return self
-    
+
     # This function will only show for what is currently computed but it is helpful
     # for preventing repeats of the same calculations
     def __contains__(self, x: Term):
@@ -51,7 +58,7 @@ class Variants:
             if x in branch:
                 return True
         return False
-    
+
     def _create_next_branch(self):
         """Compute the new branch of terms in the variant tree"""
         branch: Dict[Term, List[RewriteRule]] = {}
@@ -85,14 +92,14 @@ def is_finite(v: Variants, bound: int) -> bool:
     """
     Check to see if there are a finite number of variants.
 
-    Returns true if the variants are finite or if the bound is reached.
+    Returns false if the variants are infinite or the bound is reached.
 
     Parameters
     ----------
     v : Variants
       The variants in which to check if it's finite.
     bound : int
-      The bound at which to stop checking for variants. 
+      The bound at which to stop checking for variants.
       More specifically, the bound represents the maximum number of rewrite rules
       that the program is checking for. An infinite bound can be specified with -1.
     """
@@ -106,7 +113,7 @@ def is_finite(v: Variants, bound: int) -> bool:
 def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int) \
     -> Optional[List[Tuple[RewriteRule, Position]]]:
     """
-    Returns the set of rewrite rules necessary to rewrite one term to a goal term.
+    Returns the sequence of rewrite rules necessary to rewrite one term to a goal term.
     If the term cannot be rewritten, this function will return None.
     A bound greater than -1 will set the function to stop
     attempting to reach the goal after a certain number of steps.
@@ -125,8 +132,8 @@ def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int) \
 
     Examples
     --------
-    >>> from algebra import *
-    >>> from rewrite import *
+    >>> from algebra import Constant, Function, Variable
+    >>> from rewrite import RewriteRule, RewriteSystem, narrow
     >>> f = Function("f", 2)
     >>> x = Variable("x")
     >>> a = Constant("a")
