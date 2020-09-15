@@ -1,7 +1,12 @@
+"""
+This module is an interface layer between our
+term library and sympy.
+"""
 from typing import Union, overload
 import sympy # type: ignore
 from .term import Constant, Variable, Function, FuncTerm
 
+__all__ = ['termToSympy', 'sympyToTerm']
 
 @overload
 def termToSympy(term: Constant) -> sympy.Symbol:
@@ -20,12 +25,12 @@ def termToSympy(term: FuncTerm) -> sympy.Function:
 def termToSympy(term):
     """
     Converts a term to a sympy term
-    
+
     Parameters
     ----------
     term : Term
         The term from this library to turn into a sympy term.
-    
+
     Examples
     --------
     >>> from algebra import *
@@ -63,7 +68,7 @@ def sympyToTerm(symterm: sympy.Function) -> FuncTerm:
 def sympyToTerm(symterm):
     """
     Converts a sympy term to a term. See notes for caveats.
-    
+
     Parameters
     ----------
     symterm : {sympy.Symbol, sympy.FunctionClass, sympy.Function}
@@ -73,11 +78,11 @@ def sympyToTerm(symterm):
     -----
     This function isn't meant to take an arbitrary sympy term but one
     that is formatted the following way:
-    
+
     - Variables end in `_variable`
     - Constants end in `_constant`
     - Functions with arity x end with `_x`
-    
+
     Examples
     --------
     >>> from algebra import sympyToTerm

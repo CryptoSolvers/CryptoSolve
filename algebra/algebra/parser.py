@@ -1,5 +1,12 @@
+"""
+This module is responsible for creating
+terms out of strings, given a set of
+known terms.
+"""
 from typing import Optional, Union, Set, List
 from .term import Variable, Constant, Function, Term
+
+__all__ = ['Parser']
 
 class Parser:
     """
@@ -56,7 +63,7 @@ class Parser:
             self.constants -= {term}
         elif isinstance(term, Function):
             self.functions -= {term}
-    
+
     def parse(self, x: str) -> Union[Term, Function]:
         """Attempt to parse a string given the parser's existing signature."""
         # First remove all whitespace since it's irrelevant
@@ -77,7 +84,7 @@ class Parser:
             if len(argument_strings) != function_handle.arity:
                 raise ValueError("Arity Mismatch: Parsed String: " + str(len(argument_strings)) +
                     ", Function " + function_handle.symbol + ": " + str(function_handle.arity))
-            
+
             args = []
             for arg_string in argument_strings:
                 args.append(self.parse(arg_string))
@@ -94,37 +101,37 @@ class Parser:
                 return x_function
             # If none of the above matched return an error
             raise ValueError("Symbol " + x + " is undefined in the Parser")
-    
+
     def _find_function(self, x: str) -> Optional[Function]:
         for f in self.functions:
             if x == f.symbol:
                 return f
         return None
-    
+
     def _find_constant(self, x: str) -> Optional[Constant]:
         for c in self.constants:
             if x == c.symbol:
                 return c
         return None
-    
+
     def _find_variable(self, x: str) -> Optional[Variable]:
         for v in self.variables:
             if x == v.symbol:
                 return v
         return None
-    
+
     def _find_first_char(self, needle: str, haystack: str) -> int:
         for i, c in enumerate(haystack):
             if c == needle:
                 return i
         return -1
-    
+
     def _find_last_char(self, needle: str, haystack: str) -> int:
         for i, c in enumerate(reversed(haystack)):
             if c == needle:
                 return len(haystack) - i
         return -1
-    
+
     # Splits the arguments up to a list of arguments
     def _parse_arguments(self, x: str) -> List[str]:
         args: List[str] = []
@@ -149,4 +156,3 @@ class Parser:
         # Add last argument
         args.append(x[start_i:])
         return args
-    

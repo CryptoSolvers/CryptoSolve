@@ -10,6 +10,7 @@
 #############################################
 
 #!/usr/bin/env python3
+from copy import deepcopy
 from algebra import *
 from Unification.ac_unif import ac_unify
 from Unification.flat import flat

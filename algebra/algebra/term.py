@@ -1,7 +1,20 @@
-#!/usr/bin/env python3
+"""
+The term library is responsible for the creation of
+fundamental algebraic structures such as variables,
+constants, and functions and their combinations to make terms.
+
+This library also contains helper functions that can be useful
+in algorithms that operate on terms.
+"""
 from abc import ABC, abstractmethod # Abstract Base Class
 from typing import Union, List, Set, overload, Optional, Any
 from typing_extensions import Literal
+
+__all__ = [
+    'Sort', 'Function', 'Variable',
+    'FuncTerm', 'Constant', 'get_vars',
+    'get_constants', 'get_vars_or_constants', 'depth',
+    'count_occurence', 'Equation', 'Term']
 
 #
 ## Basic Types
@@ -20,7 +33,7 @@ class Sort:
         The name of the sort.
     parent_sort : Sort
         The sort in which this sort is a subset of.
-    
+
     Notes
     -----
     A real life example of this is the sort of fractions.
@@ -84,14 +97,14 @@ class Function:
     ----------
     symbol : str
         The symbol to print out in the textual representation.
-    
+
     arity : int
         The number of arguments that this function takes.
-    
+
     domain_sort : Union[AnySort, List[AnySort]], default=Any
         The sort in which to restrict the input to. Defaults to AnySort.
         If given a list of sorts, then each argument is matched to a sort.
-    
+
     range_sort : AnySort
         The sort to restrict the output to.
 
@@ -120,13 +133,13 @@ class Function:
             # Grab the specific argument from the domain_sort list if applicable
             domain_sort = self.domain_sort \
                 if not isinstance(self.domain_sort, list) else self.domain_sort[i]
-            
+
             if domain_sort is not None and \
                 arg.sort != domain_sort and \
                 not arg.sort.subset_of(domain_sort):
                 raise ValueError("Domain Mismatch. Expected {}, Got {}.".format(
                     str(domain_sort), str(arg.sort)))
-        
+
         return FuncTerm(self, args)
     def __repr__(self):
         return self.symbol
@@ -168,7 +181,7 @@ class FuncTerm(AbstractTerm):
         The function in which the FuncTerm was instantiated from.
     args : {Variable, Constant, FuncTerm}
         The arguments of the function.
-    
+
     Examples
     --------
     >>> from algebra import *
@@ -232,7 +245,7 @@ class Constant(FuncTerm):
     Notes
     -----
     For historical reasons, a constant is represented as a zero-arity FuncTerm.
-    
+
     Examples
     --------
     >>> from algebra import Constant
@@ -249,12 +262,12 @@ def _get_type(t: Term, unique: Literal[False], classinfo):
     """Recursively go through a term and pick out terms of type classinfo."""
     if isinstance(t, classinfo):
         return {t} if unique else [t]
-	
+
     l : List[Any] = []
     if isinstance(t, FuncTerm):
         for i in t.arguments:
             l = l + _get_type(i, False, classinfo)
-    
+
     return set(l) if unique else l
 
 
@@ -273,14 +286,14 @@ def get_vars(t: Term, unique: Literal[True]) -> Set[Variable]:
 def get_vars(t, unique=False):
     """
     Get the variables inside a term
-    
+
     Parameters
     ----------
     t : Term
         The term to look for variables.
     unique : bool
         If true, then we only show each variable once.
-    
+
     Examples
     --------
     >>> from algebra import *
@@ -305,7 +318,7 @@ def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
 def get_constants(t, unique=False):
     """
     Get the constants inside a term
-    
+
     Parameters
     ----------
     t : Term
@@ -337,7 +350,7 @@ def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable,
 def get_vars_or_constants(t, unique=False):
     """
     Get the variables and constants inside a term
-    
+
     Parameters
     ----------
     t : Term
@@ -386,9 +399,9 @@ def depth(t: Term, depth_level: int = 0):
     return max_depth
 
 def count_occurence(subterm: Term, term: Term):
-	"""
-	Count the number of occurences
-	of the subterm in the term.
+    """
+    Count the number of occurences
+    of the subterm in the term.
 
     Examples
     ========
@@ -398,15 +411,15 @@ def count_occurence(subterm: Term, term: Term):
     >>> x = Variable("x")
     >>> count_occurence(h(x), f(h(x), f(x, h(x))))
     2
-	"""
-	if subterm == term:
-		return 1
-	if isinstance(term, (Variable, Constant)):
-		return 0
-	count = 0
-	for t in term.arguments:
-		count += count_occurence(subterm, t)
-	return count
+    """
+    if subterm == term:
+        return 1
+    if isinstance(term, (Variable, Constant)):
+        return 0
+    count = 0
+    for t in term.arguments:
+        count += count_occurence(subterm, t)
+    return count
 
 #
 ## Equation
@@ -421,7 +434,7 @@ class Equation:
         The left hand side of the equation.
     r : Term
         The right hand side of the equation.
-    
+
     Examples
     --------
     >>> from algebra import *
@@ -433,7 +446,6 @@ class Equation:
     def __init__(self, l: Term, r: Term):
         self.left_side = l
         self.right_side = r
-    
+
     def __repr__(self):
         return str(self.left_side) + " = " + str(self.right_side)
-

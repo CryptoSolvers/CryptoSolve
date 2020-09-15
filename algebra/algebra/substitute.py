@@ -1,6 +1,13 @@
+"""
+This module is responsible for describing substitutions
+which are mappings between variables and terms, as well
+as the application of them.
+"""
 from typing import Set, List
 from copy import deepcopy
 from .term import Variable, Constant, FuncTerm, Term
+
+__all__ = ['SubstituteTerm']
 
 class SubstituteTerm:
     """
@@ -18,11 +25,11 @@ class SubstituteTerm:
     """
     def __init__(self):
         self.subs: Set[Variable, Term] = set()
-    
+
     def add(self, variable: Variable, term: Term):
         """
         Adds a mapping from a variable to a term
-        
+
         Parameters
         ----------
         variable : Variable
@@ -44,7 +51,7 @@ class SubstituteTerm:
         assert isinstance(term, Constant) or \
             isinstance(term, FuncTerm) or \
             isinstance(term, Variable)
-        
+
         # Check to see if what we're adding already exists in the substitution set
         if len(self.subs) > 0:
             # Separate the variables and terms in the set
@@ -52,7 +59,7 @@ class SubstituteTerm:
             if variable in v and term != t[v.index(variable)]:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
         self.subs.add((variable, term))
-    
+
     def remove(self, variable: Variable):
         """Removes a mapping from a variable"""
         # The removal technique consists of creating a set that contains what you want to remove
@@ -63,7 +70,7 @@ class SubstituteTerm:
             x = set()
             x.add((variable, term))
             self.subs = self.subs - x
-    
+
     def replace(self, variable: Variable, term: Term):
         """Replaces a mapping from a variable with another term"""
         assert isinstance(variable, Variable)
@@ -73,11 +80,11 @@ class SubstituteTerm:
         self.remove(variable)
         # We don't have to call self.add as we already ensured that the item is removed
         self.subs.add((variable, term))
-    
+
     def domain(self) -> List[Variable]:
         """
         Grabs the domain (the left side) of the substitutions.
-        
+
         Warning: Do not pair this call with range as ordering is not guarenteed.
         """
         if len(self.subs) > 0:
@@ -85,11 +92,11 @@ class SubstituteTerm:
             return list(v)
         else:
             return list()
-    
+
     def range(self) -> List[Term]:
         """
         Grabs the range (the right side) of the substitutions.
-        
+
         Warning: Do not pair this call with domain as ordering is not guarenteed.
         """
         if len(self.subs) > 0:
@@ -100,7 +107,7 @@ class SubstituteTerm:
 
     def __len__(self):
         return len(self.subs)
-    
+
     def __str__(self):
         if len(self.subs) == 0:
             return "{}"
@@ -127,7 +134,7 @@ class SubstituteTerm:
 
     def __rmul__(self, term: Term) -> Term:
         return self._applysub(term)
-    
+
     # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
     def __mul__(self, theta):
         if not isinstance(theta, SubstituteTerm):
@@ -141,7 +148,7 @@ class SubstituteTerm:
             # Apply theta to every term in its range
             t = tuple(map(theta, t))
             sigma1 = SubstituteTerm()
-            sigma1.subs = set(zip(v, t)) 
+            sigma1.subs = set(zip(v, t))
 
             # Remove any binding x->t where x in Dom(sigma)
             theta1 = deepcopy(theta)
@@ -154,18 +161,18 @@ class SubstituteTerm:
             for vt, tt in zip(v, t):
                 if vt == tt:
                     sigma1.remove(vt)
-            
+
             # Union the two substitution sets
             result = SubstituteTerm()
             result.subs = sigma1.subs | theta1.subs
             return result
         else:
             return theta
-    
+
     def __call__(self, term: Term) -> Term:
         """Apply substitution to term."""
         return self._applysub(term)
-    
+
     def _termSubstituteHelper(self, term: Term) -> Term:
         return_value = term
         # If there is nothing in the substitution set, return the same term
@@ -182,4 +189,3 @@ class SubstituteTerm:
                 term.arguments = arguments
                 return_value = term
         return return_value
-

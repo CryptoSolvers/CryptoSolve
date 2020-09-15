@@ -1,6 +1,7 @@
 #Elementary ACU-unification for single term pair
 
 #!/usr/bin/env python3
+from copy import deepcopy
 from algebra import *
 import numpy as np # type: ignore
 from sympy.solvers.diophantine import diophantine # type: ignore

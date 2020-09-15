@@ -1,3 +1,4 @@
+from copy import deepcopy
 from itertools import *
 from algebra import *
 from xor import xor

@@ -1,19 +1,16 @@
+"""
+This module contains a direct acyclic graph
+representation of a term. This is mainly included
+for applications that require better performance
+characteristics than the recursive definition.
+"""
 from typing import Dict, Tuple, Union
 from copy import deepcopy
 import matplotlib.pyplot as plt # type: ignore
 import networkx as nx # type: ignore
 from .term import Term, FuncTerm, Function, Variable
 
-##
-# Small Essay:
-##
-# A term DAG is a term that is represented by a directed acyclic graph.
-# You can think of this as a tree.
-# At the top of the tree is the outermost function/variable/constant
-# For each argument that a function has, it will point an array from that function to the argument
-# One of the goals of this sub-library
-# is to have the structured be shared in the TermDAG such that every subterm only appears once.
-
+__all__ = ['TermDAG', 'termDAGSubstitute']
 
 #
 ## Directed Acyclic Graphs
@@ -58,13 +55,13 @@ class TermDAG:
         # If there is already a label, then append the new label
         if (last_term, term) in self.edge_labels and \
             self.edge_labels[(last_term, term)] != edge_label:
-            
+
             self.edge_labels[(last_term, term)] = \
                 self.edge_labels[(last_term, term)] + ", " + edge_label
-        
+
         else:
             self.edge_labels[(last_term, term)] = edge_label
-        
+
         self.dag.add_edge(last_term, term)
         if isinstance(term, FuncTerm):
             # Go through each of the function arguments and add a directed edge to it
@@ -79,7 +76,7 @@ class TermDAG:
         fig = plt.figure()
         pos = nx.spring_layout(self.dag)
         # The first node will be colored differently to signify the start of the DAG
-        nx.draw(self.dag, pos, 
+        nx.draw(self.dag, pos,
                 font_weight='bold',
                 node_size=600,
                 font_size=30,
@@ -90,7 +87,7 @@ class TermDAG:
         nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=self.edge_labels)
         fig.suptitle(self.term)
         plt.show()
-    
+
     def df_edge_traversal(self):
         """Depth-first traversal of the edges"""
         return nx.dfs_edges(self.dag, source=list(self.dag.nodes)[0])
@@ -103,7 +100,7 @@ class TermDAG:
     def bs_node_traversal(self):
         """Breadth-frist traversal of the nodes"""
         return nx.bfs_tree(self.dag, source=list(self.dag.nodes)[0])
-    
+
     def parents(self, term):
         """Parents of a term in the TermDAG"""
         if term in self.dag:
