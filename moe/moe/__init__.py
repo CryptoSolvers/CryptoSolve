@@ -1,3 +1,7 @@
+"""
+Symbolic analysis module for
+cryptographic modes of operations.
+"""
 from .moo import *
 from .check import *
 from .custom import *

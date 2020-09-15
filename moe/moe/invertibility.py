@@ -9,7 +9,7 @@ from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable
 from xor import xor
 import numpy as np
 
-__all__ = ['invert_simple', 'moo_invert', 'invert_gaussian']
+__all__ = ['invert_simple', 'moo_invert', 'invert_gaussian', 'deducible']
 
 _P = Variable("P_{i}")
 _f = Function("f", 1)

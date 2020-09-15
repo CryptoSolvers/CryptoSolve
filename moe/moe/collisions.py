@@ -9,6 +9,8 @@ from Unification.p_syntactic import p_syntactic
 from Unification.xor_rooted_unif import XOR_rooted_security
 from xor.structure import Equations
 
+__all__ = ['find_collision']
+
 def find_collision(cipher_text1: Term, cipher_text2: Term,
                    constraints: Dict[Variable, List[Term]],
                    unif_algo: Callable = p_unif) -> Optional[SubstituteTerm]:
