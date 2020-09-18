@@ -43,7 +43,7 @@ def freeze(term):
     """
     term = deepcopy(term)
     if isinstance(term, Variable):
-        return Constant(term.symbol)
+        return Constant(term.symbol, term.sort)
     elif isinstance(term, FuncTerm):
         arguments = list(term.arguments)
         for i, t in enumerate(arguments):
@@ -71,7 +71,7 @@ def _changeVars(overlaping_vars: List[Variable], term: Term, hypothesis: Term, c
         new_var = v
         # Keep renaming variable in rewrite rule until it is not an already existing variable
         while new_var in all_vars:
-            new_var = Variable(new_var.symbol + "_1")
+            new_var = Variable(new_var.symbol + "_1", new_var.sort)
         new_vars.append(new_var)
     # Create substitution between the old and new variable names and apply them
     s = SubstituteTerm()
@@ -141,8 +141,8 @@ class RewriteRule:
         return self._apply_pos(term, pos)
 
 
-    def _match(self, term: Term) -> Optional[Term]:
-        """Attempts to rewrite the root term with the rewrite rule. Returns False if not possible"""
+    def _match(self, term: Term) -> Term:
+        """Attempts to rewrite the root term with the rewrite rule. Returns the same term if rewriting is not possible"""
         # Change common variables in RewriteRule if they exist
         overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         while overlaping_vars:

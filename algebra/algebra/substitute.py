@@ -52,9 +52,11 @@ class SubstituteTerm:
             isinstance(term, FuncTerm) or \
             isinstance(term, Variable)
 
+        if variable.sort != term.sort:
+            raise ValueError("Substitution must preserve sorts.")
+
         # Check to see if what we're adding already exists in the substitution set
         if len(self.subs) > 0:
-            # Separate the variables and terms in the set
             v, t = zip(*self.subs)
             if variable in v and term != t[v.index(variable)]:
                 raise ValueError("'%s' already exists in the substitution set" % (variable))
