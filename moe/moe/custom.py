@@ -1,19 +1,21 @@
 """
 Module used to create custom modes of operation.
 """
-from algebra import Constant, SubstituteTerm, get_vars
+from typing import List, Optional
+from algebra import Constant, get_vars, SubstituteTerm, Term
 from .moo import MOO
 
 __all__ = ['CustomMOO']
 
 class CustomMOO:
     """Create and register a custom mode of operation from a term."""
-    def __init__(self, term):
+    def __init__(self, term: Term, moo_name: Optional[str] = None):
         self.term = term
-        self.name = str(term)
+        self.name = str(term) if moo_name is None else moo_name
         MOO.register(self.name, self.__call__)
 
-    def __call__(self, iteration, nonces, P, C):
+    def __call__(self, iteration: int, nonces: List[Constant],
+                 P: List[Term], C: List[Term]):
         IV = nonces[0]
         i = iteration - 1
         # Create substitution between symbolic plain and cipher texts
