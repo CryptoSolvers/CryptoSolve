@@ -9,3 +9,6 @@ senv/
 *.coverage
 */docs/build
 *Thumbs.db
+*dist/
+*.spec
+*build/
