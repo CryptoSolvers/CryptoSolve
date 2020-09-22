@@ -3,11 +3,11 @@ The variants module is responsible for computing variants
 and identifying some properties about them.
 """
 from typing import List, Dict, Tuple, Optional
-from copy import deepcopy
 from algebra import Term
-from .rewrite import RewriteRule, RewriteSystem, Position
+from .rule import RewriteRule, Position
+from .system import RewriteSystem
 
-__all__ = ['Variants', 'is_finite', 'narrow', 'normal']
+__all__ = ['Variants', 'is_finite', 'narrow']
 
 class Variants:
     """
@@ -153,44 +153,3 @@ def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int = -1) \
             return variants.tree[-1][variant]
         attempt += 1
     return None
-
-# TODO: Should recheck the logic for this algorithm.
-def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Optional[Term]:
-    """
-    Returns the normal form of an element
-    given a set of convergent term rewrite rules.
-
-    Notes
-    -----
-    If the set of rewrite rules aren't convergent,
-    then it is possible that this function won't terminate.
-
-    Parameters
-    ----------
-    element : Term
-      The term to check the normal form for.
-    rewrite_rules : RewriteSystem
-      Possible rules to apply.
-    bound : int
-      Applies up to 'bound' rewrite rules. Set to -1 in order to have no bound.
-    """
-    element = deepcopy(element)
-    element_changed = True
-    iteration = 0
-    # We keep on going until the element stops changing
-    while element_changed:
-        element_changed = False
-        # Check to see if we went passed our bound
-        if bound != -1 and iteration > bound:
-            return None
-
-        # Apply the first rewrite rule that works
-        for rule in rewrite_rules:
-            new_elements = rule.apply(element)
-            if new_elements is not None:
-                element = next(iter(new_elements.values()))
-                element_changed = True
-                break
-        iteration += 1
-
-    return element
