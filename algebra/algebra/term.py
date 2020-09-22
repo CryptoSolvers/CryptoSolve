@@ -247,6 +247,12 @@ class Constant(FuncTerm):
     """
     def __init__(self, symbol: str, sort: Optional[Sort] = None):
         super().__init__(Function(symbol, 0, range_sort=sort), ())
+    @property
+    def symbol(self):
+        return self.function.symbol
+    @symbol.setter
+    def symbol(self, s):
+        self.function.symbol = s
 
 
 Term = Union[Variable, Constant, FuncTerm]
