@@ -1,4 +1,5 @@
 """
+UNFINISHED
 An implementation of Algebraic Fields. This module can use some rework
 to utilize the sort attribute in the algebra module.
 
