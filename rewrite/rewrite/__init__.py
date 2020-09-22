@@ -1,3 +1,4 @@
 """Contains modules relevant to rewrite theory."""
-from .rewrite import *
+from .rule import *
+from .system import *
 from .variants import *
