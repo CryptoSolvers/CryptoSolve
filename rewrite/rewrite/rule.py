@@ -95,9 +95,10 @@ class RewriteRule:
     Takes a hypothesis and a conclusion and
     applies them to a term when given.
     """
-    def __init__(self, hypothesis: Term, conclusion: Term):
+    def __init__(self, hypothesis: Term, conclusion: Term, unif_algo=unif):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
+        self.unif_algo = unif_algo
 
     def apply(self, term: Term, pos: Optional[Position] = None) \
     -> Optional[Union[Dict[Position, Term], Term]]:
@@ -151,7 +152,7 @@ class RewriteRule:
             overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         # Perform matching and substitution
         frozen_term = freeze(term)
-        sigma = unif(self.hypothesis, frozen_term)
+        sigma = self.unif_algo(self.hypothesis, frozen_term)
         return self.conclusion * sigma if sigma is not False else None
 
     def _apply_pos(self, term: Term, pos: Position) -> Optional[Term]:
