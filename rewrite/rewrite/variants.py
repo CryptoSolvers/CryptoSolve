@@ -88,7 +88,7 @@ class Variants:
             next_node = next(self.branch_iter)
         return next_node
 
-def is_finite(v: Variants, bound: int) -> bool:
+def is_finite(v: Variants, bound: int = -1) -> bool:
     """
     Check to see if there are a finite number of variants.
 
@@ -110,7 +110,7 @@ def is_finite(v: Variants, bound: int) -> bool:
         iteration += 1
     return True
 
-def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int) \
+def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int = -1) \
     -> Optional[List[Tuple[RewriteRule, Position]]]:
     """
     Returns the sequence of rewrite rules necessary to rewrite one term to a goal term.
@@ -155,7 +155,7 @@ def narrow(term: Term, goal_term: Term, rules: RewriteSystem, bound: int) \
     return None
 
 # TODO: Should recheck the logic for this algorithm.
-def normal(element: Term, rewrite_rules: RewriteSystem):
+def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Optional[Term]:
     """
     Returns the normal form of an element
     given a set of convergent term rewrite rules.
@@ -171,17 +171,26 @@ def normal(element: Term, rewrite_rules: RewriteSystem):
       The term to check the normal form for.
     rewrite_rules : RewriteSystem
       Possible rules to apply.
+    bound : int
+      Applies up to 'bound' rewrite rules. Set to -1 in order to have no bound.
     """
     element = deepcopy(element)
     element_changed = True
+    iteration = 0
     # We keep on going until the element stops changing
     while element_changed:
         element_changed = False
+        # Check to see if we went passed our bound
+        if bound != -1 and iteration > bound:
+            return None
+
+        # Apply the first rewrite rule that works
         for rule in rewrite_rules:
             new_elements = rule.apply(element)
             if new_elements is not None:
-                # Replace element with any rewritten term
                 element = next(iter(new_elements.values()))
                 element_changed = True
                 break
+        iteration += 1
+
     return element
