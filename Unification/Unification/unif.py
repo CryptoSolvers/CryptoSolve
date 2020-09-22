@@ -22,7 +22,7 @@ def unif(l: Term, r: Term):
 		for i, e in U.items():
 			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 				if e.left_side.function.symbol != e.right_side.function.symbol:
-					print('Function Clash')
+					# print('Function Clash')
 					#Fix the return false
 					return False
 								
