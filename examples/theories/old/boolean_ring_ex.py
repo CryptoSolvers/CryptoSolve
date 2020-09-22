@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from algebra import *
-from theories import *
+from theories import BooleanRing, RingConstant
 
 a = RingConstant(BooleanRing, "a")
 b = RingConstant(BooleanRing, "b")
