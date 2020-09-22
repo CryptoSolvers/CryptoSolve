@@ -5,22 +5,22 @@ that can be used to simplify a nat.
 """
 from copy import deepcopy
 from typing import Optional
-from algebra import Constant, Function, FuncTerm, Term, Variable
+from algebra import Constant, Function, FuncTerm, Sort, Term, Variable
 from rewrite import RewriteRule, RewriteSystem, normal
 
-__all__ = ['zero', 'S', 'dec']
+__all__ = ['zero', 'S', 'dec', 'nat_sort']
 
 # Constants and Functions
-zero = Constant("0", sort="nat")
-S = Function("S", 1, domain_sort="nat", range_sort="nat")
-dec = Function("dec", 1, domain_sort="nat", range_sort="nat")
+nat_sort = Sort("nat")
+zero = Constant("0", sort=nat_sort)
+S = Function("S", 1, domain_sort=nat_sort, range_sort=nat_sort)
+dec = Function("dec", 1, domain_sort=nat_sort, range_sort=nat_sort)
 
 # Rules
 _n = Variable("n", "nat")
 dec_rule1 = RewriteRule(dec(S(_n)), _n)
 dec_rule2 = RewriteRule(dec(zero), zero)
 rules = RewriteSystem({dec_rule1, dec_rule2})
-
 
 def from_int(x: int) -> Term:
     """Converts an integer to a nat."""
@@ -31,7 +31,7 @@ def from_int(x: int) -> Term:
 
 def to_int(x: Term) -> int:
     """Converts a nat to an int."""
-    if not isinstance(x, FuncTerm) or x.sort != 'nat':
+    if not isinstance(x, FuncTerm) or x.sort != nat_sort:
         raise ValueError("to_int function expects a nat.")
     if x == zero:
         return 0
@@ -44,7 +44,7 @@ def simplify(x: Term) -> Optional[Term]:
     Simplify a nat term using the convergent
     rewrite rules in the nat module.
     """
-    if not isinstance(x, FuncTerm) or x.sort != 'nat':
+    if not isinstance(x, FuncTerm) or x.sort != nat_sort:
         raise ValueError("simplify function expects a nat.")
     if x == zero:
         return deepcopy(x)
