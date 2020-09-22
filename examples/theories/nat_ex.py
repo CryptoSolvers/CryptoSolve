@@ -6,9 +6,8 @@ four = nat.S(nat.S(nat.S(nat.S(nat.zero))))
 print("Four is", nat.from_int(4))
 assert nat.from_int(4) == four
 
-print("S(0) is", nat.to_int(nat.S(nat.zero)))
+print("S(0) is", nat.to_int(one))
 assert nat.to_int(one) == 1
 
-print("dec(S(0)) is", nat.simplify(nat.dec(nat.S(nat.zero))))
+print("dec(S(0)) is", nat.simplify(nat.dec(one)))
 assert nat.simplify(nat.dec(one)) == nat.zero
-
