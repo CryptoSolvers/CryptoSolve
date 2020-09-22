@@ -17,7 +17,7 @@ S = Function("S", 1, domain_sort=nat_sort, range_sort=nat_sort)
 dec = Function("dec", 1, domain_sort=nat_sort, range_sort=nat_sort)
 
 # Rules
-_n = Variable("n", "nat")
+_n = Variable("n", sort=nat_sort)
 dec_rule1 = RewriteRule(dec(S(_n)), _n)
 dec_rule2 = RewriteRule(dec(zero), zero)
 rules = RewriteSystem({dec_rule1, dec_rule2})
