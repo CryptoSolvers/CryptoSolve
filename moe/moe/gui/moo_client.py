@@ -25,7 +25,7 @@ def make_window():
 
 
     #------------------------tool page layout------------------------
-    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)))]
+    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)), key='-O1-')]#output box1
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     #left hand side input titles
@@ -53,7 +53,7 @@ def make_window():
 
 
     #---------------------simulation page layout---------------------
-    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(190, 10)))]
+    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(190, 10)), key='-O2-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     #left hand side input titles
@@ -75,7 +75,7 @@ def make_window():
 
 
     #-----------------------custom page layout-----------------------
-    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)))]
+    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)), key='-O3-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     #left hand side input titles
@@ -103,7 +103,7 @@ def make_window():
 
 
     #----------------------random page layout-----------------------
-    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(6, 10)))]
+    m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(6, 10)), key='-O4-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     #left hand side input titles
@@ -180,59 +180,87 @@ def Launcher():
 
         #all tool tab events
         if event == 'Execute!':
-            #input values [1,5]
             #check all input
             start, stop = 1, 5
             popup = True
+            result = []
+            goodInput = True
             for i in range(start, stop):
-                #print(values[i], end=', ')
-                if((values[i] == '') & (popup)):
-                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                    popup = False
-            #print(values[stop])
+                result.append(values[i])
+
+            #check if any elements are empty, if so inform user
+            if all(result) is not True:
+                sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                popup = False
+                goodInput = False
+
+            result.append(values[stop]) #checkbox value should be allowed to be false
+
             # perform function call on input:
+            if goodInput:
+                window['-O1-'].update(result)
 
         # all simulation tab events
         if event == 'Execute!0':
-            #input values [7,8]
             #check all input
-            start, stop = 7, 8
+            start, stop = 6, 7
             popup = True
+            result = []
+            goodInput = True
             for i in range(start, stop):
-                #print(values[i], end=', ')
-                if ((values[i] == '') & (popup)):
-                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                    popup = False
-            #print(values[stop])
+                result.append(values[i])
+            result.append(values[stop])
+
+            if all(result) is not True:
+                sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                popup = False
+                goodInput = False
+
             # perform function call on input:
+            if goodInput:
+                window['-O2-'].update(result)
 
         # all custom tab events
         if event == 'Execute!1':
-            #input values [10,14]
             #check all input
-            start, stop = 10, 14
+            start, stop = 8, 12
             popup = True
+            result = []
+            goodInput = True
             for i in range(start, stop):
-                #print(values[i], end=', ')
-                if ((values[i] == '') & (popup)):
-                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                    popup = False
-            #print(values[stop])
+                result.append(values[i])
+
+            if all(result) is not True:
+                sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                popup = False
+                goodInput = False
+
+            result.append(values[stop])  # checkbox value should be allowed to be false
+
             # perform function call on input:
+            if goodInput:
+                window['-O3-'].update(result)
 
         # all random tab events
         if event == 'Execute!2':
-            #input values [16,24]
             #check all input
-            start, stop = 16, 24
+            start, stop = 13, 21
             popup = True
+            result = []
+            goodInput = True
             for i in range(start, stop):
-                #print(values[i], end=', ')
-                if ((values[i] == '') & (popup)):
-                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                    popup = False
-            #print(values[stop])
+                result.append(values[i])
+
+            if all(result) is not True:
+                sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                popup = False
+                goodInput = False
+
+            result.append(values[stop])  # checkbox value should be allowed to be false
+
             #perform function call on input:
+            if goodInput:
+                window['-O4-'].update(result)
 
         #menu button events create popups
         #my intent with these is for this to be a place to give users more information
