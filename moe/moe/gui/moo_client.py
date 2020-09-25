@@ -39,7 +39,7 @@ def make_window():
     t_right_column = [[sg.InputCombo(('Syntactic', 'F-Rooted P-XOR'), size=box_size)],
                       [sg.InputCombo(('Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback'), size=box_size)],
                       [sg.InputCombo(('Every', 'End'), size=box_size)],
-                      [sg.InputText('', size=box_size)],
+                      [sg.InputText('10', size=box_size)],
                       [sg.Checkbox('')]]
 
     #overall layout of the tab with both input titles and boxes, execute, and output box
@@ -89,7 +89,7 @@ def make_window():
     c_right_column = [[sg.InputText(('f(xor(P[i],C[i-1]))'), size=box_size)],
                       [sg.InputCombo(('Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR'), size=box_size)],
                       [sg.InputCombo(('Every', 'End'), size=box_size)],
-                      [sg.InputText((''), size=box_size)],
+                      [sg.InputText(('10'), size=box_size)],
                       [sg.Checkbox('')]]
 
     #overall layout of the tab with both input titles and boxes, execute, and output box
@@ -176,39 +176,63 @@ def Launcher():
         #if the window is closed leave loop immediately
         if event == sg.WIN_CLOSED:
             break
-        print(event, values)
+        #print(event, values)
 
         #all tool tab events
         if event == 'Execute!':
             #input values [1,5]
+            #check all input
             start, stop = 1, 5
+            popup = True
             for i in range(start, stop):
-                print(values[i], end=', ')
-            print(values[stop])
+                #print(values[i], end=', ')
+                if((values[i] == '') & (popup)):
+                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                    popup = False
+            #print(values[stop])
+            # perform function call on input:
 
         # all simulation tab events
         if event == 'Execute!0':
             #input values [7,8]
+            #check all input
             start, stop = 7, 8
+            popup = True
             for i in range(start, stop):
-                print(values[i], end=', ')
-            print(values[stop])
+                #print(values[i], end=', ')
+                if ((values[i] == '') & (popup)):
+                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                    popup = False
+            #print(values[stop])
+            # perform function call on input:
 
         # all custom tab events
         if event == 'Execute!1':
             #input values [10,14]
+            #check all input
             start, stop = 10, 14
+            popup = True
             for i in range(start, stop):
-                print(values[i], end=', ')
-            print(values[stop])
+                #print(values[i], end=', ')
+                if ((values[i] == '') & (popup)):
+                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                    popup = False
+            #print(values[stop])
+            # perform function call on input:
 
         # all random tab events
         if event == 'Execute!2':
             #input values [16,24]
+            #check all input
             start, stop = 16, 24
+            popup = True
             for i in range(start, stop):
-                print(values[i], end=', ')
-            print(values[stop])
+                #print(values[i], end=', ')
+                if ((values[i] == '') & (popup)):
+                    sg.Popup('Input left blank, please enter a value.', title='ERROR')
+                    popup = False
+            #print(values[stop])
+            #perform function call on input:
 
         #menu button events create popups
         #my intent with these is for this to be a place to give users more information
