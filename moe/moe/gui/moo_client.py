@@ -4,10 +4,10 @@
 import PySimpleGUI as sg
 
 
-#returns the window that will be the client gui
-#contains all of the formatting and other cool stuff that makes the gui window
+# returns the window that will be the client gui
+# contains all of the formatting and other cool stuff that makes the gui window
 def make_window():
-    #theme properties for a theme that uses UMW colors
+    # theme properties for a theme that uses UMW colors
     sg.LOOK_AND_FEEL_TABLE['UMW'] = {'BACKGROUND': 'white',
                                      'TEXT': '#002a5a',
                                      'INPUT': 'white',
@@ -19,7 +19,7 @@ def make_window():
 
     sg.theme('UMW')
 
-    #size of all input boxes
+    # size of all input boxes
     box_size = (30, 1) #for all input boxes
     ml_box_size = (70, 1) #for output boxes
 
@@ -28,21 +28,21 @@ def make_window():
     m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)), key='-O1-')]#output box1
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
-    #left hand side input titles
+    # left hand side input titles
     t_left_column = [[sg.Text('Unification Algorithm:')],
                      [sg.Text('Chaining Function:')],
                      [sg.Text('Schedule:')],
                      [sg.Text('Session Length Bound:')],
                      [sg.Text('Adversary knows IV?')]]
 
-    #right hand side input boxes
+    # right hand side input boxes
     t_right_column = [[sg.InputCombo(('Syntactic', 'F-Rooted P-XOR'), size=box_size)],
                       [sg.InputCombo(('Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback'), size=box_size)],
                       [sg.InputCombo(('Every', 'End'), size=box_size)],
                       [sg.InputText('10', size=box_size)],
                       [sg.Checkbox('')]]
 
-    #overall layout of the tab with both input titles and boxes, execute, and output box
+    # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
                     sg.Column(t_left_column),
                     sg.Column(t_right_column, key='-TOOL-INPUT-'),
@@ -56,7 +56,7 @@ def make_window():
     m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(190, 10)), key='-O2-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
-    #left hand side input titles
+    # left hand side input titles
     s_left_column = [[sg.Text('Chaining Function:')],
                      [sg.Text('Schedule:')]]
 
@@ -64,7 +64,7 @@ def make_window():
     s_right_column = [[sg.InputCombo(('Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback'), size=box_size)],
                       [sg.InputCombo(('Every', 'End'), size=box_size)]]
 
-    #overall layout of the tab with both input titles and boxes, execute, and output box
+    # overall layout of the tab with both input titles and boxes, execute, and output box
     simulation_layout = [[sg.Frame('Settings', [[
                           sg.Column(s_left_column),
                           sg.Column(s_right_column),
@@ -78,7 +78,7 @@ def make_window():
     m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(110, 10)), key='-O3-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
-    #left hand side input titles
+    # left hand side input titles
     c_left_column = [[sg.Text('Custom MOO:')],
                      [sg.Text('Unification Algorithm:')],
                      [sg.Text('Schedule:')],
@@ -92,7 +92,7 @@ def make_window():
                       [sg.InputText(('10'), size=box_size)],
                       [sg.Checkbox('')]]
 
-    #overall layout of the tab with both input titles and boxes, execute, and output box
+    # overall layout of the tab with both input titles and boxes, execute, and output box
     custom_layout = [[sg.Frame('Settings', [[
                       sg.Column(c_left_column),
                       sg.Column(c_right_column),
@@ -106,7 +106,7 @@ def make_window():
     m = [sg.Multiline('', size=ml_box_size, pad=((10, 0),(6, 10)), key='-O4-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
-    #left hand side input titles
+    # left hand side input titles
     r_left_column = [[sg.Text('Chaining Required:')],
                      [sg.Text('IV Required:')],
                      [sg.Text('Encryption F-Bound:')],
@@ -128,7 +128,7 @@ def make_window():
                       [sg.InputText('1', size=box_size)],
                       [sg.Checkbox('')]]
 
-    #overall layout of the tab with both input titles and boxes, execute, and output box
+    # overall layout of the tab with both input titles and boxes, execute, and output box
     random_layout = [[sg.Frame('Settings', [[
                       sg.Column(r_left_column),
                       sg.Column(r_right_column),
@@ -139,16 +139,16 @@ def make_window():
 
 
     #------------------------------TabGroup layout------------------------------
-    #the keys allow for input to be differentiated among the tab events, for
-    #example, in the Launcher events, there are 4 different execute events, 1
-    #for each tab because of these keys
-    #this allows you to tell which tab the user pressed the 'Execute!' button on
+    # the keys allow for input to be differentiated among the tab events, for
+    # example, in the Launcher events, there are 4 different execute events, 1
+    # for each tab because of these keys
+    # this allows you to tell which tab the user pressed the 'Execute!' button on
     tab_group_layout = [[sg.Tab('Tool', tool_layout, key='-TOOL-'),
                          sg.Tab('Simulation', simulation_layout, key='-SIMULATION-'),
                          sg.Tab('Custom', custom_layout, key='-CUSTOM-'),
                          sg.Tab('Random', random_layout, key='-RANDOM-')]]
 
-    #menu definitions
+    # menu definitions
     menu_layout = [['&Help', ['&Tool', '&Simulation', '&Custom', '&Random']],
                    ['&About', ['&README', '&Authors', '&Usage']]]
 
@@ -163,108 +163,85 @@ def make_window():
 
     return sg.Window('MOO Tool', layout, no_titlebar=False)
 
-
-
-#where the window is created and runs
-#contains all of the events that occur when a user does something in the gui window
-#contains all of the input that are in the window
+# where the window is created and runs
+# contains all of the events that occur when a user does something in the gui window
+# contains all of the input that are in the window
 def Launcher():
     window = make_window()
-    #event loop
+    # event loop
     while True:
         event, values = window.read()       # type: str, dict
-        #if the window is closed leave loop immediately
+        # if the window is closed leave loop immediately
         if event == sg.WIN_CLOSED:
             break
         #print(event, values)
 
-        #all tool tab events
+        start, stop = 1, 5
+        result = []
+        popup = True
+        goodInput = True
+        function = ''
+        # all tool tab events
         if event == 'Execute!':
-            #check all input
+            # check all input
             start, stop = 1, 5
-            popup = True
-            result = []
-            goodInput = True
+            function = 'tool'
             for i in range(start, stop):
                 result.append(values[i])
 
-            #check if any elements are empty, if so inform user
-            if all(result) is not True:
-                sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                popup = False
-                goodInput = False
-
-            result.append(values[stop]) #checkbox value should be allowed to be false
-
-            # perform function call on input:
-            if goodInput:
-                window['-O1-'].update(result)
-
         # all simulation tab events
         if event == 'Execute!0':
-            #check all input
+            # check all input
             start, stop = 6, 7
-            popup = True
-            result = []
-            goodInput = True
+            function = 'simulation'
             for i in range(start, stop):
                 result.append(values[i])
             result.append(values[stop])
 
-            if all(result) is not True:
-                sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                popup = False
-                goodInput = False
-
-            # perform function call on input:
-            if goodInput:
-                window['-O2-'].update(result)
-
         # all custom tab events
         if event == 'Execute!1':
-            #check all input
+            # check all input
             start, stop = 8, 12
-            popup = True
-            result = []
-            goodInput = True
+            function = 'custom'
             for i in range(start, stop):
                 result.append(values[i])
-
-            if all(result) is not True:
-                sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                popup = False
-                goodInput = False
-
-            result.append(values[stop])  # checkbox value should be allowed to be false
-
-            # perform function call on input:
-            if goodInput:
-                window['-O3-'].update(result)
 
         # all random tab events
         if event == 'Execute!2':
             #check all input
             start, stop = 13, 21
-            popup = True
-            result = []
-            goodInput = True
+            function = 'random'
             for i in range(start, stop):
                 result.append(values[i])
 
-            if all(result) is not True:
-                sg.Popup('Input left blank, please enter a value.', title='ERROR')
-                popup = False
-                goodInput = False
+        # check if any of the inputs are blank
+        if all(result) is not True:
+            sg.Popup('Input left blank, please enter a value.', title='ERROR')
+            popup = False
+            goodInput = False
 
-            result.append(values[stop])  # checkbox value should be allowed to be false
+        # these pages have the checkbox input which is default false, which messes
+        # up the check for blank inputs, so here we add those values back in
+        if function == 'tool' or function == 'custom' or function == 'random':
+            result.append(values[stop])
 
-            #perform function call on input:
-            if goodInput:
+        # if none of the input is blank then perform functions for the
+        # current page and display output to screen
+        # currently just outputs the input because I haven't implemented
+        # the tool yet
+        if goodInput:
+            if function == 'tool':
+                window['-O1-'].update(result)
+            if function == 'simulation':
+                window['-O2-'].update(result)
+            if function == 'custom':
+                window['-O3-'].update(result)
+            if function == 'random':
                 window['-O4-'].update(result)
 
-        #menu button events create popups
-        #my intent with these is for this to be a place to give users more information
-        #about how to use each part of the tool, but any of this can be removed as desired
+        # menu button events create popups
+        # my intent with these is for this to be a place to give users more information
+        # about how to use each part of the tool, but any of this can be removed as desired
         if event == 'Tool':
             sg.Popup('This is a blurb about how to use the tool page', title='Tool usage')
         if event == 'Simulation':
@@ -273,8 +250,6 @@ def Launcher():
             sg.Popup('This is a blurb about how to use the custom page', title='Custom usage')
         if event == 'Random':
             sg.Popup('This is a blurb about how to use the random page', title='Random usage')
-
-
 
     window.close()
 
