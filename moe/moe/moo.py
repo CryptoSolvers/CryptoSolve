@@ -86,7 +86,35 @@ def output_feedback(iteration, nonces, P, _):
     for _ in range(i):
         keystream = f(keystream)
     return xor(P[i], keystream)
+    
+    
+# Helper function for AccumulatedBlockCiper with h identity
+def _calcQI(i, nonces, P, C):
+    h = Function("h", 1)
+    if i == 0:
+        return P[0]
+    return xor(
+        P[i],
+        h(_calcQI(i - 1, nonces, P, C))
+    )    
 
+#Error in the Def? What is Y_0? Need to ask Cathy.
+#Accumulated Block Cipher but with h as identity
+@MOO.register('abc_h_identity')
+def abc_h_identity(iteration, nonces, P, C):
+    """ABC H IDENTITY"""
+    IV = nonces[0]
+    i = iteration - 1
+    f = Function("f", 1)
+    Q = {}
+    if i > 0:
+        Q[i] = _calcQI(i, nonces, P, C)
+        Q[i-1] = _calcQI(i - 1, nonces, P, C)
+    
+    keystream = f(IV)
+    if i == 0:
+        return IV
+    return xor(f(xor(Q[i], C[i-1])),Q[i-1])
 
 # Implementations we haven't developed theory around yet...
 # Also the commented out implementations are questionable.
