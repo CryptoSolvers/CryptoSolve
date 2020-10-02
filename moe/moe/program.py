@@ -20,6 +20,9 @@ class MOOFrame:
     """
     message: Term
     substitutions: SubstituteTerm
+    
+    def __str__(self):
+        return str(self.substitutions)
 
 class MOOProgram:
     """
