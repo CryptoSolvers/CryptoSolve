@@ -3,6 +3,9 @@
 
 import PySimpleGUI as sg
 
+unification_algorithms = ['Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR']
+chaining_functions = ['Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback']
+schedules = ['Every', 'End']
 
 # returns the window that will be the client gui
 # contains all of the formatting and other cool stuff that makes the gui window
@@ -36,9 +39,9 @@ def make_window():
                      [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
-    t_right_column = [[sg.InputCombo(('Syntactic', 'F-Rooted P-XOR'), size=box_size)],
-                      [sg.InputCombo(('Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback'), size=box_size)],
-                      [sg.InputCombo(('Every', 'End'), size=box_size)],
+    t_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
+                      [sg.InputCombo((chaining_functions), size=box_size)],
+                      [sg.InputCombo((schedules), size=box_size)],
                       [sg.InputText('10', size=box_size)],
                       [sg.Checkbox('')]]
 
@@ -61,8 +64,8 @@ def make_window():
                      [sg.Text('Schedule:')]]
 
     # right hand side input boxes
-    s_right_column = [[sg.InputCombo(('Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining', 'Cipher Feedback', 'Output Feedback'), size=box_size)],
-                      [sg.InputCombo(('Every', 'End'), size=box_size)]]
+    s_right_column = [[sg.InputCombo((chaining_functions), size=box_size)],
+                      [sg.InputCombo((schedules), size=box_size)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     simulation_layout = [[sg.Frame('Settings', [[
@@ -87,8 +90,8 @@ def make_window():
 
     # right hand side input boxes
     c_right_column = [[sg.InputText(('f(xor(P[i],C[i-1]))'), size=box_size)],
-                      [sg.InputCombo(('Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR'), size=box_size)],
-                      [sg.InputCombo(('Every', 'End'), size=box_size)],
+                      [sg.InputCombo((unification_algorithms), size=box_size)],
+                      [sg.InputCombo((schedules), size=box_size)],
                       [sg.InputText(('10'), size=box_size)],
                       [sg.Checkbox('')]]
 
@@ -123,8 +126,8 @@ def make_window():
                       [sg.InputText('6', size=box_size)],
                       [sg.InputText('4', size=box_size)],
                       [sg.InputCombo(('Yes', 'No'), size=box_size)],
-                      [sg.InputCombo(('Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR'), size=box_size)],
-                      [sg.InputCombo(('Every', 'End'), size=box_size)],
+                      [sg.InputCombo((unification_algorithms), size=box_size)],
+                      [sg.InputCombo((schedules), size=box_size)],
                       [sg.InputText('1', size=box_size)],
                       [sg.Checkbox('')]]
 
@@ -174,7 +177,7 @@ def Launcher():
         # if the window is closed leave loop immediately
         if event == sg.WIN_CLOSED:
             break
-        #print(event, values)
+        # print(event, values)
 
         start, stop = 1, 5
         result = []
@@ -220,10 +223,17 @@ def Launcher():
             popup = False
             goodInput = False
 
+        if function == 'tool' and goodInput:
+            if valid_moo_unif_pair(result[0], result[1]) == False:
+                goodInput = False
+                sg.Popup('Invalid unfication algorithm and chaining function combination, see Help -> Tool for more information', title='ERROR')
+
         # these pages have the checkbox input which is default false, which messes
         # up the check for blank inputs, so here we add those values back in
         if function == 'tool' or function == 'custom' or function == 'random':
             result.append(values[stop])
+
+
 
         # if none of the input is blank then perform functions for the
         # current page and display output to screen
@@ -243,7 +253,10 @@ def Launcher():
         # my intent with these is for this to be a place to give users more information
         # about how to use each part of the tool, but any of this can be removed as desired
         if event == 'Tool':
-            sg.Popup('This is a blurb about how to use the tool page', title='Tool usage')
+            sg.Popup('Valid unification algorithm and chaining function pairs:\n\n'
+                     'Syntactic: Cipher Block Chaining, Propogating Cipher Block Chaining, Hash Cipher Block Chaining, Cipher Feedback, Output Feedback\n'
+                     'F-Rooted P-XOR: Cipher Block Chaining, Propogating Cipher Block Chaining, Hash Cipher Block Chaining\n'
+                     'XOR-Rooted P-XOR: Cipher Feedback, Output Feedback', title='Tool usage', line_width=200)
         if event == 'Simulation':
             sg.Popup('This is a blurb about how to use the simulation page', title='Simulation usage')
         if event == 'Custom':
@@ -252,6 +265,18 @@ def Launcher():
             sg.Popup('This is a blurb about how to use the random page', title='Random usage')
 
     window.close()
+
+def valid_moo_unif_pair(unif_choice: str, cf_choice: str) -> bool:
+    # syntactic
+    if unif_choice == unification_algorithms[0]:
+        return True
+    # p-unif
+    if unif_choice == unification_algorithms[1]:
+        supported_chaining = ['Cipher Block Chaining', 'Propogating Cipher Block Chaining', 'Hash Cipher Block Chaining']
+    # xor rooted
+    else:
+        supported_chaining = ['Cipher Feedback', 'Output Feedback']
+    return cf_choice in supported_chaining
 
 if __name__ == '__main__':
     Launcher()
