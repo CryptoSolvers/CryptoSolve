@@ -4,7 +4,7 @@ Examples from Hai's presentation on May 23rd 2020
 from algebra import Function, Variable, Constant
 from xor import xor
 from xor.structure import Zero
-from moe.syntactic_check import moo_quick_syntactic_check, moo_depth_random_check, \
+from moe.syntactic_check import moo_depth_random_check, \
      moo_has_random, moo_f_depth
 
 
@@ -113,28 +113,5 @@ t9 = moo_has_random(
 print(f"If {x} maps to {r} or {zero}...")
 print(f"has_randomness(f(r) ⊕ x) is {t9}")
 print("")
-
-
-print("Example 10.")
-last_block1 = r
-block1 = xor(
-    f(f(last_block1)),
-    x
-)
-t10 = moo_quick_syntactic_check(last_block1, block1)
-print(f"satisfies_syn_cond(f(f(C[i-1])) ⊕ x) is {t10}")
-print("")
-
-
-print("Example 11.")
-last_block2 = r
-block2 = f(
-    xor(
-        f(last_block2),
-        x
-    )
-)
-t11 = moo_quick_syntactic_check(last_block2, block2)
-print(f"satisfies_syn_cond(f( f(C[i-1]) ⊕ x )) is {t11}")
 
 # TODO: Add example for moo_depth_random_check
