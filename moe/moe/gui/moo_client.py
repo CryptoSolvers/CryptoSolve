@@ -1,6 +1,8 @@
 #gui prototype
 #pyinstaller -wF moo_client.py to create exe
 
+from moe.check import moo_check
+#from moe.website.utils import format_substitutions
 import PySimpleGUI as sg
 
 unification_algorithms = ['Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR']
@@ -241,20 +243,35 @@ def Launcher():
         # the tool yet
         if goodInput:
             if function == 'tool':
-                window['-O1-'].update(result)
+              """
+                unif, chaining, sched, length_bound, knows_iv = result[0], result[1], result[2], result[3], result[4]
+                result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                response = ""
+                if result.secure:
+                  response = "MOO IS SECURE: "
+                  if result.syntactic_result:
+                    response += "PASSES SYNTACTIC CHECK"
+                  else:
+                    response += "NO UNIFIERS FOUND"
+                else:
+                  response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) " + \
+                    format_substitutions(result.collisions)
+                """
+              window['-O1-'].update(result)
             if function == 'simulation':
-                window['-O2-'].update(result)
+              window['-O2-'].update(result)
             if function == 'custom':
-                window['-O3-'].update(result)
+              window['-O3-'].update(result)
             if function == 'random':
-                window['-O4-'].update(result)
+              window['-O4-'].update(result)
 
         # menu button events create popups
         # my intent with these is for this to be a place to give users more information
         # about how to use each part of the tool, but any of this can be removed as desired
         if event == 'Tool':
             sg.Popup('Valid unification algorithm and chaining function pairs:\n\n'
-                     'Syntactic: Cipher Block Chaining, Propogating Cipher Block Chaining, Hash Cipher Block Chaining, Cipher Feedback, Output Feedback\n'
+                     'Syntactic: Cipher Block Chaining, Propogating Cipher Block Chaining, \
+                     Hash Cipher Block Chaining, Cipher Feedback, Output Feedback\n'
                      'F-Rooted P-XOR: Cipher Block Chaining, Propogating Cipher Block Chaining, Hash Cipher Block Chaining\n'
                      'XOR-Rooted P-XOR: Cipher Feedback, Output Feedback', title='Tool usage', line_width=200)
         if event == 'Simulation':
