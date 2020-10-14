@@ -9,6 +9,7 @@ from Unification.p_unif import p_unif
 from Unification.xor_rooted_unif import XOR_rooted_security
 import PySimpleGUI as sg
 import operator
+import sys
 
 unification_algorithms = ['Syntactic', 'F-Rooted P-XOR', 'XOR-Rooted P-XOR']
 unif_dict = {'Syntactic': p_syntactic, 'F-Rooted P-XOR': p_unif, 'XOR-Rooted P-XOR': XOR_rooted_security}
@@ -21,6 +22,9 @@ cf_dict = {'Cipher Block Chaining': 'cipher_block_chaining',
             'Output Feedback': 'output_feedback'}
 schedules = ['Every', 'End']
 scd_dict = {'Every': 'every', 'End': 'end'}
+
+# should the user press exit then the gui will not relaunch when closed
+_error = True
 
 # returns the window that will be the client gui
 # contains all of the formatting and other cool stuff that makes the gui window
@@ -198,6 +202,7 @@ def Launcher():
         popup = True
         goodInput = True
         function = ''
+
         # all tool tab events
         if event == 'Execute!':
             # check all input
@@ -257,7 +262,15 @@ def Launcher():
             if function == 'tool':
                 unif, chaining, sched, length_bound, knows_iv = \
                 unif_dict[result[0]], cf_dict[result[1]], scd_dict[result[2]], int(result[3]), result[4]
-                result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                try:
+                    result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                except ValueError as v_err:
+                    message = 'ValueError: ' + str(v_err)
+                    sg.Popup(message, title='VALUE ERROR')
+                    window.close()
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    window.close()
                 response = ""
                 if result.secure:
                     response = "MOO IS SECURE: "
@@ -312,4 +325,12 @@ def add_t(t1: tuple, t2: tuple) -> tuple:
     return tuple(map(operator.add, t1, t2))
 
 if __name__ == '__main__':
-    Launcher()
+    while _error:
+        try:
+            Launcher()
+            _error = False
+        except:
+            sg.Popup('Error: Relaunching gui')
+            _error = True
+
+
