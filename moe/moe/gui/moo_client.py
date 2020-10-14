@@ -2,6 +2,8 @@
 #pyinstaller moo_client.spec to create exe
 
 from moe.check import moo_check
+from moe.website.routes.custom import _temporary_parser
+from moe.custom import CustomMOO
 from Unification.unif import unif
 from Unification.p_syntactic import p_syntactic
 from Unification.ac_unif import ac_unify
@@ -262,6 +264,7 @@ def Launcher():
             if function == 'tool':
                 unif, chaining, sched, length_bound, knows_iv = \
                 unif_dict[result[0]], cf_dict[result[1]], scd_dict[result[2]], int(result[3]), result[4]
+                # check for security and catch exceptions
                 try:
                     result = moo_check(chaining, sched, unif, length_bound, knows_iv)
                 except ValueError as v_err:
@@ -286,7 +289,30 @@ def Launcher():
             if function == 'simulation':
                 window['-O2-'].update(result)
             if function == 'custom':
-                window['-O3-'].update(result)
+                chaining, unif, sched, length_bound, knows_iv = \
+                _temporary_parser(result[0]), unif_dict[result[1]], scd_dict[result[2]], int(result[3]), result[4]
+                chaining = CustomMOO(chaining).name
+                try:
+                    result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                except ValueError as v_err:
+                    message = 'ValueError: ' + str(v_err)
+                    sg.Popup(message, title='VALUE ERROR')
+                    window.close()
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    window.close()
+                response = ""
+                if result.secure:
+                    response = "MOO IS SECURE: "
+                    if result.syntactic_result:
+                        response += "PASSES SYNTACTIC CHECK"
+                    else:
+                        response += "NO UNIFIERS FOUND"
+                else:
+                    response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
+                    for i in result.collisions:
+                        response += str(i) + " "
+                window['-O3-'].update(response)
             if function == 'random':
                 window['-O4-'].update(result)
 
