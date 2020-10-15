@@ -34,6 +34,7 @@ def index():
         upper_bound=100
     )
     knows_iv = request.form.get('knows_iv') == "knows_iv"
+    invert_check = request.form.get('invert_check') == "invert_check"
     result = moo_check(chaining_moo, schedule, unif_choice, length_bound, knows_iv)
     response = ""
     if result.secure:
