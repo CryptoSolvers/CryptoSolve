@@ -24,7 +24,7 @@ class FilteredMOOGenerator(MOOGenerator):
       Whether or not a previous ciphertext must appear in a mode
       of operation.
     """
-    def __init__(self, max_history: int = 2, max_f_depth: int = 3,
+    def __init__(self, max_history: int = 4, max_f_depth: int = 3,
                  requires_iv: bool = False, requires_chaining: bool = False):
         MOOGenerator.__init__(self, max_history)
         self.max_history = max_history #maximum x for every i-x
@@ -64,6 +64,8 @@ def _f_depth(term: Term) -> int:
 
 def _satisfies_chaining(term: Term, max_history: int):
     """Checks to see if a preivous ciphertext is in the term."""
-    previous_ciphertexts = (Variable("C_{i-" + str(i + 1) + "}") for i in range(max_history))
-    previous_ciphertexts_in_term = (ci in term for ci in previous_ciphertexts)
+    previous_ciphertexts = [Variable("C[i-" + str(i + 1) + "]") for i in range(max_history)]
+    previous_ciphertexts_in_term = [(ci in term) for ci in previous_ciphertexts]
+    print(previous_ciphertexts)
+    print(previous_ciphertexts_in_term)
     return any(previous_ciphertexts_in_term)
