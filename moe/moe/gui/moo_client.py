@@ -3,6 +3,7 @@
 
 from moe.check import moo_check
 from moe.website.routes.custom import _temporary_parser
+from moe.website.routes.utils import restrict_to_range
 from moe.custom import CustomMOO
 from Unification.unif import unif
 from Unification.p_syntactic import p_syntactic
@@ -63,7 +64,7 @@ def make_window():
             [sg.InputCombo((chaining_functions), size=box_size)],
             [sg.InputCombo((schedules), size=box_size)],
             [sg.InputText('10', size=box_size)],
-            [sg.Checkbox('')]]
+            [sg.Checkbox('', pad=(0,0))]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
@@ -76,7 +77,7 @@ def make_window():
 
 
     #---------------------simulation page layout---------------------
-    m = [sg.Multiline('', size=add_t(ml_box_size, (0, 12)), pad=((10, 0),(10, 10)), key='-O2-')]
+    m = [sg.Multiline('', size=add_t(ml_box_size, (0, 10)), pad=((10, 0),(10, 10)), key='-O2-')]
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     # left hand side input titles
@@ -94,7 +95,8 @@ def make_window():
         sg.Column([], pad=(70,0))]],
         pad=(10,10))],
         [sg.Button('Execute!', pad=(10,0))],
-        output]
+        output,
+        [sg.Button('Next>>', pad=(10,0))]]
 
 
     #-----------------------custom page layout-----------------------
@@ -113,7 +115,7 @@ def make_window():
             [sg.InputCombo((unification_algorithms), size=box_size)],
             [sg.InputCombo((schedules), size=box_size)],
             [sg.InputText(('10'), size=box_size)],
-            [sg.Checkbox('')]]
+            [sg.Checkbox('', pad=(0,0))]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     custom_layout = [[sg.Frame('Settings', [[
@@ -146,10 +148,10 @@ def make_window():
             [sg.InputText('1', size=box_size)],
             [sg.InputText('6', size=box_size)],
             [sg.InputText('4', size=box_size)],            
-            [sg.Checkbox('')],
-            [sg.Checkbox('')],
-            [sg.Checkbox('')],
-            [sg.Checkbox('')]]
+            [sg.Checkbox('', pad=(0,0))],
+            [sg.Checkbox('', pad=(0,0))],
+            [sg.Checkbox('', pad=(0,0))],
+            [sg.Checkbox('', pad=(0,0))]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     random_layout = [[sg.Frame('Settings', [[
@@ -213,8 +215,11 @@ def Launcher():
             for i in range(start, stop):
                 result.append(values[i])
 
+        sim_next = False
         # all simulation tab events
-        if event == 'Execute!0':
+        if event == 'Execute!0' or event =='Next>>':
+            if event == 'Next>>':
+                sim_next = True
             # check all input
             start, stop = 6, 7
             function = 'simulation'
@@ -259,14 +264,15 @@ def Launcher():
                 result.append(values[i])
 
 
-        # if none of the input is blank then perform functions for the
-        # current page and display output to screen
-        # currently just outputs the input because I haven't implemented
-        # the tool yet
+        # if none of the input is blank / combinations are good
+        #then perform tool functions and output results to window
         if goodInput:
             if function == 'tool':
-                unif, chaining, sched, length_bound, knows_iv = \
-                unif_dict[result[0]], cf_dict[result[1]], scd_dict[result[2]], int(result[3]), result[4]
+                unif = unif_dict[result[0]]
+                chaining = cf_dict[result[1]]
+                sched = scd_dict[result[2]]
+                length_bound = restrict_to_range(int(result[3]), 0, 100)
+                knows_iv = result[4]
                 # check for security and catch exceptions
                 try:
                     result = moo_check(chaining, sched, unif, length_bound, knows_iv)
@@ -277,24 +283,19 @@ def Launcher():
                 except:
                     print("Unexpected error:", sys.exc_info()[0])
                     window.close()
-                response = ""
-                if result.secure:
-                    response = "MOO IS SECURE: "
-                    if result.syntactic_result:
-                        response += "PASSES SYNTACTIC CHECK"
-                    else:
-                        response += "NO UNIFIERS FOUND"
-                else:
-                    response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
-                    for i in result.collisions:
-                        response += str(i) + " "
+                response = get_response(result)
                 window['-O1-'].update(response)
             if function == 'simulation':
-                window['-O2-'].update(result)
+                if sim_next:
+                    window['-O2-'].update(str(result) + " next")
+                else:
+                    window['-O2-'].update(result)
             if function == 'custom':
-                chaining, unif, sched, length_bound, knows_iv = \
-                _temporary_parser(result[0]), unif_dict[result[1]], scd_dict[result[2]], int(result[3]), result[4]
-                chaining = CustomMOO(chaining).name
+                chaining = CustomMOO(_temporary_parser(result[0])).name
+                unif = unif_dict[result[1]]
+                sched = scd_dict[result[2]]
+                length_bound = restrict_to_range(int(result[3]), 0, 100)
+                knows_iv = result[4]
                 try:
                     result = moo_check(chaining, sched, unif, length_bound, knows_iv)
                 except ValueError as v_err:
@@ -304,17 +305,7 @@ def Launcher():
                 except:
                     print("Unexpected error:", sys.exc_info()[0])
                     window.close()
-                response = ""
-                if result.secure:
-                    response = "MOO IS SECURE: "
-                    if result.syntactic_result:
-                        response += "PASSES SYNTACTIC CHECK"
-                    else:
-                        response += "NO UNIFIERS FOUND"
-                else:
-                    response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
-                    for i in result.collisions:
-                        response += str(i) + " "
+                response = get_response(result)
                 window['-O3-'].update(response)
             if function == 'random':
                 window['-O4-'].update(result)
@@ -348,6 +339,20 @@ def valid_moo_unif_pair(unif_choice: str, cf_choice: str) -> bool:
     else:
 	    supported_chaining = ['Cipher Feedback', 'Output Feedback']
     return cf_choice in supported_chaining
+
+def get_response(result) -> str:
+    response = ""
+    if result.secure:
+        response = "MOO IS SECURE: "
+        if result.syntactic_result:
+            response += "PASSES SYNTACTIC CHECK"
+        else:
+            response += "NO UNIFIERS FOUND"
+    else:
+        response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
+        for i in result.collisions:
+            response += str(i) + " "
+    return response
 
 # tuple addition
 def add_t(t1: tuple, t2: tuple) -> tuple:
