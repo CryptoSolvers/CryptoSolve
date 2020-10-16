@@ -26,7 +26,7 @@ class FilteredMOOGenerator(MOOGenerator):
     """
     def __init__(self, max_history: int = 4, max_f_depth: int = 3,
                  requires_iv: bool = False, requires_chaining: bool = False):
-        MOOGenerator.__init__(self, max_history)
+        MOOGenerator.__init__(self, max_history, max_f_depth)
         self.max_history = max_history #maximum x for every i-x
         self.max_f_depth = max_f_depth #maximum number of nested f's
         self.requires_iv = requires_iv
@@ -66,6 +66,4 @@ def _satisfies_chaining(term: Term, max_history: int):
     """Checks to see if a preivous ciphertext is in the term."""
     previous_ciphertexts = [Variable("C[i-" + str(i + 1) + "]") for i in range(max_history)]
     previous_ciphertexts_in_term = [(ci in term) for ci in previous_ciphertexts]
-    print(previous_ciphertexts)
-    print(previous_ciphertexts_in_term)
     return any(previous_ciphertexts_in_term)
