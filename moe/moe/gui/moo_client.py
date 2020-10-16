@@ -1,5 +1,5 @@
 #gui prototype
-#pyinstaller moo_client.spec to create exe
+#pyinstaller -F moo_client.spec to create exe
 
 from moe.check import moo_check
 from moe.website.routes.custom import _temporary_parser
@@ -130,25 +130,25 @@ def make_window():
     output = [sg.Frame('Output', [m], pad=(10, 10))]
 
     # left hand side input titles
-    r_left_column = [[sg.Text('Chaining Required:')],
-            [sg.Text('IV Required:')],
-            [sg.Text('Encryption F-Bound:')],
-            [sg.Text('Based on number of MOO to Generate:')],
-            [sg.Text('Test Each MOO for Security:')],
-            [sg.Text('Unification Algorithm:')],
+    r_left_column = [[sg.Text('Unification Algorithm:')],
             [sg.Text('Schedule:')],
             [sg.Text('Session Length Bound:')],
+            [sg.Text('Encryption F-Bound:')],
+            [sg.Text('Based on number of MOO to Generate:')],
+            [sg.Text('Chaining Required:')],
+            [sg.Text('IV Required:')],
+            [sg.Text('Test Each MOO for Security:')],
             [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
-    r_right_column = [[sg.InputCombo(('Yes', 'No'), size=box_size)],
-            [sg.InputCombo(('Yes', 'No'), size=box_size)],
-            [sg.InputText('6', size=box_size)],
-            [sg.InputText('4', size=box_size)],
-            [sg.InputCombo(('Yes', 'No'), size=box_size)],
-            [sg.InputCombo((unification_algorithms), size=box_size)],
+    r_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
             [sg.InputCombo((schedules), size=box_size)],
             [sg.InputText('1', size=box_size)],
+            [sg.InputText('6', size=box_size)],
+            [sg.InputText('4', size=box_size)],            
+            [sg.Checkbox('')],
+            [sg.Checkbox('')],
+            [sg.Checkbox('')],
             [sg.Checkbox('')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
@@ -233,10 +233,11 @@ def Launcher():
         # all random tab events
         if event == 'Execute!2':
             #check all input
-            start, stop = 13, 21
+            start, mid, stop = 13, 17, 21
             function = 'random'
-            for i in range(start, stop):
+            for i in range(start, mid):
                 result.append(values[i])
+            result.append(values[mid])
 
         # check if any of the inputs are blank
         if all(result) is not True:
@@ -251,9 +252,11 @@ def Launcher():
 
         # these pages have the checkbox input which is default false, which messes
         # up the check for blank inputs, so here we add those values back in
-        if function == 'tool' or function == 'custom' or function == 'random':
+        if function == 'tool' or function == 'custom':
             result.append(values[stop])
-
+        elif function == 'random':
+            for i in range(mid+1, stop+1):
+                result.append(values[i])
 
 
         # if none of the input is blank then perform functions for the
