@@ -78,6 +78,8 @@ def Inductive(cls=None):
     @functools.wraps(cls)
     def wrap(cls):
         cls.sort = Sort(cls.__name__)
+        cls.rules = deepcopy(cls.rules)
+        cls.definitions = deepcopy(cls.definitions)
         for name, term in cls.__dict__.items():
             # Ignore private, already defined, and custom methods
             if '_' in name \
