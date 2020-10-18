@@ -32,7 +32,7 @@ class RewriteSystem:
         if len(self.rules) == 0:
             return "{}"
         if len(self.rules) == 1:
-            return "{ %s }" % (str(self.rules[0]))
+            return f" {next(iter(self.rules))} "
         str_repr = "{\n"
         i = 1
         for i, rule in enumerate(self.rules):
@@ -42,7 +42,7 @@ class RewriteSystem:
         str_repr += "\n}"
         return str_repr
 
-def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Optional[Term]:
+def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Term:
     """
     Returns the normal form of an element
     given a set of convergent term rewrite rules.
