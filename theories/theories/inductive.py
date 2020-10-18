@@ -22,14 +22,14 @@ class TheorySystem:
     definitions: Dict[Function, RewriteSystem] = dict()
 
     @classmethod
-    def simplify(cls, x: Term) -> Optional[Term]:
+    def simplify(cls, x: Term, bound: int = -1) -> Optional[Term]:
         """
         Simplify a term using the convergent
         rewrite rules known.
         """
         if not isinstance(x, FuncTerm):
-            raise ValueError(f"simplify function expects a FuncTerm.")
-        return normal(x, cls.rules)
+            raise ValueError("simplify function expects a FuncTerm.")
+        return normal(x, cls.rules, bound)
 
     @classmethod
     def signature(cls) -> List[Term]:
