@@ -6,82 +6,133 @@ that can be used to simplify a nat.
 from copy import deepcopy
 from algebra import Constant, Function, FuncTerm, Term, Variable
 from rewrite import RewriteRule, RewriteSystem
-from .inductive import Inductive
+from .inductive import Inductive, TheorySystem
+from .boolean import Boolean
 
 __all__ = ['Nat']
 
 @Inductive
-class Nat:
-    # Core Definition
+class Nat(TheorySystem):
     zero = Constant("0")
     S = Function("S", 1)
 
-    # Unary Functions
-    dec = Function("dec", 1)
+    @classmethod
+    def from_int(cls, x: int) -> Term:
+        """Converts an integer to a nat."""
+        result = deepcopy(Nat.zero)
+        for _ in range(x):
+            result = Nat.S(result)
+        return result
 
-    # Binary Functions
-    plus = Function("plus", 2)
-    minus = Function("minus", 2)
-    mult = Function("mult", 2)
-    exp = Function("exp", 2)
-
-##
-# Rules
-##
+    @classmethod
+    def to_int(cls, x: Term) -> int:
+        """Converts a nat to an int."""
+        if not isinstance(x, FuncTerm) or x.sort != Nat.sort:
+            raise ValueError("to_int function expects a nat.")
+        if x == Nat.zero:
+            return 0
+        if isinstance(x, FuncTerm) and x.function == Nat.S:
+            return 1 + cls.to_int(x.arguments[0])
+        raise ValueError("to_int: Only accepts signature {0, S}")
 
 # Variables for later rules
 _n = Variable("n", sort=Nat.sort)
 _m = Variable("m", sort=Nat.sort)
 
-# Dec Rules
-Nat.add_rules({
-    RewriteRule(Nat.dec(Nat.S(_n)), _n),
-    RewriteRule(Nat.dec(Nat.zero), Nat.zero)
-})
+# Decrement
+dec = Function("dec", 1, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    dec,
+    RewriteSystem({
+        RewriteRule(dec(Nat.S(_n)), _n),
+        RewriteRule(dec(Nat.zero), Nat.zero)
+    })
+)
 
-# Plus Rules
-Nat.add_rules({
-    RewriteRule(Nat.plus(Nat.zero, _n), _n),
-    RewriteRule(Nat.plus(Nat.S(_n), _m), Nat.S(Nat.plus(_n, _m)))
-})
+even = Function("even", 1, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    even,
+    RewriteSystem({
+        RewriteRule(even(Nat.zero), Boolean.trueb),
+        RewriteRule(even(Nat.S(Nat.zero)), Boolean.falseb),
+        RewriteRule(even(Nat.S(Nat.S(_n))), even(_n))
+    })
+)
 
-# Minus Rules
-Nat.add_rules({
-    RewriteRule(Nat.minus(Nat.zero, _n), Nat.zero),
-    RewriteRule(Nat.minus(_n, Nat.zero), _n),
-    RewriteRule(Nat.minus(Nat.S(_n), Nat.S(_m)), Nat.minus(_n, _m))
-})
+odd = Function("odd", 1, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    odd,
+    RewriteSystem({
+        RewriteRule(odd(_n), Boolean.neg(even(_n)))
+    })
+)
 
-# Mult Rules
-Nat.add_rules({
-    RewriteRule(Nat.mult(Nat.zero, _m), Nat.zero),
-    RewriteRule(Nat.mult(Nat.S(_n), _m), Nat.plus(_m, Nat.mult(_n, _m)))
-})
+# Nat Equality Check
+nat_eq = Function("nat_eq", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    nat_eq,
+    RewriteSystem({
+        RewriteRule(nat_eq(Nat.zero, Nat.zero), Boolean.trueb),
+        RewriteRule(nat_eq(Nat.zero, Nat.S(_m)), Boolean.falseb),
+        RewriteRule(nat_eq(Nat.S(_n), Nat.zero), Boolean.falseb),
+        RewriteRule(nat_eq(Nat.S(_n), Nat.S(_m)), nat_eq(_n, _m))
+    })
+)
+
+# Less than or equal to check
+nat_le = Function("nat_le", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    nat_le,
+    RewriteSystem({
+        RewriteRule(nat_le(Nat.zero, Nat.S(_m)), Boolean.trueb),
+        RewriteRule(nat_le(Nat.S(_n), Nat.zero), Boolean.falseb),
+        RewriteRule(nat_le(Nat.S(_n), Nat.S(_m)), nat_le(_n, _m))
+    })
+)
+
+plus = Function("plus", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    plus,
+    RewriteSystem({
+        RewriteRule(plus(Nat.zero, _n), _n),
+        RewriteRule(plus(Nat.S(_n), _m), Nat.S(plus(_n, _m)))
+    })
+)
+
+minus = Function("minus", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    minus,
+    RewriteSystem({
+        RewriteRule(minus(Nat.zero, _n), Nat.zero),
+        RewriteRule(minus(_n, Nat.zero), _n),
+        RewriteRule(minus(Nat.S(_n), Nat.S(_m)), minus(_n, _m))
+    })
+)
+
+mult = Function("mult", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    mult,
+    RewriteSystem({
+        RewriteRule(mult(Nat.zero, _m), Nat.zero),
+        RewriteRule(mult(Nat.S(_n), _m), plus(_m, mult(_n, _m)))
+    })
+)
+
+exp = Function("exp", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    exp,
+    RewriteSystem({
+        RewriteRule(exp(_n, Nat.zero), Nat.S(Nat.zero)),
+        RewriteRule(exp(_n, Nat.S(_m)), mult(_n, exp(_n, _m)))
+    })
+)
 
 
-# Exp Rules
-Nat.add_rules({
-    RewriteRule(Nat.exp(_n, Nat.zero), Nat.S(Nat.zero)),
-    RewriteRule(Nat.exp(_n, Nat.S(_m)), Nat.mult(_n, Nat.exp(_n, _m)))
-})
-
-
-def from_int(x: int) -> Term:
-    """Converts an integer to a nat."""
-    result = deepcopy(Nat.zero)
-    for _ in range(x):
-        result = Nat.S(result)
-    return result
-
-def to_int(x: Term) -> int:
-    """Converts a nat to an int."""
-    if not isinstance(x, FuncTerm) or x.sort != Nat.sort:
-        raise ValueError("to_int function expects a nat.")
-    if x == Nat.zero:
-        return 0
-    if isinstance(x, FuncTerm) and x.function == Nat.S:
-        return 1 + to_int(x.arguments[0])
-    raise ValueError("to_int: Only accepts signature {0, S}")
-
-setattr(Nat, 'from_int', from_int)
-setattr(Nat, 'to_int', to_int)
+factorial = Function("factorial", 1, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    factorial,
+    RewriteSystem({
+        RewriteRule(factorial(Nat.zero), Nat.S(Nat.zero)),
+        RewriteRule(factorial(Nat.S(_n)), mult(Nat.S(_n), factorial(_n)))
+    })
+)

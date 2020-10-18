@@ -6,57 +6,57 @@ of them.
 from copy import deepcopy
 from algebra import Constant, Function, FuncTerm, Term, Variable
 from rewrite import RewriteRule, RewriteSystem
-from .inductive import Inductive
+from .inductive import Inductive, TheorySystem
 
 __all__ = ['Boolean']
 
 @Inductive
-class Boolean:
-    # Core Definition
+class Boolean(TheorySystem):
     trueb = Constant("true")
     falseb = Constant("false")
 
-    # Unary Functions
-    neg = Function("neg", 1)
+    @classmethod
+    def from_bool(cls, x: bool) -> Term:
+        """Converts a bool to a Boolean."""
+        return deepcopy(Boolean.trueb if x else Boolean.falseb)
 
-    # Binary Functions
-    andb = Function("andb", 2)
-    orb = Function("orb", 2)
+    @classmethod
+    def to_bool(cls, x: Term) -> bool:
+        """Converts a Boolean to an bool."""
+        if not isinstance(x, FuncTerm) or x != Boolean.trueb or x != Boolean.falseb:
+            raise ValueError("to_bool function expects a simplified Boolean.")
+        return x == Boolean.trueb
 
-##
-# Rules
-##
 
 # Variables for later rules
 _n = Variable("n", sort=Boolean.sort)
 
-# Negation Rules
-Boolean.add_rules({
-    RewriteRule(Boolean.neg(Boolean.trueb), Boolean.falseb),
-    RewriteRule(Boolean.neg(Boolean.falseb), Boolean.trueb)
-})
+# Negation
+neg = Function("neg", 1, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    neg,
+    RewriteSystem({
+        RewriteRule(neg(Boolean.trueb), Boolean.falseb),
+        RewriteRule(neg(Boolean.falseb), Boolean.trueb)
+    })
+)
 
-# And Rules
-Boolean.add_rules({
-    RewriteRule(Boolean.andb(Boolean.trueb, _n), _n),
-    RewriteRule(Boolean.andb(Boolean.falseb, _n), Boolean.falseb)
-})
+# Boolean And
+andb = Function("andb", 2, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    andb,
+    RewriteSystem({
+        RewriteRule(andb(Boolean.trueb, _n), _n),
+        RewriteRule(andb(Boolean.falseb, _n), Boolean.falseb)
+    })
+)
 
-# Or Rules
-Boolean.add_rules({
-    RewriteRule(Boolean.orb(Boolean.trueb, _n), Boolean.trueb),
-    RewriteRule(Boolean.orb(Boolean.falseb, _n), _n)
-})
-
-def from_bool(x: bool) -> Term:
-    """Converts a bool to a Boolean."""
-    return Boolean.trueb if x else Boolean.falseb
-
-def to_bool(x: Term) -> bool:
-    """Converts a Boolean to an bool."""
-    if not isinstance(x, FuncTerm) or x != Boolean.trueb or x != Boolean.falseb:
-        raise ValueError("to_bool function expects a simplified Boolean.")
-    return x == Boolean.trueb
-
-setattr(Boolean, 'from_bool', from_bool)
-setattr(Boolean, 'to_bool', to_bool)
+# Boolean Or
+orb = Function("orb", 2, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    orb,
+    RewriteSystem({
+        RewriteRule(orb(Boolean.trueb, _n), Boolean.trueb),
+        RewriteRule(orb(Boolean.falseb, _n), _n)
+    })
+)
