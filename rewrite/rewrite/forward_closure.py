@@ -120,7 +120,7 @@ def forward_closure(rs: RewriteSystem, bound: int = 1) -> Optional[RewriteSystem
 
     for _ in range(bound):
         # Start FOV
-        new_rules = RewriteSystem({})
+        new_rules = RewriteSystem(set())
         for rule, initial_rule in zip(current_new_rules, initial_rules):
             for position in fpos(rule.conclusion):
                 ov = overlap(rule, initial_rule, rs, position)

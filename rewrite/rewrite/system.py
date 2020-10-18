@@ -4,7 +4,7 @@ a set of rewrite rules and operations on them.
 """
 from copy import deepcopy
 from typing import Set, Optional
-from algebra import Term
+from algebra import SortMismatch, Term
 from .rule import RewriteRule
 
 __all__ = ['RewriteSystem', 'normal']
@@ -19,7 +19,7 @@ class RewriteSystem:
 
     def append(self, rule):
         """Add a single rule to the rewrite system"""
-        self.rules.append(rule)
+        self.rules.add(rule)
 
     def extend(self, system):
         """Add a list of rules to a rewrite system"""
@@ -73,7 +73,10 @@ def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Opti
 
         # Apply the first rewrite rule that works
         for rule in rewrite_rules:
-            new_elements = rule.apply(element)
+            try:
+                new_elements = rule.apply(element)
+            except SortMismatch:
+                continue
             if new_elements is not None:
                 element = next(iter(new_elements.values()))
                 element_changed = True
