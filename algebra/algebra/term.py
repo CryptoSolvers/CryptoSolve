@@ -7,6 +7,7 @@ This library also contains helper functions that can be useful
 in algorithms that operate on terms.
 """
 from copy import deepcopy
+from functools import partial
 from typing import Union, List, Set, overload, Optional, Any
 from typing_extensions import Literal
 
@@ -66,6 +67,12 @@ class Sort:
         return self.name == x.name
     def __str__(self):
         return self.name
+    def __deepcopy__(self, memo):
+        new_sort = Sort(deepcopy(self.name))
+        memo[id(self)] = new_sort
+        dcopy = partial(deepcopy, memo=memo)
+        new_sort.parents = set(map(dcopy, self.parents))
+        return new_sort
 
 class Function:
     """
