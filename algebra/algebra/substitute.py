@@ -3,11 +3,14 @@ This module is responsible for describing substitutions
 which are mappings between variables and terms, as well
 as the application of them.
 """
-from typing import Set, List
+from typing import List, Set, Tuple
 from copy import deepcopy
 from .term import Variable, Constant, FuncTerm, Term
 
-__all__ = ['SubstituteTerm']
+__all__ = ['SortMismatch', 'SubstituteTerm']
+
+class SortMismatch(Exception):
+    """Raise when there is a sort mismatch."""
 
 class SubstituteTerm:
     """
@@ -24,7 +27,7 @@ class SubstituteTerm:
     a
     """
     def __init__(self):
-        self.subs: Set[Variable, Term] = set()
+        self.subs: Set[Tuple[Variable, Term]] = set()
 
     def add(self, variable: Variable, term: Term):
         """
@@ -53,7 +56,7 @@ class SubstituteTerm:
             isinstance(term, Variable)
 
         if variable.sort != term.sort:
-            raise ValueError("Substitution must preserve sorts.")
+            raise SortMismatch("Substitution must preserve sorts.")
 
         # Check to see if what we're adding already exists in the substitution set
         if len(self.subs) > 0:
@@ -109,6 +112,16 @@ class SubstituteTerm:
 
     def __len__(self):
         return len(self.subs)
+
+    def __deepcopy__(self, memo):
+        subs = set()
+        for variable, term in self.subs:
+            new_variable = deepcopy(variable)
+            new_term = deepcopy(term)
+            subs.add((new_variable, new_term))
+        subterm = SubstituteTerm()
+        subterm.subs = subs
+        return subterm
 
     def __str__(self):
         if len(self.subs) == 0:

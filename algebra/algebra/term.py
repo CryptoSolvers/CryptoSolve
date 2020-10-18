@@ -6,7 +6,7 @@ constants, and functions and their combinations to make terms.
 This library also contains helper functions that can be useful
 in algorithms that operate on terms.
 """
-from abc import ABC, abstractmethod # Abstract Base Class
+from copy import deepcopy
 from typing import Union, List, Set, overload, Optional, Any
 from typing_extensions import Literal
 
@@ -163,6 +163,8 @@ class Variable:
         return hash(self.symbol)
     def __eq__(self, x):
         return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
+    def __deepcopy__(self, memo):
+        return Variable(self.symbol, self.sort)
 
 class FuncTerm:
     """
@@ -221,6 +223,9 @@ class FuncTerm:
             if isinstance(arg, FuncTerm) and arg.function.arity > 0:
                 inside = inside or (term in arg)
         return inside
+    def __deepcopy__(self, memo):
+        arguments = map(deepcopy, self.arguments)
+        return self.function(*arguments)
 
 
 class Constant(FuncTerm):
@@ -253,6 +258,8 @@ class Constant(FuncTerm):
     @symbol.setter
     def symbol(self, s):
         self.function.symbol = s
+    def __deepcopy__(self, memo):
+        return Constant(self.symbol, self.sort)
 
 
 Term = Union[Variable, Constant, FuncTerm]
