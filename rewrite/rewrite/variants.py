@@ -3,7 +3,7 @@ The variants module is responsible for computing variants
 and identifying some properties about them.
 """
 from typing import List, Dict, Tuple, Optional
-from algebra import Term
+from algebra import Term, SortMismatch
 from .rule import RewriteRule, Position
 from .system import RewriteSystem
 
@@ -66,14 +66,18 @@ class Variants:
         # Apply each rewrite rule to the terms in the last branch
         for rule in self.rules:
             for t in self.tree[last_branch_index].keys():
-                new_terms = rule.apply(t)
-                if new_terms is not None:
-                    for pos, new_t in new_terms.items():
-                        # Check that the result is not already in the tree
-                        # If new, then save the sequence of rewrite rules
-                        # used to produce the term.
-                        if new_t not in self:
-                            branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
+                try:
+                    new_terms = rule.apply(t)
+                except SortMismatch:
+                    continue
+                if new_terms is None:
+                    continue
+                for pos, new_t in new_terms.items():
+                    # Check that the result is not already in the tree
+                    # If new, then save the sequence of rewrite rules
+                    # used to produce the term.
+                    if new_t not in self:
+                        branch[new_t] = self.tree[last_branch_index][t] + [(rule, pos)]
         return branch
 
     def __next__(self):

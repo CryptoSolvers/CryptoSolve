@@ -1,13 +1,19 @@
-import theories.nat as nat
+from theories.nat import Nat
 
-one = nat.S(nat.zero)
-four = nat.S(nat.S(nat.S(nat.S(nat.zero))))
+one = Nat.S(Nat.zero)
+four = Nat.S(Nat.S(Nat.S(Nat.S(Nat.zero))))
 
-print("Four is", nat.from_int(4))
-assert nat.from_int(4) == four
+print("Four is", Nat.from_int(4))
+assert Nat.from_int(4) == four
 
-print("S(0) is", nat.to_int(one))
-assert nat.to_int(one) == 1
+print("S(0) is", Nat.to_int(one))
+assert Nat.to_int(one) == 1
 
-print("dec(S(0)) is", nat.simplify(nat.dec(one)))
-assert nat.simplify(nat.dec(one)) == nat.zero
+print("dec(S(0)) is", Nat.simplify(Nat.dec(one)))
+assert Nat.simplify(Nat.dec(one)) == Nat.zero
+
+three = Nat.from_int(3)
+two = Nat.from_int(2)
+result = Nat.simplify(Nat.mult(three, two))
+print("mul(S(S(S(0))), S(S(0))) is", result)
+assert result == Nat.from_int(6)

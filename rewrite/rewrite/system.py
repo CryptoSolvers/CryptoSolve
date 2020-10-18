@@ -3,8 +3,8 @@ This module is responsible for rewrite systems,
 a set of rewrite rules and operations on them.
 """
 from copy import deepcopy
-from typing import Set, Optional
-from algebra import Term
+from typing import Set
+from algebra import SortMismatch, Term
 from .rule import RewriteRule
 
 __all__ = ['RewriteSystem', 'normal']
@@ -19,7 +19,7 @@ class RewriteSystem:
 
     def append(self, rule):
         """Add a single rule to the rewrite system"""
-        self.rules.append(rule)
+        self.rules.add(rule)
 
     def extend(self, system):
         """Add a list of rules to a rewrite system"""
@@ -32,7 +32,7 @@ class RewriteSystem:
         if len(self.rules) == 0:
             return "{}"
         if len(self.rules) == 1:
-            return "{ %s }" % (str(self.rules[0]))
+            return f" {next(iter(self.rules))} "
         str_repr = "{\n"
         i = 1
         for i, rule in enumerate(self.rules):
@@ -42,7 +42,7 @@ class RewriteSystem:
         str_repr += "\n}"
         return str_repr
 
-def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Optional[Term]:
+def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Term:
     """
     Returns the normal form of an element
     given a set of convergent term rewrite rules.
@@ -73,7 +73,10 @@ def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Opti
 
         # Apply the first rewrite rule that works
         for rule in rewrite_rules:
-            new_elements = rule.apply(element)
+            try:
+                new_elements = rule.apply(element)
+            except SortMismatch:
+                continue
             if new_elements is not None:
                 element = next(iter(new_elements.values()))
                 element_changed = True

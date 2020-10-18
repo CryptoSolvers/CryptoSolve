@@ -41,7 +41,6 @@ def freeze(term):
     >>> freeze(f(x))
     f(x)
     """
-    term = deepcopy(term)
     if isinstance(term, Variable):
         return Constant(term.symbol, term.sort)
     elif isinstance(term, FuncTerm):
@@ -156,11 +155,11 @@ class RewriteRule:
         return self.conclusion * sigma if sigma is not False else None
 
     def _apply_pos(self, term: Term, pos: Position) -> Optional[Term]:
-        term = deepcopy(term)
         if pos == '':
             return self._match(term)
 
         # Recurse down to appropriate position
+        term = deepcopy(term)
         if isinstance(term, Constant) or isinstance(term, Variable):
             raise ValueError("Position " + pos + " is not valid for term " + str(term))
         index = int(pos[0])
@@ -199,6 +198,12 @@ class RewriteRule:
     def __eq__(self, other):
         return self.hypothesis == other.hypothesis and self.conclusion == other.conclusion
 
+    def __deepcopy__(self, memo):
+        return RewriteRule(
+            deepcopy(self.hypothesis),
+            deepcopy(self.conclusion),
+            self.unif_algo
+        )
 
 def converse(rule: RewriteRule) -> RewriteRule:
     """
