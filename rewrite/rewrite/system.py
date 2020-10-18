@@ -3,7 +3,7 @@ This module is responsible for rewrite systems,
 a set of rewrite rules and operations on them.
 """
 from copy import deepcopy
-from typing import Set, Optional
+from typing import Set
 from algebra import SortMismatch, Term
 from .rule import RewriteRule
 
