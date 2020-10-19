@@ -10,6 +10,7 @@ from Unification.p_syntactic import p_syntactic
 from Unification.ac_unif import ac_unify
 from Unification.p_unif import p_unif
 from Unification.xor_rooted_unif import XOR_rooted_security
+from moe.filtered_generator import FilteredMOOGenerator
 import PySimpleGUI as sg
 import operator
 import sys
@@ -44,9 +45,9 @@ def make_window():
 
     sg.theme('UMW')
 
-    # size of all input boxes
     box_size = (30, 1) #for all input boxes
     ml_box_size = (70, 15) #for output boxes
+    c_pad = (0, 3) #padding amount for checkboxes
 
     #------------------------tool page layout------------------------
     m = [sg.Multiline('', size=add_t(ml_box_size, (0, 7)), pad=((10, 0),(10, 10)), key='-O1-')]#output box1
@@ -64,7 +65,7 @@ def make_window():
             [sg.InputCombo((chaining_functions), size=box_size)],
             [sg.InputCombo((schedules), size=box_size)],
             [sg.InputText('10', size=box_size)],
-            [sg.Checkbox('', pad=(0,0))]]
+            [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
@@ -115,7 +116,7 @@ def make_window():
             [sg.InputCombo((unification_algorithms), size=box_size)],
             [sg.InputCombo((schedules), size=box_size)],
             [sg.InputText(('10'), size=box_size)],
-            [sg.Checkbox('', pad=(0,0))]]
+            [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     custom_layout = [[sg.Frame('Settings', [[
@@ -148,10 +149,10 @@ def make_window():
             [sg.InputText('1', size=box_size)],
             [sg.InputText('6', size=box_size)],
             [sg.InputText('4', size=box_size)],            
-            [sg.Checkbox('', pad=(0,0))],
-            [sg.Checkbox('', pad=(0,0))],
-            [sg.Checkbox('', pad=(0,0))],
-            [sg.Checkbox('', pad=(0,0))]]
+            [sg.Checkbox('', pad=c_pad)],
+            [sg.Checkbox('', pad=c_pad)],
+            [sg.Checkbox('', pad=c_pad)],
+            [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     random_layout = [[sg.Frame('Settings', [[
@@ -308,7 +309,38 @@ def Launcher():
                 response = get_response(result)
                 window['-O3-'].update(response)
             if function == 'random':
-                window['-O4-'].update(result)
+                unif = unif_dict[result[0]]
+                sched = scd_dict[result[1]]
+                length_bound = restrict_to_range(int(result[2]), 0, 100)
+                f_bound = int(result[3])
+                moo_bound = restrict_to_range(int(result[4]), 1, 100)
+                c_req = result[5]
+                iv_req = result[6]
+                sec_req = result[7]
+                knows_iv = result[8]
+
+                # generate random moos
+                filtered_gen = FilteredMOOGenerator(1, f_bound, iv_req, c_req)
+                moo_list = (next(filtered_gen) for i in range(moo_bound))
+
+                # Check security of the modes of operation
+                moo_safe_list: List[Term] = list()
+                for random_moo_term in moo_list:
+                    print("Considering...", random_moo_term)
+                    cm = CustomMOO(random_moo_term)
+                    moo_result = moo_check(cm.name, sched, unif, length_bound, knows_iv)
+                    if moo_result.secure:
+                        moo_safe_list.append(random_moo_term)
+
+                if len(moo_safe_list) == 0:
+                    response = "No same MOOs found. The following MOO(s) were tested: \n"
+                    for term in moo_list:
+                        response += str(term) + "\n"
+                else:
+                    response = "Safe MOO(s) found. The following MOO(s) pass the security test: \n"
+                    for term in moo_safe_list:
+                        response += str(term) + "\n"
+                window['-O4-'].update(response)
 
         # menu button events create popups
         # my intent with these is for this to be a place to give users more information
