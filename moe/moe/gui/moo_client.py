@@ -5,12 +5,14 @@ from moe.check import moo_check
 from moe.website.routes.custom import _temporary_parser
 from moe.website.routes.utils import restrict_to_range
 from moe.custom import CustomMOO
+from moe.program import MOOProgram
+from moe.filtered_generator import FilteredMOOGenerator
 from Unification.unif import unif
 from Unification.p_syntactic import p_syntactic
 from Unification.ac_unif import ac_unify
 from Unification.p_unif import p_unif
 from Unification.xor_rooted_unif import XOR_rooted_security
-from moe.filtered_generator import FilteredMOOGenerator
+from algebra import Variable
 import PySimpleGUI as sg
 import operator
 import sys
@@ -194,6 +196,7 @@ def make_window():
 # contains all of the input that are in the window
 def Launcher():
     window = make_window()
+    moo_session = None
     # event loop
     while True:
         event, values = window.read()       # type: str, dict
@@ -287,10 +290,22 @@ def Launcher():
                 response = get_response(result)
                 window['-O1-'].update(response)
             if function == 'simulation':
-                if sim_next:
-                    window['-O2-'].update(str(result) + " next")
-                else:
-                    window['-O2-'].update(result)
+                chaining = cf_dict[result[0]]
+                sched = scd_dict[result[1]]
+                if sim_next:# continuing session
+                    if moo_session is None:
+                        window['-O2-'].update("Begin session first!")
+                    else:
+                        plaintext = Variable("x_" + str(moo_session.iteration))
+                        ciphertext = moo_session.rcv_block(plaintext)
+                        response = str(ciphertext) if ciphertext is not None else "Sent " + str(plaintext)
+                        window['-O2-'].update(response)
+                else:# creating the session
+                    moo_session = MOOProgram(chaining, sched)
+                    plaintext = Variable("x_" + str(moo_session.iteration))
+                    ciphertext = moo_session.rcv_block(plaintext)
+                    response = str(ciphertext) if ciphertext is not None else "Sent " + str(plaintext)
+                    window['-O2-'].update(response)
             if function == 'custom':
                 chaining = CustomMOO(_temporary_parser(result[0])).name
                 unif = unif_dict[result[1]]
