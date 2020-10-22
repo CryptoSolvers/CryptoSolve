@@ -10,12 +10,13 @@ from xor.structure import Zero
 from .program import MOOProgram
 from .collisions import find_collision
 from .syntactic_check import moo_quick_syntactic_check, moo_depth_random_check
+from .invertibility import InvertMOO
 
 __all__ = ['moo_check']
 
 def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'every',
               unif_algo: Callable = p_unif, length_bound: int = 10,
-              knows_iv: bool = True) -> 'MOOCheckResult':
+              knows_iv: bool = True, invert_check: bool = False) -> 'MOOCheckResult':
     """
     Simulates a MOOProgram interaction and checks if any conditions for security fails.
     Currently it checks syntactically and for collisions.
@@ -40,8 +41,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     known_terms: List[Term] = [xor_zero, program.nonces[0]] if knows_iv else [xor_zero]
     ciphertexts_received: List[Term] = list()
     result = None
-
+    invertible = False
     # Start interactions
+    
     for i in range(1, length_bound + 1):
         plaintext = Variable(f"x_{i}")
         constraints[plaintext] = deepcopy(known_terms)
@@ -50,13 +52,18 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         result = program.rcv_block(plaintext)
         if result is not None:
             ciphertext = unravel(result.message, result.substitutions)
+            
+            #check for invertibility
+            if invert_check and i == 1:
+                invertible = InvertMOO(ciphertext, f"x_{i}", knows_iv)
 
             # Check for syntactic security
             if len(ciphertexts_received) > 1:
                 last_ciphertext = ciphertexts_received[-1]
                 if moo_quick_syntactic_check(last_ciphertext, ciphertext, plaintext) or \
                    moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return MOOCheckResult(True, None)
+                    return MOOCheckResult(True, None, invertable)
+            
 
             # Check for collisions
             collisions = search_for_collision(
@@ -66,7 +73,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
                 unif_algo
             )
             if any_unifiers(collisions):
-                return MOOCheckResult(False, collisions)
+                return MOOCheckResult(False, collisions, invertible)
 
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
@@ -80,11 +87,11 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         ciphertext = unravel(last_result.message, last_result.substitutions)
         collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
         if any_unifiers(collisions):
-            return MOOCheckResult(False, collisions)
+            return MOOCheckResult(False, collisions, invertible)
 
     # If we got this far then no unifiers were found
     print("No unifiers found.")
-    return MOOCheckResult(False, None)
+    return MOOCheckResult(False, None, invertible)
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
@@ -136,6 +143,7 @@ class MOOCheckResult:
     """
     syntactic_result: bool
     collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
+    invert_result: bool
 
     @property
     def secure(self) -> bool:

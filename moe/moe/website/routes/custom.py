@@ -42,7 +42,7 @@ def custom():
     )
     knows_iv = request.form.get('knows_iv') == "knows_iv"
     invert_check = request.form.get('invert_check') == "invert_check"
-    result = moo_check(registered_moo.name, schedule, unif_choice, length_bound, knows_iv)
+    result = moo_check(registered_moo.name, schedule, unif_choice, length_bound, knows_iv, invert_check)
     response = ""
     if result.secure:
         response = "MOO IS SECURE: "
@@ -53,6 +53,11 @@ def custom():
     else:
         response = "MOO IS INSECURE. COLLISION WITH SUBSTITUTION(S) " + \
             format_substitutions(result.collisions)
+    
+    if result.invert_result:
+        response += ", MOO is Invertible"
+    else:
+        response += ", MOO may not be Invertible"
     return render_page(response=response)
 
 # TODO: Replace with a more robust parser

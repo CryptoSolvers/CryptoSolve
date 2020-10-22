@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Set
 from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable, get_constants, get_vars, get_vars_or_constants, count_occurence
 from xor import xor
+from moe.program import MOOProgram
 import numpy as np
 
 __all__ = ['invert_simple', 'moo_invert', 'invert_gaussian', 'deducible']
@@ -167,7 +168,7 @@ def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Set[Term]) -> boo
 
 def deducible(term: Term, known_constants: Set[Constant]):
     """
-    Implementation of Lemma 11 from the Indocrypt paper.
+    Implementation of Lemma 9 from the Indocrypt paper 
 
     Parameters
     ==========
@@ -206,4 +207,53 @@ def deducible(term: Term, known_constants: Set[Constant]):
         return False
 
     # Passes all the criteria
+    return True
+    
+def InvertMOO(term: Term, plaintext: str, iv: bool ):
+    """
+    NOT COMPLETE
+    Implementation of Lemma 10 from the Indocrypt paper
+
+    Parameters
+    ==========
+    Term:
+        The first recursive case
+    str:
+        The plaintext to check for
+    bool:
+        Is the IV known
+
+    Examples
+    ========
+    from algebra import Constant, Variable
+    from moe.program import MOOProgram
+    from moe.check import moo_check
+    from Unification.xor_rooted_unif import XOR_rooted_security
+     from Unification.p_unif import p_unif
+
+    result = moo_check('cipher_block_chaining', "every", p_unif, 2, True, True)
+    print(result.invert_result)
+    """
+    
+    print("#############################")
+    print("The term is")
+    print(term)
+    print("The Plaintext is:")
+    print(plaintext)
+    if iv == False:
+        print("Test1")
+        return False
+    # Get constants from term without p_i
+    #p_i = Constant(plaintext)
+    #print(p_i)
+    #constants_from_term = get_constants(term, unique=True)
+    #constants_from_term.difference_update({p_i})
+    plaintext = Variable(plaintext)
+    # Make sure p_i only appears once
+    if count_occurence(plaintext, term) != 1:
+        print("Test2")
+        return False
+
+    # Passes all the criteria
+    print("OK returning True")
     return True
