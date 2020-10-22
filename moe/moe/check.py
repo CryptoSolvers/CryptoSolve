@@ -10,6 +10,7 @@ from xor.structure import Zero
 from .program import MOOProgram
 from .collisions import find_collision
 from .syntactic_check import moo_depth_random_check
+from .invertibility import InvertMOO
 
 
 __all__ = ['moo_check']
@@ -61,7 +62,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             if len(ciphertexts_received) > 1:
                 last_ciphertext = ciphertexts_received[-1]
                 if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return MOOCheckResult(True, None)
+                    return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
             collisions = search_for_collision(
