@@ -6,18 +6,18 @@ recursive MOOs.
 from algebra import Constant, Function, Variable
 from rewrite import RewriteRule, RewriteSystem, normal
 from xor import xor
-import theories.nat as nat
+from theories.nat import Nat
 
-C = Function("C", 1, domain_sort=nat.nat_sort)
-P = Function("P", 1, domain_sort=nat.nat_sort)
+C = Function("C", 1, domain_sort=Nat.sort)
+P = Function("P", 1, domain_sort=Nat.sort)
 f = Function("f", 1)
 IV = Constant("IV")
-n = Variable("n", sort=nat.nat_sort)
+n = Variable("n", sort=Nat.sort)
 
-r0 = RewriteRule(C(nat.zero), IV)
-rn = RewriteRule(C(nat.S(n)), f(xor(P(nat.S(n)), C(n))))
+r0 = RewriteRule(C(Nat.zero), IV)
+rn = RewriteRule(C(Nat.S(n)), f(xor(P(Nat.S(n)), C(n))))
 moo_system = RewriteSystem({r0, rn})
 print("Cipher Block Chaining:", moo_system)
 
-three = nat.from_int(3)
+three = Nat.from_int(3)
 print("Simplified form of the 3rd ciphertext:", normal(C(three), moo_system))
