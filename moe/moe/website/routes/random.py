@@ -28,6 +28,7 @@ def random():
     # Grab parameters from URL
     chaining_required = request.args.get("chaining", "Yes") == "Yes"
     iv_required = request.args.get("iv", "Yes") == "Yes"
+    invert_check = request.args.get('invert_check', "Yes") == "Yes"
     f_bound = int(request.args.get("bound", 1))
     security_required = request.args.get("sectest", "Yes") == "Yes"
     unif_choice = unif_algo.get(request.args.get('unif'))
@@ -51,25 +52,30 @@ def random():
         requires_iv=iv_required,
         requires_chaining=chaining_required
     )
-    print("MOO Bound", moo_bound)
+    #print("MOO Bound", moo_bound)
     moo_list = (next(filtered_gen) for i in range(moo_bound))
-
+    response = "The follow MOO were tested:" + Markup("<br />")
     # Check security of the modes of operation
     moo_safe_list: List[Term] = list()
     for random_moo_term in moo_list:
-        print("Considering...", random_moo_term)
+        #print("Considering...", random_moo_term)
+        response += Markup.escape(str(random_moo_term)) + Markup('<br />')
         cm = CustomMOO(random_moo_term)
         moo_result = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv)
         if moo_result.secure:
             moo_safe_list.append(random_moo_term)
 
     # Communicate to the user the results
-    if len(moo_safe_list) == 0:
-        response = "No Safe MOOs Found. The follow MOO were tested:" + Markup("<br />")
-        response += format_term_list(moo_list)
-    else:
-        response = "Safe MOOs Found. The following MOO(s) pass the security Test:" + Markup("<br />")
-        response += format_term_list(moo_safe_list)
+    #if len(moo_safe_list) == 0:
+    #    response = "No Safe MOOs Found. The follow MOO were tested:" + Markup("<br />")
+    #    response += format_term_list(moo_list)
+    #else:
+    #    response = "Safe MOOs Found. The following MOO(s) pass the security Test:" + Markup("<br />")
+    #    response += format_term_list(moo_safe_list)
+    
+    
+    response += "The following MOO(s) pass the security Test:" + Markup("<br />")
+    response += format_term_list(moo_safe_list)
 
     return render_moo_template(
         'random.html',
