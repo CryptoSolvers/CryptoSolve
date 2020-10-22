@@ -61,7 +61,7 @@ def random():
         #print("Considering...", random_moo_term)
         response += Markup.escape(str(random_moo_term)) + Markup('<br />')
         cm = CustomMOO(random_moo_term)
-        moo_result = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv)
+        moo_result = moo_check(cm.name, schedule, unif_choice, length_bound, knows_iv, invert_check)
         if moo_result.secure:
             moo_safe_list.append(random_moo_term)
 
