@@ -11,13 +11,55 @@ from .inductive import TheorySystem
 
 __all__ = ['Lemma']
 
+# TODO: Have recursion create subgoals
+# TODO: Create ExistenceLemma which succeeds if unifiers are found
+
 class Lemma:
-    """Holds a proof state."""
+    """
+    Holds an implication proof and provides
+    utilities to automate it.
+    """
     def __init__(self, premise, conclusion):
         self.premise = premise
         self.steps: List[Tuple[RewriteRule, int]] = list()
         self.current_step = deepcopy(premise)
         self.conclusion = conclusion
+        self.subgoals: List['ForAllLemma'] = list()
+        self.hypotheses = RewriteSystem(set())
+
+    def _process_subgoals(self):
+        """
+        Go through all subgoals and see if they're proven.
+        If so, add to hypotheses list.
+        """
+        subgoals_to_remove: List[int] = list()
+        for i, subgoal in enumerate(self.subgoals):
+            # Add proven subgoals to internal hypotheses list
+            if subgoal.proven:
+                new_rule = RewriteRule(subgoal.premise, subgoal.conclusion)
+                self.hypotheses.append(new_rule)
+                subgoals_to_remove.append(i)
+        # Remove proven subgoals
+        for index in reversed(subgoals_to_remove):
+            subgoals_to_remove.pop(index)
+
+    def add_hypotheses(self, r: Union[RewriteRule, RewriteSystem, Type[TheorySystem]]):
+        if not isinstance(r, RewriteRule) \
+           and not isinstance(r, RewriteSystem) \
+           and not issubclass(r, TheorySystem):
+            raise ValueError(
+                "simplify must be passed either\
+                 a RewriteRule, RewriteSystem, or TheorySystem."
+            )
+        if isinstance(r, RewriteRule):
+            self.hypotheses.append(r)
+            return
+        if isinstance(r, RewriteSystem):
+            self.hypotheses.extend(r)
+            return
+        self.hypotheses.extend(r.rules)
+
+
 
     @property
     def proven(self):
@@ -37,52 +79,43 @@ class Lemma:
         self.steps.append(r)
         return x_new
 
-    def simplify(self, r: Union[RewriteSystem, Type[TheorySystem]], bound: int = -1):
+    def simplify(self, bound: int = -1):
         """
         Simplify the current state based on either
         a RewriteSystem or a TheorySystem.
         """
-        if not isinstance(r, RewriteSystem) and not issubclass(r, TheorySystem):
-            raise ValueError(
-                "simplify must be passed either\
-                 a RewriteRule, RewriteSystem, or TheorySystem."
-            )
-        rules = r.rules if issubclass(r, TheorySystem) else r
-        new_steps = narrow(self.current_step, self.conclusion, rules, bound)
+        new_steps = narrow(self.current_step, self.conclusion, self.hypotheses, bound)
         if new_steps is None:
             return
         self.current_step = self.conclusion
         self.steps.extend(new_steps)
         return self.conclusion
 
-    def auto(self, r: Union[RewriteSystem, Type[TheorySystem]], bound: int = -1):
+    def auto(self, bound: int = -1):
         """
         Automate the proof by rewriting the
         current step into normal form, and applying
         the opposite steps that it takes to get
         the conclusion into normal form.
         """
-        if not isinstance(r, RewriteSystem) and not issubclass(r, TheorySystem):
-            raise ValueError(
-                "simplify must be passed either\
-                 a RewriteRule, RewriteSystem, or TheorySystem."
-            )
-        # TODO: This is in need of optimization...
-        rules = r.rules if issubclass(r, TheorySystem) else r
+        for subgoal in self.subgoals:
+            subgoal.auto(r, bound)
+        self._process_subgoals()
 
+        # TODO: This is in need of optimization...
         # Find normal form of current step and goal term
-        current_normal = normal(self.current_step, rules, bound)
-        goal_normal = normal(self.conclusion, rules, bound)
+        current_normal = normal(self.current_step, self.hypotheses, bound)
+        goal_normal = normal(self.conclusion, self.hypotheses, bound)
         if current_normal != goal_normal:
             print("Auto: Normal Term Mismatch.")
             return
 
         # Calculate steps to get to normal forms
-        steps = narrow(self.current_step, current_normal, rules, bound)
+        steps = narrow(self.current_step, current_normal, self.hypotheses, bound)
         if steps is None:
             print("Auto: Cannot rewrite current step into normal form.")
             return
-        goal_normal_steps = narrow(self.conclusion, goal_normal, rules, bound)
+        goal_normal_steps = narrow(self.conclusion, goal_normal, self.hypotheses, bound)
         if goal_normal_steps is None:
             print("Auto: Cannot rewrite goal term into normal form.")
             return
