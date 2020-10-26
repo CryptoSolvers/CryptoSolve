@@ -13,6 +13,7 @@ from Unification.ac_unif import ac_unify
 from Unification.p_unif import p_unif
 from Unification.xor_rooted_unif import XOR_rooted_security
 from algebra import Variable
+from algebra import Term
 import PySimpleGUI as sg
 import operator
 import sys
@@ -37,13 +38,13 @@ _error = True
 def make_window():
     # theme properties for a theme that uses UMW colors
     sg.LOOK_AND_FEEL_TABLE['UMW'] = {'BACKGROUND': 'white',
-            'TEXT': '#002a5a',
-            'INPUT': 'white',
-            'TEXT_INPUT': '#000000',
-            'SCROLL': '#898c91',
-            'BUTTON': ('white', '#002a5a'),
-            'PROGRESS': ('#01826B', '#D0D0D0'),
-            'BORDER': 1, 'SLIDER_DEPTH': 0, 'PROGRESS_DEPTH': 0,}
+                                    'TEXT': '#002a5a',
+                                    'INPUT': 'white',
+                                    'TEXT_INPUT': '#000000',
+                                    'SCROLL': '#898c91',
+                                    'BUTTON': ('white', '#002a5a'),
+                                    'PROGRESS': ('#01826B', '#D0D0D0'),
+                                    'BORDER': 1, 'SLIDER_DEPTH': 0, 'PROGRESS_DEPTH': 0,}
 
     sg.theme('UMW')
 
@@ -57,26 +58,26 @@ def make_window():
 
     # left hand side input titles
     t_left_column = [[sg.Text('Unification Algorithm:')],
-            [sg.Text('Chaining Function:')],
-            [sg.Text('Schedule:')],
-            [sg.Text('Session Length Bound:')],
-            [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Chaining Function:')],
+                    [sg.Text('Schedule:')],
+                    [sg.Text('Session Length Bound:')],
+                    [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
     t_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
-            [sg.InputCombo((chaining_functions), size=box_size)],
-            [sg.InputCombo((schedules), size=box_size)],
-            [sg.InputText('10', size=box_size)],
-            [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo((chaining_functions), size=box_size)],
+                    [sg.InputCombo((schedules), size=box_size)],
+                    [sg.InputText('10', size=box_size)],
+                    [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
-        sg.Column(t_left_column),
-        sg.Column(t_right_column, key='-TOOL-INPUT-'),
-        sg.Column([], pad=(56,0))]],
-        pad=(11,10))],
-        [sg.Button('Execute!', pad=(10,0))],
-        output]
+                    sg.Column(t_left_column),
+                    sg.Column(t_right_column, key='-TOOL-INPUT-'),
+                    sg.Column([], pad=(56,0))]],
+                    pad=(11,10))],
+                    [sg.Button('Execute!', pad=(10,0))],
+                    output]
 
 
     #---------------------simulation page layout---------------------
@@ -85,21 +86,21 @@ def make_window():
 
     # left hand side input titles
     s_left_column = [[sg.Text('Chaining Function:')],
-            [sg.Text('Schedule:')]]
+                    [sg.Text('Schedule:')]]
 
     # right hand side input boxes
     s_right_column = [[sg.InputCombo((chaining_functions), size=box_size)],
-            [sg.InputCombo((schedules), size=box_size)]]
+                    [sg.InputCombo((schedules), size=box_size)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     simulation_layout = [[sg.Frame('Settings', [[
-        sg.Column(s_left_column),
-        sg.Column(s_right_column),
-        sg.Column([], pad=(70,0))]],
-        pad=(10,10))],
-        [sg.Button('Execute!', pad=(10,0))],
-        output,
-        [sg.Button('Next>>', pad=(10,0))]]
+                        sg.Column(s_left_column),
+                        sg.Column(s_right_column),
+                        sg.Column([], pad=(70,0))]],
+                        pad=(10,10))],
+                        [sg.Button('Execute!', pad=(10,0))],
+                        output,
+                        [sg.Button('Next>>', pad=(10,0))]]
 
 
     #-----------------------custom page layout-----------------------
@@ -108,26 +109,26 @@ def make_window():
 
     # left hand side input titles
     c_left_column = [[sg.Text('Custom MOO:')],
-            [sg.Text('Unification Algorithm:')],
-            [sg.Text('Schedule:')],
-            [sg.Text('Session Length Bound:')],
-            [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Unification Algorithm:')],
+                    [sg.Text('Schedule:')],
+                    [sg.Text('Session Length Bound:')],
+                    [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
     c_right_column = [[sg.InputText(('f(xor(P[i],C[i-1]))'), size=box_size)],
-            [sg.InputCombo((unification_algorithms), size=box_size)],
-            [sg.InputCombo((schedules), size=box_size)],
-            [sg.InputText(('10'), size=box_size)],
-            [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo((unification_algorithms), size=box_size)],
+                    [sg.InputCombo((schedules), size=box_size)],
+                    [sg.InputText(('10'), size=box_size)],
+                    [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     custom_layout = [[sg.Frame('Settings', [[
-        sg.Column(c_left_column),
-        sg.Column(c_right_column),
-        sg.Column([], pad=(56,0))]],
-        pad=(10,10))],
-        [sg.Button('Execute!', pad=(10, 0))],
-        output]
+                    sg.Column(c_left_column),
+                    sg.Column(c_right_column),
+                    sg.Column([], pad=(56,0))]],
+                    pad=(10,10))],
+                    [sg.Button('Execute!', pad=(10, 0))],
+                    output]
 
 
     #----------------------random page layout-----------------------
@@ -136,34 +137,47 @@ def make_window():
 
     # left hand side input titles
     r_left_column = [[sg.Text('Unification Algorithm:')],
-            [sg.Text('Schedule:')],
-            [sg.Text('Session Length Bound:')],
-            [sg.Text('Encryption F-Bound:')],
-            [sg.Text('Based on number of MOO to Generate:')],
-            [sg.Text('Chaining Required:')],
-            [sg.Text('IV Required:')],
-            [sg.Text('Test Each MOO for Security:')],
-            [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Schedule:')],
+                    [sg.Text('Session Length Bound:')],
+                    [sg.Text('Encryption F-Bound:')],
+                    [sg.Text('Based on number of MOO to Generate:')],
+                    [sg.Text('Chaining Required:')],
+                    [sg.Text('IV Required:')],
+                    [sg.Text('Test Each MOO for Security:')],
+                    [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
     r_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
-            [sg.InputCombo((schedules), size=box_size)],
-            [sg.InputText('1', size=box_size)],
-            [sg.InputText('6', size=box_size)],
-            [sg.InputText('4', size=box_size)],            
-            [sg.Checkbox('', pad=c_pad)],
-            [sg.Checkbox('', pad=c_pad)],
-            [sg.Checkbox('', pad=c_pad)],
-            [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo((schedules), size=box_size)],
+                    [sg.InputText('1', size=box_size)],
+                    [sg.InputText('6', size=box_size)],
+                    [sg.InputText('4', size=box_size)],            
+                    [sg.Checkbox('', pad=c_pad)],
+                    [sg.Checkbox('', pad=c_pad)],
+                    [sg.Checkbox('', pad=c_pad)],
+                    [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     random_layout = [[sg.Frame('Settings', [[
-        sg.Column(r_left_column),
-        sg.Column(r_right_column),
-        sg.Column([], pad=(10,0))]],
-        pad=(10,10))],
-        [sg.Button('Execute!', pad=(10,0))],
-        output]
+                    sg.Column(r_left_column),
+                    sg.Column(r_right_column),
+                    sg.Column([], pad=(10,0))]],
+                    pad=(10,10))],
+                    [sg.Button('Execute!', pad=(10,0))],
+                    output]
+
+    settings_lc = [[sg.Text('File name:')],
+                [sg.Text('File write type:')]]
+
+    settings_rc = [[sg.InputText('', size=box_size)],
+                [sg.InputCombo(('Write', 'Append'), size=box_size)]]
+
+    settings_layout= [[sg.Frame('Settings', [[
+                    sg.Column(settings_lc),
+                    sg.Column(settings_rc),
+                    sg.Column([], pad=(80,0))]],
+                    pad=(10,10))],
+                    [sg.Button('Submit settings', pad=(10, 0))]]
 
 
     #------------------------------TabGroup layout------------------------------
@@ -174,7 +188,8 @@ def make_window():
     tab_group_layout = [[sg.Tab('Tool', tool_layout, key='-TOOL-'),
         sg.Tab('Simulation', simulation_layout, key='-SIMULATION-'),
         sg.Tab('Custom', custom_layout, key='-CUSTOM-'),
-        sg.Tab('Random', random_layout, key='-RANDOM-')]]
+        sg.Tab('Random', random_layout, key='-RANDOM-'),
+        sg.Tab('File Settings', settings_layout)]]
 
     # menu definitions
     menu_layout = [['&Help', ['&Tool', '&Simulation', '&Custom', '&Random']],
@@ -196,6 +211,9 @@ def make_window():
 # contains all of the input that are in the window
 def Launcher():
     window = make_window()
+    filename = "moo_output.txt"
+    f_writetype = "w+"
+    fileinfo = ""
     moo_session = None
     # event loop
     while True:
@@ -203,13 +221,18 @@ def Launcher():
         # if the window is closed leave loop immediately
         if event == sg.WIN_CLOSED:
             break
-        # print(event, values)
+        #print(event, values)
 
         start, stop = 1, 5
         result = []
         popup = True
         goodInput = True
         function = ''
+
+        if event == 'Submit settings':
+            filename = str(values[22]) + ".txt"
+            if values[23] == 'Append':
+                f_writetype = "a+"
 
         # all tool tab events
         if event == 'Execute!':
@@ -272,6 +295,8 @@ def Launcher():
         #then perform tool functions and output results to window
         if goodInput:
             if function == 'tool':
+                fileinfo += "#######################################################################################################\n"
+                fileinfo += "Tool inputs: " + str(result) + "\n"
                 unif = unif_dict[result[0]]
                 chaining = cf_dict[result[1]]
                 sched = scd_dict[result[2]]
@@ -288,8 +313,11 @@ def Launcher():
                     print("Unexpected error:", sys.exc_info()[0])
                     window.close()
                 response = get_response(result)
+                fileinfo += "tool output:\n" + response + "\n"
                 window['-O1-'].update(response)
             if function == 'simulation':
+                fileinfo += "#######################################################################################################\n"
+                fileinfo += "Simulation inputs: " + str(result) + "\n"
                 chaining = cf_dict[result[0]]
                 sched = scd_dict[result[1]]
                 if sim_next:# continuing session
@@ -299,14 +327,18 @@ def Launcher():
                         plaintext = Variable("x_" + str(moo_session.iteration))
                         ciphertext = moo_session.rcv_block(plaintext)
                         response = str(ciphertext) if ciphertext is not None else "Sent " + str(plaintext)
+                        fileinfo += "Next: " + response + "\n"
                         window['-O2-'].update(response)
                 else:# creating the session
                     moo_session = MOOProgram(chaining, sched)
                     plaintext = Variable("x_" + str(moo_session.iteration))
                     ciphertext = moo_session.rcv_block(plaintext)
                     response = str(ciphertext) if ciphertext is not None else "Sent " + str(plaintext)
+                    fileinfo += "Simulation begin:\n" + response + "\n"
                     window['-O2-'].update(response)
             if function == 'custom':
+                fileinfo += "#######################################################################################################\n"
+                fileinfo += "Custom inputs: " + str(result) + "\n"
                 chaining = CustomMOO(_temporary_parser(result[0])).name
                 unif = unif_dict[result[1]]
                 sched = scd_dict[result[2]]
@@ -322,8 +354,11 @@ def Launcher():
                     print("Unexpected error:", sys.exc_info()[0])
                     window.close()
                 response = get_response(result)
+                fileinfo += "Custom output:\n" + response + "\n"
                 window['-O3-'].update(response)
             if function == 'random':
+                fileinfo += "#######################################################################################################\n"
+                fileinfo += "Random inputs: " + str(result) + "\n"
                 unif = unif_dict[result[0]]
                 sched = scd_dict[result[1]]
                 length_bound = restrict_to_range(int(result[2]), 0, 100)
@@ -340,21 +375,31 @@ def Launcher():
 
                 # Check security of the modes of operation
                 moo_safe_list: List[Term] = list()
+                moo_unsafe_list: List[Term] = list()
                 for random_moo_term in moo_list:
                     print("Considering...", random_moo_term)
                     cm = CustomMOO(random_moo_term)
                     moo_result = moo_check(cm.name, sched, unif, length_bound, knows_iv)
                     if moo_result.secure:
                         moo_safe_list.append(random_moo_term)
+                    elif not moo_result.secure:
+                        moo_unsafe_list.append(random_moo_term)
 
+                unsafe_moos = ""
                 if len(moo_safe_list) == 0:
-                    response = "No same MOOs found. The following MOO(s) were tested: \n"
+                    response = "No safe MOOs found. The following MOO(s) were tested: \n"
                     for term in moo_list:
                         response += str(term) + "\n"
                 else:
                     response = "Safe MOO(s) found. The following MOO(s) pass the security test: \n"
+                    print("Safe moos: \n")
                     for term in moo_safe_list:
                         response += str(term) + "\n"
+                        print(str(term) + "\n")
+                    for unsafe_term in moo_unsafe_list:
+                        unsafe_moos += str(unsafe_term) + "\n"
+                        print(str(unsafe_term) + "\n")
+                fileinfo += "Random output:\n" + response + "\n" + "Unsafe moos: \n" + unsafe_moos + "\n"
                 window['-O4-'].update(response)
 
         # menu button events create popups
@@ -373,6 +418,9 @@ def Launcher():
         if event == 'Random':
             sg.Popup('This is a blurb about how to use the random page', title='Random usage')
 
+    f = open(filename, f_writetype)
+    f.write(fileinfo)
+    f.close()
     window.close()
 
 def valid_moo_unif_pair(unif_choice: str, cf_choice: str) -> bool:
