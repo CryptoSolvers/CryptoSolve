@@ -6,7 +6,8 @@ constants, and functions and their combinations to make terms.
 This library also contains helper functions that can be useful
 in algorithms that operate on terms.
 """
-from abc import ABC, abstractmethod # Abstract Base Class
+from copy import deepcopy
+from functools import partial
 from typing import Union, List, Set, overload, Optional, Any
 from typing_extensions import Literal
 
@@ -47,7 +48,7 @@ class Sort:
     >>> integers < fractions
     True
     """
-    def __init__(self, name, parent_sort=None):
+    def __init__(self, name: str, parent_sort: Optional['Sort'] = None):
         super().__init__()
         self.name = name
         self.parents = {parent_sort} | parent_sort.parents \
@@ -66,25 +67,12 @@ class Sort:
         return self.name == x.name
     def __str__(self):
         return self.name
-
-
-class AbstractTerm(ABC):
-    """
-    A symbolic mathematical object.
-
-    A term is a FuncTerm, Variable, or Constant. Term is an abstract
-    class that provides some shared builtins.
-    """
-    @abstractmethod # Don't allow this class to be instatiated on its own
-    def __init__(self, symbol: str, sort: Optional[Sort] = None):
-        self.symbol = symbol
-        self.sort = sort
-    def __repr__(self):
-        return self.symbol
-    def __hash__(self):
-        return hash(self.symbol)
-    def __eq__(self, x):
-        return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
+    def __deepcopy__(self, memo):
+        new_sort = Sort(deepcopy(self.name))
+        memo[id(self)] = new_sort
+        dcopy = partial(deepcopy, memo=memo)
+        new_sort.parents = set(map(dcopy, self.parents))
+        return new_sort
 
 class Function:
     """
@@ -124,23 +112,28 @@ class Function:
         self.domain_sort = domain_sort
         self.range_sort = range_sort
         self.arity = arity
+
         # If the domain sort is a list, make sure it has a one-to-one mapping with the arguments
         if isinstance(domain_sort, list):
             assert len(domain_sort) == arity
+
     def __call__(self, *args):
-        # Check to see if arguments belong to the domain of the function
+        """Ensure domain of arguments are valid and produce a FuncTerm."""
         for i, arg in enumerate(args):
             # Grab the specific argument from the domain_sort list if applicable
             domain_sort = self.domain_sort \
                 if not isinstance(self.domain_sort, list) else self.domain_sort[i]
 
-            if domain_sort is not None and \
-                arg.sort != domain_sort and \
-                not arg.sort.subset_of(domain_sort):
-                raise ValueError("Domain Mismatch. Expected {}, Got {}.".format(
-                    str(domain_sort), str(arg.sort)))
+            if domain_sort is not None:
+                error_message = "Domain Mismatch. Expected {}, Got {}.".format(
+                    str(domain_sort), str(arg.sort))
+                if arg.sort is None:
+                    raise ValueError(error_message)
+                if arg.sort != domain_sort and not arg.sort.subset_of(domain_sort):
+                    raise ValueError(error_message)
 
         return FuncTerm(self, args)
+
     def __repr__(self):
         return self.symbol
     def __hash__(self):
@@ -151,7 +144,7 @@ class Function:
             and self.domain_sort == x.domain_sort \
             and self.range_sort == x.range_sort
 
-class Variable(AbstractTerm):
+class Variable:
     """
     A symbolic representation of a variable.
 
@@ -169,9 +162,18 @@ class Variable(AbstractTerm):
     x
     """
     def __init__(self, symbol: str, sort: Optional[Sort] = None):
-        super().__init__(symbol, sort)
+        self.symbol = symbol
+        self.sort = sort
+    def __repr__(self):
+        return self.symbol
+    def __hash__(self):
+        return hash(self.symbol)
+    def __eq__(self, x):
+        return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
+    def __deepcopy__(self, memo):
+        return Variable(self.symbol, self.sort)
 
-class FuncTerm(AbstractTerm):
+class FuncTerm:
     """
     A symbolic representation of the instantiation of a function.
 
@@ -191,17 +193,15 @@ class FuncTerm(AbstractTerm):
     f(a)
     """
     def __init__(self, function: Function, args):
-        super().__init__(function.symbol, function.range_sort)
         assert len(args) == function.arity
-        self._function = function
+        self.function = function
         self._arguments = args
     @property
-    def function(self):
-        return self._function
-    @function.setter
-    def function(self, f):
-        self._function = f
-        self.sort = f.range_sort
+    def sort(self):
+        return self.function.range_sort
+    @sort.setter
+    def sort(self, s):
+        self.function.range_sort = s
     @property
     def arguments(self):
         return self._arguments
@@ -230,6 +230,10 @@ class FuncTerm(AbstractTerm):
             if isinstance(arg, FuncTerm) and arg.function.arity > 0:
                 inside = inside or (term in arg)
         return inside
+    def __deepcopy__(self, memo):
+        arguments = map(deepcopy, self.arguments)
+        return self.function(*arguments)
+
 
 class Constant(FuncTerm):
     """
@@ -255,6 +259,15 @@ class Constant(FuncTerm):
     """
     def __init__(self, symbol: str, sort: Optional[Sort] = None):
         super().__init__(Function(symbol, 0, range_sort=sort), ())
+    @property
+    def symbol(self):
+        return self.function.symbol
+    @symbol.setter
+    def symbol(self, s):
+        self.function.symbol = s
+    def __deepcopy__(self, memo):
+        return Constant(self.symbol, self.sort)
+
 
 Term = Union[Variable, Constant, FuncTerm]
 

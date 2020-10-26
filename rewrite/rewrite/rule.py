@@ -1,14 +1,14 @@
 """
 The rewrite module is responsible for maintaining
-definitions of rewrite rules and rewrite systems,
-as well as performing some useful operations with them.
+definitions of rewrite rules, as well as performing
+some useful operations with them.
 """
-from typing import overload, List, Optional, Union, Dict, Set
+from typing import overload, List, Optional, Union, Dict
 from copy import deepcopy
 from algebra import Variable, Constant, Term, Function, FuncTerm, get_vars, SubstituteTerm
 from Unification.unif import unif
 
-__all__ = ['freeze', 'converse', 'RewriteRule', 'RewriteSystem', 'Position']
+__all__ = ['freeze', 'converse', 'RewriteRule', 'Position']
 
 @overload
 def freeze(term: Variable) -> Constant:
@@ -41,9 +41,8 @@ def freeze(term):
     >>> freeze(f(x))
     f(x)
     """
-    term = deepcopy(term)
     if isinstance(term, Variable):
-        return Constant(term.symbol)
+        return Constant(term.symbol, term.sort)
     elif isinstance(term, FuncTerm):
         arguments = list(term.arguments)
         for i, t in enumerate(arguments):
@@ -71,7 +70,7 @@ def _changeVars(overlaping_vars: List[Variable], term: Term, hypothesis: Term, c
         new_var = v
         # Keep renaming variable in rewrite rule until it is not an already existing variable
         while new_var in all_vars:
-            new_var = Variable(new_var.symbol + "_1")
+            new_var = Variable(new_var.symbol + "_1", new_var.sort)
         new_vars.append(new_var)
     # Create substitution between the old and new variable names and apply them
     s = SubstituteTerm()
@@ -95,9 +94,10 @@ class RewriteRule:
     Takes a hypothesis and a conclusion and
     applies them to a term when given.
     """
-    def __init__(self, hypothesis: Term, conclusion: Term):
+    def __init__(self, hypothesis: Term, conclusion: Term, unif_algo=unif):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
+        self.unif_algo = unif_algo
 
     def apply(self, term: Term, pos: Optional[Position] = None) \
     -> Optional[Union[Dict[Position, Term], Term]]:
@@ -141,8 +141,8 @@ class RewriteRule:
         return self._apply_pos(term, pos)
 
 
-    def _match(self, term: Term) -> Optional[Term]:
-        """Attempts to rewrite the root term with the rewrite rule. Returns False if not possible"""
+    def _match(self, term: Term) -> Term:
+        """Attempts to rewrite the root term with the rewrite rule. Returns the same term if rewriting is not possible"""
         # Change common variables in RewriteRule if they exist
         overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         while overlaping_vars:
@@ -151,15 +151,15 @@ class RewriteRule:
             overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         # Perform matching and substitution
         frozen_term = freeze(term)
-        sigma = unif(self.hypothesis, frozen_term)
+        sigma = self.unif_algo(self.hypothesis, frozen_term)
         return self.conclusion * sigma if sigma is not False else None
 
     def _apply_pos(self, term: Term, pos: Position) -> Optional[Term]:
-        term = deepcopy(term)
         if pos == '':
             return self._match(term)
 
         # Recurse down to appropriate position
+        term = deepcopy(term)
         if isinstance(term, Constant) or isinstance(term, Variable):
             raise ValueError("Position " + pos + " is not valid for term " + str(term))
         index = int(pos[0])
@@ -198,6 +198,12 @@ class RewriteRule:
     def __eq__(self, other):
         return self.hypothesis == other.hypothesis and self.conclusion == other.conclusion
 
+    def __deepcopy__(self, memo):
+        return RewriteRule(
+            deepcopy(self.hypothesis),
+            deepcopy(self.conclusion),
+            self.unif_algo
+        )
 
 def converse(rule: RewriteRule) -> RewriteRule:
     """
@@ -222,81 +228,3 @@ def converse(rule: RewriteRule) -> RewriteRule:
     new_rule.hypothesis = new_rule.conclusion
     new_rule.conclusion = temp
     return new_rule
-
-
-class RewriteSystem:
-    """
-    A set of rewrite rules.
-    Used primarily to hold properties of a rewrite system.
-    """
-    def __init__(self, rules: Set[RewriteRule]):
-        self.rules = rules
-        # self.forward_closure_complete = False
-
-    def append(self, rule):
-        """Add a single rule to the rewrite system"""
-        self.rules.append(rule)
-
-    # TODO: Does this affect the foward closure member variable?
-    def extend(self, system):
-        """Add a list of rules to a rewrite system"""
-        self.rules.extend(system.rules)
-
-    def __iter__(self):
-        return iter(self.rules)
-
-    # TODO: Write the machinary needed for the below method to work
-    # # By Daniel Kemp
-    # def forward_closure(self, bound = 1):
-    #     """Run the forward closure on a rewrite system with a limit set on the number of interations. Defaults to 1 iteration"""
-    #     # Don't execute again if already completed
-    #     if self.forward_closure_complete:
-    #         return self
-
-    #     initial_rules = self.rules # R2 from the paper
-    #     current_new_rules = deepcopy(self) # R1 from the paper
-    #     # Start with FC0 := R, this will eventually be R3 from the paper
-    #     current_fc = deepcopy(self)
-
-    #     iteration = 0
-    #     for iteration in range(0, bound):
-    #         # Start FOV
-    #         new_rules = RewriteSystem({})
-    #         for rule in current_new_rules.rules:
-    #             for initial_rule in initial_rules:
-    #                 for position in rule.right.fpos():
-    #                     overlap = rule.overlap(initial_rule, initial_rules, position)
-    #                     if overlap is not False:
-    #                         if not overlap.check_redundancy(initial_rules) and not overlap.check_redundancy(new_rules.rules):
-    #                             new_rules.append(overlap)
-    #             if len(new_rules.rules) == 0:
-    #                 self.forward_closure_complete = True
-    #                 self.rules = current_fc.rules
-    #                 self.clean_variable_names()
-    #                 return self
-
-    #             print("Non-redundant rules: \n", new_rules)
-
-    #             current_new_rules = deepcopy(new_rules)
-    #             new_rules = None
-    #             current_fc.extend(current_new_rules)
-
-    #         print("Bound of {} reached but no forward closure" % (bound))
-    #         self.rules = current_fc.rules
-    #         self.clean_variable_names()
-    #         self.forward_closure_complete = False
-    #         return self
-
-    def __repr__(self):
-        if len(self.rules) == 0:
-            return "{}"
-        if len(self.rules) == 1:
-            return "{ %s }" % (str(self.rules[0]))
-        str_repr = "{\n"
-        i = 1
-        for i, rule in enumerate(self.rules):
-            str_repr += "  " + str(rule)
-            str_repr += ",\n" if i < len(self.rules) else ""
-            i += 1
-        str_repr += "\n}"
-        return str_repr

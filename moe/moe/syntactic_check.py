@@ -10,32 +10,11 @@ from xor import xor
 from xor.structure import Zero
 
 __all__ = [
-    'moo_quick_syntactic_check', 'moo_depth_random_check'
+    'moo_depth_random_check'
 ]
 
 f = Function("f", 1)
 zero = Zero()
-
-def moo_quick_syntactic_check(last_block: Term, block: Term,
-                              plaintext: Variable = Variable("x_i")) -> bool:
-    """
-    Given two sequential ciphertexts, quickly determine
-    syntactically whether the mode of operation is secure.
-
-    False in this context means a maybe.
-    """
-    if xor(last_block, plaintext) in block:
-        return False
-
-    if f(plaintext) in block:
-        return False
-
-    if not last_block_under_f(last_block, block):
-        return False
-
-    # At this point it passed the syntactic conditions
-    return True
-
 
 def moo_depth_random_check(last_block: Term, block: Term,
                            possible_subs: Optional[Dict[Term, List[Term]]] = None) -> bool:
@@ -52,22 +31,6 @@ def moo_depth_random_check(last_block: Term, block: Term,
            high > last_high and \
            moo_has_random(last_block, possible_subs) and \
            moo_has_random(block, possible_subs)
-
-
-def last_block_under_f(last_block: Term, block: Term) -> bool:
-    """
-    Checks to see if the last block is under an f in the current block.
-    """
-    if isinstance(block, FuncTerm):
-        if block.function == f:
-            return last_block in block
-        # Go through each of the arguments and return true
-        # if any are true.
-        return any(
-            last_block_under_f(last_block, arg) for arg in block.arguments
-        )
-    return False
-
 
 def overlaps(low1: int, high1: int, low2: int, high2: int) -> bool:
     """

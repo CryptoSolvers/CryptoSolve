@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from algebra import Constant, Equation, Function, Sort, \
-     SubstituteTerm, TermDAG, Variable
+     SubstituteTerm, Variable
+from algebra.dag import TermDAG
 
 # Setting up terms
 f = Function("f", 2)

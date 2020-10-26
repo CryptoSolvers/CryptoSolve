@@ -17,7 +17,7 @@ _finv = Function("f^{-1}", 1)
 
 def invert_gaussian(TermSet: Set[Term], P: Constant) -> bool:
     """
-    IN PROGRESS:
+    NOT COMPLETE:
     Based on the method developed by Veena. Goal is the plaintext
     constant P from a set of terms. Currently doesn't deal with
     f.
@@ -125,9 +125,8 @@ def invert_simple(term):
     return inverse_term
 
 
-def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Term) -> bool:
+def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Set[Term]) -> bool:
     """
-    IN PROGRESS
     Given a set K of MOO interactions and max bound for the depth of a term,
     state whether or not a MOO term is invertible.
     Note, this is intentionally more general than is needed for the
@@ -160,10 +159,11 @@ def moo_invert(K: Set[Term], nonces: Set[Constant], S: int, P: Term) -> bool:
     # Check to see if the plaintext block is in any of the ground terms in c_star
     # xor library automatically maps terms to their ground terms
     #return _P in c_star
-    for t in c_star:
-        if P == t:
-            return True
-    return False
+    print(c_star)
+    if P.issubset(c_star):
+        return True
+    else:
+        return False
 
 def deducible(term: Term, known_constants: Set[Constant]):
     """

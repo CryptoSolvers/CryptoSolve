@@ -1,4 +1,1 @@
-# from .boolean_rings import *
-from .groups import *
-from .rings import *
-from .fields import *
+"""Module containing theories of nats, groups, rings, and fields."""

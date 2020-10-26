@@ -1,46 +1,52 @@
-from rewrite import *
-from algebra import *
-from copy import deepcopy
+"""
+The groups module contains a class to create
+generic groups with custom operations, inverses,
+and identities.
+"""
+from algebra import Constant, Function, Variable
+from rewrite import RewriteRule, RewriteSystem
+from .inductive import Inductive, TheorySystem
 
-class Group:
-    @staticmethod
-    def create_rules(op : Function, inverse : Function, identity : Constant) -> Set[RewriteRule]:
-        x = Variable("x") ; y = Variable("y") ; z = Variable("z")
-        # From page 184 of Term Rewriting and All That
-        return {
-            ## Associativity
-            # (x * y) * z → x * (y * z)
-            RewriteRule(op(op(x, y), z), op(x, op(y, z))),
-            ## Identity Rules
-            # 1 * x → x
-            RewriteRule(op(identity, x), x),
-            # x * 1 → x
-            RewriteRule(op(x, identity), x),
-            ## Inverse Rules
-            # x * i(x) → 1
-            RewriteRule(op(x, inverse(x)), identity),
-            # i(x) * x → 1
-            RewriteRule(op(inverse(x), x), identity),
-            # i(1) → 1
-            RewriteRule(inverse(identity), identity),
-            # i(i(x)) → x
-            RewriteRule(inverse(inverse(x)), x),
-            # i(x * y) → i(y) * i(x)
-            RewriteRule(inverse(op(x, y)), op(inverse(y), inverse(x))),
-            ## Interplay between associativity and inverses
-            # x * (i(x) * y) → y
-            RewriteRule(op(x, op(inverse(x), y)), y),
-            # i(x) * (x * y) → y
-            RewriteRule(op(inverse(x), op(x, y)), y)
-        }
-    
-    def __init__(self, op : Function, inverse : Function, identity : Constant):
-        self.op = op
-        self.inverse = inverse
-        self.identity = identity
-        self.rewrite_rules = Group.create_rules(op, inverse, identity)
-    
-    def normal(self, element : Term):
-        return normal(element, self.rewrite_rules)
+__all__ = ['Group']
 
+@Inductive
+class Group(TheorySystem):
+    """
+    A group is a set G with an operation op that contain the
+    closure and associative properties, as well as contains
+    an identity and inverse element.
+    """
+    identity = Constant("e")
+    op = Function("op", 2)
+    inverse = Function("inv", 1)
 
+_x = Variable("x", sort=Group.sort)
+_y = Variable("y", sort=Group.sort)
+_z = Variable("z", sort=Group.sort)
+# From page 184 of Term Rewriting and All That
+Group.rules = RewriteSystem({
+    ## Associativity
+    # (x * y) * z → x * (y * z)
+    RewriteRule(Group.op(Group.op(_x, _y), _z), Group.op(_x, Group.op(_y, _z))),
+    ## Identity Rules
+    # 1 * x → x
+    RewriteRule(Group.op(Group.identity, _x), _x),
+    # x * 1 → x
+    RewriteRule(Group.op(_x, Group.identity), _x),
+    ## Inverse Rules
+    # x * i(x) → 1
+    RewriteRule(Group.op(_x, Group.inverse(_x)), Group.identity),
+    # i(x) * x → 1
+    RewriteRule(Group.op(Group.inverse(_x), _x), Group.identity),
+    # i(1) → 1
+    RewriteRule(Group.inverse(Group.identity), Group.identity),
+    # i(i(x)) → x
+    RewriteRule(Group.inverse(Group.inverse(_x)), _x),
+    # i(x * y) → i(y) * i(x)
+    RewriteRule(Group.inverse(Group.op(_x, _y)), Group.op(Group.inverse(_y), Group.inverse(_x))),
+    ## Interplay between associativity and inverses
+    # x * (i(x) * y) → y
+    RewriteRule(Group.op(_x, Group.op(Group.inverse(_x), _y)), _y),
+    # i(x) * (x * y) → y
+    RewriteRule(Group.op(Group.inverse(_x), Group.op(_x, _y)), _y)
+})
