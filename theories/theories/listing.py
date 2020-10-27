@@ -68,11 +68,13 @@ Listing.define(
 
 # Tail
 # TODO: Diagnose this one...
-tail = Function("tail", 1, domain_sort=Listing.sort, range_sort=Listing.sort)
-Listing.define(
-    tail,
-    RewriteSystem({
-        RewriteRule(tail(Listing.nil), Listing.nil),
-        RewriteRule(tail(Listing.cons(_element, _list)), _list)
-    })
-)
+# tail = Function("tail", 1, domain_sort=Listing.sort, range_sort=Listing.sort)
+# Listing.define(
+#     tail,
+#     RewriteSystem({
+#         RewriteRule(tail(Listing.nil), Listing.nil),
+#         RewriteRule(tail(Listing.cons(_element, _list)), _list)
+#     })
+# )
+
+# TODO: Create index function that makes use of optional
