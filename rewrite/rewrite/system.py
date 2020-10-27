@@ -3,7 +3,7 @@ This module is responsible for rewrite systems,
 a set of rewrite rules and operations on them.
 """
 from copy import deepcopy
-from typing import Set
+from typing import List, Set, Tuple
 from algebra import SortMismatch, Term
 from .rule import RewriteRule
 
@@ -23,7 +23,7 @@ class RewriteSystem:
 
     def extend(self, system):
         """Add a list of rules to a rewrite system"""
-        self.rules.extend(system.rules)
+        self.rules.update(system.rules)
 
     def __iter__(self):
         return iter(self.rules)
@@ -45,6 +45,7 @@ class RewriteSystem:
 def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Term:
     """
     Returns the normal form of an element
+    along with the rewrite rules to get there
     given a set of convergent term rewrite rules.
 
     Notes
@@ -64,6 +65,7 @@ def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Term
     element = deepcopy(element)
     element_changed = True
     iteration = 0
+    rules_performed: List[Tuple[RewriteRule, str]] = list()
     # We keep on going until the element stops changing
     while element_changed:
         element_changed = False
@@ -78,9 +80,10 @@ def normal(element: Term, rewrite_rules: RewriteSystem, bound: int = -1) -> Term
             except SortMismatch:
                 continue
             if new_elements is not None:
-                element = next(iter(new_elements.values()))
+                position, element = next(iter(new_elements.items()))
+                rules_performed.append((rule, position))
                 element_changed = True
                 break
         iteration += 1
 
-    return element
+    return element, rules_performed

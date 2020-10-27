@@ -5,14 +5,17 @@ and show steps for proofs that only use
 reductive rewrites.
 """
 from copy import deepcopy
-from typing import List, Optional, Set, Tuple, Type, Union
-from algebra import get_vars_or_constants, Sort, Term
+from inspect import isclass
+from typing import List, Optional, Tuple, Type, Union
+from algebra import get_vars_or_constants, Term
 from rewrite import converse, narrow, normal, RewriteRule, RewriteSystem
 from .inductive import TheorySystem, system_from_sort
+from .boolean import Boolean
 
 __all__ = ['Lemma']
 
 # TODO: Have recursion create subgoals
+# TODO: Figure out how to quantify variables
 # TODO: Create ExistenceLemma which succeeds if unifiers are found
 
 class Lemma:
@@ -20,12 +23,13 @@ class Lemma:
     Holds an implication proof and provides
     utilities to automate it.
     """
-    def __init__(self, premise, conclusion):
+    def __init__(self, premise: Term, conclusion: Optional[Term] = None):
         self.premise = premise
         self.steps: List[Tuple[RewriteRule, int]] = list()
         self.current_step = deepcopy(premise)
-        self.conclusion = conclusion
-        self.subgoals: List['ForAllLemma'] = list()
+        self.conclusion = conclusion if conclusion is not None else Boolean.trueb
+        self.unproven_subgoals: List['Lemma'] = list()
+        self.proven_subgoals: List['Lemma'] = list()
         self.hypotheses = RewriteSystem(set())
         self._auto_load_systems()
 
@@ -35,7 +39,7 @@ class Lemma:
             self.hypotheses.append(r)
         elif isinstance(r, RewriteSystem):
             self.hypotheses.extend(r)
-        elif issubclass(r, TheorySystem):
+        elif isclass(r) and issubclass(r, TheorySystem):
             self.hypotheses.extend(r.rules)
         else:
             raise ValueError(
@@ -50,7 +54,7 @@ class Lemma:
         conclusion ground term syntactically.
         """
         return self.current_step == self.conclusion \
-               and all((g.proven for g in self.subgoals))
+               and len(self.unproven_subgoals) == 0
 
     def apply(self, r: RewriteRule):
         """Apply a rewrite rule to the current step."""
@@ -79,26 +83,15 @@ class Lemma:
         the opposite steps that it takes to get
         the conclusion into normal form.
         """
-        for subgoal in self.subgoals:
+        for subgoal in self.unproven_subgoals:
             subgoal.auto(self.hypotheses, bound)
         self._process_subgoals()
 
-        # TODO: This is in need of optimization...
         # Find normal form of current step and goal term
-        current_normal = normal(self.current_step, self.hypotheses, bound)
-        goal_normal = normal(self.conclusion, self.hypotheses, bound)
+        current_normal, steps = normal(self.current_step, self.hypotheses, bound)
+        goal_normal, goal_normal_steps = normal(self.conclusion, self.hypotheses, bound)
         if current_normal != goal_normal:
             print("Auto: Normal Term Mismatch.")
-            return
-
-        # Calculate steps to get to normal forms
-        steps = narrow(self.current_step, current_normal, self.hypotheses, bound)
-        if steps is None:
-            print("Auto: Cannot rewrite current step into normal form.")
-            return
-        goal_normal_steps = narrow(self.conclusion, goal_normal, self.hypotheses, bound)
-        if goal_normal_steps is None:
-            print("Auto: Cannot rewrite goal term into normal form.")
             return
 
         # Reverse goal_normal_rules and add to steps list
@@ -111,6 +104,7 @@ class Lemma:
         return self.conclusion
 
     def undo(self):
+        # TODO: Not sure how this function will behave with subgoals
         """Undo the last rewrite rule."""
         if len(self.steps) == 0:
             print("No steps to undo")
@@ -129,7 +123,7 @@ class Lemma:
         terms = get_vars_or_constants(self.premise, True) | \
             get_vars_or_constants(self.conclusion, True)
 
-        sorts = set((v for v in terms))
+        sorts = set((v.sort for v in terms))
         for sort in sorts:
             tsystem: Optional[TheorySystem] = system_from_sort(sort)
             if tsystem is not None:
@@ -137,21 +131,30 @@ class Lemma:
 
     def _process_subgoals(self):
         """
-        Go through all subgoals and see if they're proven.
-        If so, add to hypotheses list.
+        Go through all subgoals,
+        if proven then remove subgoal and
+        add to hypothesis list.
         """
-        subgoals_to_remove: List[int] = list()
-        for i, subgoal in enumerate(self.subgoals):
+        for i, subgoal in reversed(list(enumerate(self.unproven_subgoals))):
             # Add proven subgoals to internal hypotheses list
             if subgoal.proven:
                 new_rule = RewriteRule(subgoal.premise, subgoal.conclusion)
                 self.hypotheses.append(new_rule)
-                subgoals_to_remove.append(i)
-
-        # Remove proven subgoals
-        for index in reversed(subgoals_to_remove):
-            subgoals_to_remove.pop(index)
+                self.unproven_subgoals.pop(i)
+                self.proven_subgoals.append(subgoal)
 
     def __repr__(self):
         question_str = "?" if not self.proven else ""
         return f"{self.premise} →{question_str} {self.conclusion}"
+
+
+def simplify(x: Term, bound: int = -1):
+    """Load in theory systems needed to normalize a term."""
+    hypotheses = RewriteSystem({})
+    sorts = set((v.sort for v in get_vars_or_constants(x, True)))
+    for sort in sorts:
+        tsystem: Optional[TheorySystem] = system_from_sort(sort)
+        if tsystem is not None:
+            print(tsystem.rules)
+            hypotheses.extend(tsystem.rules)
+    return normal(x, hypotheses, bound)

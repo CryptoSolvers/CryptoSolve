@@ -81,7 +81,7 @@ def overlap(rule1, rule2, rs, position):
     new_right = deepcopy(rule1_copy.conclusion)
     new_right = replace(new_right, position, rule2_copy.conclusion)
     new_right = new_right * unifiers
-    new_right = normal(new_right, rs)
+    new_right = normal(new_right, rs)[0]
 
     return RewriteRule(new_left, new_right)
 

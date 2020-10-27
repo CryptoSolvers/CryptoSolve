@@ -29,7 +29,7 @@ class TheorySystem:
         """
         if not isinstance(x, FuncTerm):
             raise ValueError("simplify function expects a FuncTerm.")
-        return normal(x, cls.rules, bound)
+        return normal(x, cls.rules, bound)[0]
 
     @classmethod
     def signature(cls) -> List[Term]:
