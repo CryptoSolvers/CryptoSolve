@@ -7,7 +7,7 @@ six = Nat.from_int(6)
 seven = Nat.from_int(7)
 one = Nat.from_int(1)
 
-l = Lemma(Nat.mult(three, two), Nat.minus(seven, one))
-l.auto(Nat)
+l = Lemma(Nat.eq(Nat.mult(three, two), Nat.minus(seven, one)))
+l.auto()
 
 assert l.proven == True

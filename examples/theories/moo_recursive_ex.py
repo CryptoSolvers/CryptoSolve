@@ -20,4 +20,4 @@ moo_system = RewriteSystem({r0, rn})
 print("Cipher Block Chaining:", moo_system)
 
 three = Nat.from_int(3)
-print("Simplified form of the 3rd ciphertext:", normal(C(three), moo_system))
+print("Simplified form of the 3rd ciphertext:", normal(C(three), moo_system)[0])

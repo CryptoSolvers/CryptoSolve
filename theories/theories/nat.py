@@ -8,6 +8,7 @@ from algebra import Constant, Function, FuncTerm, Term, Variable
 from rewrite import RewriteRule, RewriteSystem
 from .inductive import Inductive, TheorySystem
 from .boolean import Boolean
+# from .pair import Pair
 
 __all__ = ['Nat']
 
@@ -49,6 +50,8 @@ Nat.define(
     })
 )
 
+## Parity Test
+
 even = Function("even", 1, domain_sort=Nat.sort, range_sort=Boolean.sort)
 Nat.define(
     even,
@@ -67,28 +70,7 @@ Nat.define(
     })
 )
 
-# Nat Equality Check
-nat_eq = Function("nat_eq", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
-Nat.define(
-    nat_eq,
-    RewriteSystem({
-        RewriteRule(nat_eq(Nat.zero, Nat.zero), Boolean.trueb),
-        RewriteRule(nat_eq(Nat.zero, Nat.S(_m)), Boolean.falseb),
-        RewriteRule(nat_eq(Nat.S(_n), Nat.zero), Boolean.falseb),
-        RewriteRule(nat_eq(Nat.S(_n), Nat.S(_m)), nat_eq(_n, _m))
-    })
-)
-
-# Less than or equal to check
-nat_le = Function("nat_le", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
-Nat.define(
-    nat_le,
-    RewriteSystem({
-        RewriteRule(nat_le(Nat.zero, Nat.S(_m)), Boolean.trueb),
-        RewriteRule(nat_le(Nat.S(_n), Nat.zero), Boolean.falseb),
-        RewriteRule(nat_le(Nat.S(_n), Nat.S(_m)), nat_le(_n, _m))
-    })
-)
+## Arithmetic Functions
 
 plus = Function("plus", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
 Nat.define(
@@ -136,3 +118,111 @@ Nat.define(
         RewriteRule(factorial(Nat.S(_n)), mult(Nat.S(_n), factorial(_n)))
     })
 )
+
+## Comparison Functions
+
+eq = Function("eq", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    eq,
+    RewriteSystem({
+        RewriteRule(eq(Nat.zero, Nat.zero), Boolean.trueb),
+        RewriteRule(eq(Nat.zero, Nat.S(_m)), Boolean.falseb),
+        RewriteRule(eq(Nat.S(_n), Nat.zero), Boolean.falseb),
+        RewriteRule(eq(Nat.S(_n), Nat.S(_m)), eq(_n, _m))
+    })
+)
+
+neq = Function("neq", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    neq,
+    RewriteSystem({
+        RewriteRule(neq(_n, _m), Boolean.neg(eq(_n, _m)))
+    })
+)
+
+le = Function("le", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    le,
+    RewriteSystem({
+        RewriteRule(le(Nat.zero, Nat.S(_m)), Boolean.trueb),
+        RewriteRule(le(Nat.S(_n), Nat.zero), Boolean.falseb),
+        RewriteRule(le(Nat.S(_n), Nat.S(_m)), le(_n, _m))
+    })
+)
+
+lt = Function("lt", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    lt,
+    RewriteSystem({
+        RewriteRule(lt(_n, _m), Boolean.andb(le(_n, _m), neq(_n, _m)))
+    })
+)
+
+gt = Function("gt", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    gt,
+    RewriteSystem({
+        RewriteRule(gt(_n, _m), Boolean.neg(le(_n, _m)))
+    })
+)
+
+ge = Function("ge", 2, domain_sort=Nat.sort, range_sort=Boolean.sort)
+Nat.define(
+    ge,
+    RewriteSystem({
+        RewriteRule(ge(_n, _m), Boolean.orb(gt(_n, _m), eq(_n, _m)))
+    })
+)
+
+## Min/Max Functions
+
+_min = Function("min", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    _min,
+    RewriteSystem({
+        RewriteRule(_min(Nat.zero, _n), Nat.zero),
+        RewriteRule(_min(_n, Nat.zero), Nat.zero),
+        RewriteRule(_min(Nat.S(_n), Nat.S(_m)), Nat.S(_min(_n, _m)))
+    })
+)
+
+_max = Function("max", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+Nat.define(
+    _max,
+    RewriteSystem({
+        RewriteRule(_max(Nat.zero, _n), _n),
+        RewriteRule(_max(_n, Nat.zero), _n),
+        RewriteRule(_max(Nat.S(_n), Nat.S(_m)), Nat.S(_max(_n, _m)))
+    })
+)
+
+# TODO: Fix implementations below...
+# _divmod = Function("divmod", 4, domain_sort=Nat.sort, range_sort=Pair.sort)
+# quotient = Variable("q", sort=Nat.sort)
+# neg_remainder = Variable("r", sort=Nat.sort)
+# Nat.define(
+#     _divmod,
+#     RewriteSystem({
+#         RewriteRule(_divmod(Nat.zero, _m, quotient, neg_remainder), Pair.pair(quotient, neg_remainder)),
+#         RewriteRule(_divmod(Nat.S(_n), _m, quotient, Nat.zero), _divmod(_n, _m, Nat.S(quotient), _m)),
+#         RewriteRule(_divmod(Nat.S(_n), _m, quotient, Nat.S(neg_remainder)), _divmod(_n, _m, quotient, neg_remainder))
+#     })
+# )
+
+# div = Function("div", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+# Nat.define(
+#     div,
+#     RewriteSystem({
+#         RewriteRule(div(_n, Nat.zero), Nat.zero),
+#         RewriteRule(div(_n, Nat.S(_m)), Pair.fst(_divmod(_n, _m, Nat.zero, _m)))
+#     })
+# )
+
+# mod = Function("mod", 2, domain_sort=Nat.sort, range_sort=Nat.sort)
+# Nat.define(
+#     mod,
+#     RewriteSystem({
+#         RewriteRule(mod(_n, Nat.zero), Nat.zero),
+#         RewriteRule(mod(_n, Nat.S(_m)), Nat.minus(_m, Pair.lst(_divmod(_n, _m, Nat.zero, _m))))
+#     })
+# )
