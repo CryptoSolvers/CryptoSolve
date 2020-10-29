@@ -25,11 +25,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='moo_client',
+          name='Crypto-Solver',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False )
+          console=True )

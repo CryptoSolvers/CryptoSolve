@@ -188,12 +188,10 @@ def make_window():
     tab_group_layout = [[sg.Tab('Tool', tool_layout, key='-TOOL-'),
         sg.Tab('Simulation', simulation_layout, key='-SIMULATION-'),
         sg.Tab('Custom', custom_layout, key='-CUSTOM-'),
-        sg.Tab('Random', random_layout, key='-RANDOM-'),
-        sg.Tab('File Settings', settings_layout)]]
+        sg.Tab('Random', random_layout, key='-RANDOM-')]]
 
     # menu definitions
-    menu_layout = [['&Help', ['&Tool', '&Simulation', '&Custom', '&Random']],
-            ['&About', ['&README', '&Authors', '&Usage']]]
+    menu_layout = [['&Help', ['&Tool', '&Simulation', '&Custom', '&Random']]]
 
     # The window layout - defines the entire window
     layout = [[sg.Menu(menu_layout, tearoff=True)],[sg.TabGroup(tab_group_layout,
@@ -204,7 +202,7 @@ def make_window():
         selected_title_color='white',
         enable_events=True,)]]
 
-    return sg.Window('MOO Tool', layout, no_titlebar=False)
+    return sg.Window('Crypto-Solver', layout, no_titlebar=False)
 
 # where the window is created and runs
 # contains all of the events that occur when a user does something in the gui window
@@ -229,10 +227,12 @@ def Launcher():
         goodInput = True
         function = ''
 
+        '''Commenting this out because not sure if it is
+        desired or not
         if event == 'Submit settings':
             filename = str(values[22]) + ".txt"
             if values[23] == 'Append':
-                f_writetype = "a+"
+                f_writetype = "a+"'''
 
         # all tool tab events
         if event == 'Execute!':
@@ -396,10 +396,14 @@ def Launcher():
                     for term in moo_safe_list:
                         response += str(term) + "\n"
                         print(str(term) + "\n")
-                    for unsafe_term in moo_unsafe_list:
-                        unsafe_moos += str(unsafe_term) + "\n"
-                        print(str(unsafe_term) + "\n")
-                fileinfo += "Random output:\n" + response + "\n" + "Unsafe moos: \n" + unsafe_moos + "\n"
+                    if len(moo_unsafe_list) > 0:
+                        print("Unsafe moos: \n")
+                        for unsafe_term in moo_unsafe_list:
+                            unsafe_moos += str(unsafe_term) + "\n"
+                            print(str(unsafe_term) + "\n")
+                fileinfo += "Random output:\n" + response + "\n"
+                if len(moo_unsafe_list) > 0:
+                    fileinfo += "Unsafe moos: \n" + unsafe_moos + "\n"
                 window['-O4-'].update(response)
 
         # menu button events create popups
