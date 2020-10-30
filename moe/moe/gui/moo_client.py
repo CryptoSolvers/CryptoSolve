@@ -141,7 +141,7 @@ def make_window():
                     [sg.Text('Session Length Bound:')],
                     [sg.Text('Encryption F-Bound:')],
                     [sg.Text('Based on number of MOO to Generate:')],
-                    [sg.Text('Chaining Required:')],
+                    [sg.Text('Chaining Required:', tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
                     [sg.Text('IV Required:')],
                     [sg.Text('Test Each MOO for Security:')],
                     [sg.Text('Adversary knows IV?')]]
@@ -152,7 +152,7 @@ def make_window():
                     [sg.InputText('1', size=box_size)],
                     [sg.InputText('6', size=box_size)],
                     [sg.InputText('4', size=box_size)],            
-                    [sg.Checkbox('', pad=c_pad)],
+                    [sg.Checkbox('', pad=c_pad, tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
                     [sg.Checkbox('', pad=c_pad)],
                     [sg.Checkbox('', pad=c_pad)],
                     [sg.Checkbox('', pad=c_pad)]]
@@ -364,7 +364,7 @@ def Launcher():
                 length_bound = restrict_to_range(int(result[2]), 0, 100)
                 f_bound = int(result[3])
                 moo_bound = restrict_to_range(int(result[4]), 1, 100)
-                c_req = result[5]
+                c_req = False#result[5]
                 iv_req = result[6]
                 sec_req = result[7]
                 knows_iv = result[8]
