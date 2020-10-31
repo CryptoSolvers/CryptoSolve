@@ -71,13 +71,13 @@ def make_window():
                     [sg.InputCombo((chaining_functions), size=box_size)],
                     [sg.InputCombo((schedules), size=box_size)],
                     [sg.InputText('10', size=box_size)],
-                    [sg.Checkbox('', pad=c_pad, size=(12, 1))]]
+                    [sg.Checkbox('', pad=c_pad)]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
                     sg.Column(t_left_column),
                     sg.Column(t_right_column, key='-TOOL-INPUT-'),
-                    sg.Column([], pad=(56,0))]],
+                    sg.Column([], pad=(143,0))]],
                     pad=(11,10))],
                     [sg.Button('Execute!', pad=(10,0))],
                     output]
@@ -99,7 +99,7 @@ def make_window():
     simulation_layout = [[sg.Frame('Settings', [[
                         sg.Column(s_left_column),
                         sg.Column(s_right_column),
-                        sg.Column([], pad=(70,0))]],
+                        sg.Column([], pad=(170,0))]],
                         pad=(10,10))],
                         [sg.Button('Execute!', pad=(10,0))],
                         output,
