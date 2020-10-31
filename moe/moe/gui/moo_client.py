@@ -48,6 +48,9 @@ def make_window():
 
     sg.theme('UMW')
 
+    app_font = ("Helvetica", 20)
+    sg.SetOptions(font=app_font)
+
     box_size = (30, 1) #for all input boxes
     ml_box_size = (70, 15) #for output boxes
     c_pad = (0, 3) #padding amount for checkboxes
@@ -68,7 +71,7 @@ def make_window():
                     [sg.InputCombo((chaining_functions), size=box_size)],
                     [sg.InputCombo((schedules), size=box_size)],
                     [sg.InputText('10', size=box_size)],
-                    [sg.Checkbox('', pad=c_pad)]]
+                    [sg.Checkbox('', pad=c_pad, size=(12, 1))]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
@@ -202,17 +205,19 @@ def make_window():
         selected_title_color='white',
         enable_events=True,)]]
 
-    return sg.Window('Crypto-Solver', layout, no_titlebar=False)
+    return sg.Window('Crypto-Solver', layout, no_titlebar=False, resizable=True)
 
 # where the window is created and runs
 # contains all of the events that occur when a user does something in the gui window
 # contains all of the input that are in the window
 def Launcher():
     window = make_window()
+    window.finalize()
     filename = "moo_output.txt"
     f_writetype = "w+"
     fileinfo = ""
     moo_session = None
+    window_size = window.Size
     # event loop
     while True:
         event, values = window.read()       # type: str, dict
@@ -304,7 +309,9 @@ def Launcher():
                 knows_iv = result[4]
                 # check for security and catch exceptions
                 try:
+                    print("test1\n")
                     result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                    print("test2\n")
                 except ValueError as v_err:
                     message = 'ValueError: ' + str(v_err)
                     sg.Popup(message, title='VALUE ERROR')
