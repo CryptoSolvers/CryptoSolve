@@ -5,7 +5,8 @@ of operation is invertible.
 from collections import Counter
 from copy import deepcopy
 from typing import Set
-from algebra import Constant, depth, Function, FuncTerm, Term, TermDAG, Variable, get_constants, get_vars, get_vars_or_constants, count_occurence
+from algebra import Constant, depth, Function, FuncTerm, Term, Variable, get_constants, get_vars, get_vars_or_constants, count_occurence
+from algebra.dag import TermDAG
 from xor import xor
 from moe.program import MOOProgram
 import numpy as np
