@@ -67,11 +67,11 @@ def make_window():
                     [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
-    t_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
-                    [sg.InputCombo((chaining_functions), size=box_size)],
-                    [sg.InputCombo((schedules), size=box_size)],
+    t_right_column = [[sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
+                    [sg.InputCombo((chaining_functions), size=box_size, default_value=chaining_functions[0])],
+                    [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])],
                     [sg.InputText('10', size=box_size)],
-                    [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     tool_layout = [[sg.Frame('Settings', [[
@@ -92,8 +92,8 @@ def make_window():
                     [sg.Text('Schedule:')]]
 
     # right hand side input boxes
-    s_right_column = [[sg.InputCombo((chaining_functions), size=box_size)],
-                    [sg.InputCombo((schedules), size=box_size)]]
+    s_right_column = [[sg.InputCombo((chaining_functions), size=box_size, default_value=chaining_functions[0])],
+                    [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     simulation_layout = [[sg.Frame('Settings', [[
@@ -101,9 +101,8 @@ def make_window():
                         sg.Column(s_right_column),
                         sg.Column([], pad=(170,0))]],
                         pad=(10,10))],
-                        [sg.Button('Execute!', pad=(10,0))],
-                        output,
-                        [sg.Button('Next>>', pad=(10,0))]]
+                        [sg.Button('Execute!', pad=(10,0)), sg.Button('Next>>', pad=(10,0))],
+                        output]
 
 
     #-----------------------custom page layout-----------------------
@@ -119,16 +118,16 @@ def make_window():
 
     # right hand side input boxes
     c_right_column = [[sg.InputText(('f(xor(P[i],C[i-1]))'), size=box_size)],
-                    [sg.InputCombo((unification_algorithms), size=box_size)],
-                    [sg.InputCombo((schedules), size=box_size)],
+                    [sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
+                    [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])],
                     [sg.InputText(('10'), size=box_size)],
-                    [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     custom_layout = [[sg.Frame('Settings', [[
                     sg.Column(c_left_column),
                     sg.Column(c_right_column),
-                    sg.Column([], pad=(56,0))]],
+                    sg.Column([], pad=(144,0))]],
                     pad=(10,10))],
                     [sg.Button('Execute!', pad=(10, 0))],
                     output]
@@ -150,21 +149,21 @@ def make_window():
                     [sg.Text('Adversary knows IV?')]]
 
     # right hand side input boxes
-    r_right_column = [[sg.InputCombo((unification_algorithms), size=box_size)],
-                    [sg.InputCombo((schedules), size=box_size)],
+    r_right_column = [[sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
+                    [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])],
                     [sg.InputText('1', size=box_size)],
                     [sg.InputText('6', size=box_size)],
                     [sg.InputText('4', size=box_size)],            
-                    [sg.Checkbox('', pad=c_pad, tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
-                    [sg.Checkbox('', pad=c_pad)],
-                    [sg.Checkbox('', pad=c_pad)],
-                    [sg.Checkbox('', pad=c_pad)]]
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No', tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
     random_layout = [[sg.Frame('Settings', [[
                     sg.Column(r_left_column),
                     sg.Column(r_right_column),
-                    sg.Column([], pad=(10,0))]],
+                    sg.Column([], pad=(49,0))]],
                     pad=(10,10))],
                     [sg.Button('Execute!', pad=(10,0))],
                     output]
@@ -244,7 +243,7 @@ def Launcher():
             # check all input
             start, stop = 1, 5
             function = 'tool'
-            for i in range(start, stop):
+            for i in range(start, stop+1):
                 result.append(values[i])
 
         sim_next = False
@@ -264,17 +263,16 @@ def Launcher():
             # check all input
             start, stop = 8, 12
             function = 'custom'
-            for i in range(start, stop):
+            for i in range(start, stop+1):
                 result.append(values[i])
 
         # all random tab events
         if event == 'Execute!2':
             #check all input
-            start, mid, stop = 13, 17, 21
+            start, stop = 13, 21
             function = 'random'
-            for i in range(start, mid):
+            for i in range(start, stop+1):
                 result.append(values[i])
-            result.append(values[mid])
 
         # check if any of the inputs are blank
         if all(result) is not True:
@@ -287,14 +285,6 @@ def Launcher():
                 goodInput = False
                 sg.Popup('Invalid unfication algorithm and chaining function combination, see Help -> Tool for more information', title='ERROR')
 
-        # these pages have the checkbox input which is default false, which messes
-        # up the check for blank inputs, so here we add those values back in
-        if function == 'tool' or function == 'custom':
-            result.append(values[stop])
-        elif function == 'random':
-            for i in range(mid+1, stop+1):
-                result.append(values[i])
-
 
         # if none of the input is blank / combinations are good
         #then perform tool functions and output results to window
@@ -306,7 +296,7 @@ def Launcher():
                 chaining = cf_dict[result[1]]
                 sched = scd_dict[result[2]]
                 length_bound = restrict_to_range(int(result[3]), 0, 100)
-                knows_iv = result[4]
+                knows_iv = yn_tf(result[4])
                 # check for security and catch exceptions
                 try:
                     print("test1\n")
@@ -350,7 +340,7 @@ def Launcher():
                 unif = unif_dict[result[1]]
                 sched = scd_dict[result[2]]
                 length_bound = restrict_to_range(int(result[3]), 0, 100)
-                knows_iv = result[4]
+                knows_iv = yn_tf(result[4])
                 try:
                     result = moo_check(chaining, sched, unif, length_bound, knows_iv)
                 except ValueError as v_err:
@@ -371,10 +361,10 @@ def Launcher():
                 length_bound = restrict_to_range(int(result[2]), 0, 100)
                 f_bound = int(result[3])
                 moo_bound = restrict_to_range(int(result[4]), 1, 100)
-                c_req = False#result[5]
-                iv_req = result[6]
-                sec_req = result[7]
-                knows_iv = result[8]
+                c_req = False#yn_tf(result[5])
+                iv_req = yn_tf(result[6])
+                sec_req = yn_tf(result[7])
+                knows_iv = yn_tf(result[8])
 
                 # generate random moos
                 filtered_gen = FilteredMOOGenerator(1, f_bound, iv_req, c_req)
@@ -463,6 +453,12 @@ def get_response(result) -> str:
 # tuple addition
 def add_t(t1: tuple, t2: tuple) -> tuple:
     return tuple(map(operator.add, t1, t2))
+
+#input combo boxes yes or no to true/false
+def yn_tf(input: str) -> bool:
+    if input == 'Yes':
+        return True;
+    return False;
 
 if __name__ == '__main__':
     while _error:
