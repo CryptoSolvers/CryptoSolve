@@ -10,7 +10,7 @@ import functools
 from algebra import Constant, Function, FuncTerm, Sort, Term
 from rewrite import normal, RewriteRule, RewriteSystem
 
-__all__ = ['Inductive', 'TheorySystem']
+__all__ = ['Inductive', 'TheorySystem', 'system_from_sort']
 
 class TheorySystem:
     """
@@ -29,7 +29,7 @@ class TheorySystem:
         """
         if not isinstance(x, FuncTerm):
             raise ValueError("simplify function expects a FuncTerm.")
-        return normal(x, cls.rules, bound)
+        return normal(x, cls.rules, bound)[0]
 
     @classmethod
     def signature(cls) -> List[Term]:
@@ -126,6 +126,7 @@ def Inductive(cls=None):
                       '{type(term)}' inside an inductive class. (Constant, Function)"
                 )
 
+        _system_sort_map[cls.sort] = cls
         return cls
 
     # Called as decorator
@@ -134,3 +135,9 @@ def Inductive(cls=None):
 
     # Called as function
     return wrap(cls)
+
+_system_sort_map: Dict[Sort, TheorySystem] = dict()
+
+def system_from_sort(s: Sort) -> Optional[TheorySystem]:
+    """Obtain a TheorySystem from a sort."""
+    return _system_sort_map.get(s)

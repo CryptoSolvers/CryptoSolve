@@ -5,7 +5,8 @@ some useful operations with them.
 """
 from typing import overload, List, Optional, Union, Dict
 from copy import deepcopy
-from algebra import Variable, Constant, Term, Function, FuncTerm, get_vars, SubstituteTerm
+from algebra import Variable, Constant, Term, Function, \
+    FuncTerm, get_vars, SortMismatch, SubstituteTerm
 from Unification.unif import unif
 
 __all__ = ['freeze', 'converse', 'RewriteRule', 'Position']
@@ -178,7 +179,11 @@ class RewriteRule:
                    subterm: Term, result: Dict[Position, Term]) -> Dict[Position, Term]:
         """Applies the rewrite rule to every subterm"""
         # If the current position is rewritable, add it to result dictionary
-        r = self._apply_pos(term, pos)
+        r: Optional[Term] = None
+        try:
+            r = self._apply_pos(term, pos)
+        except SortMismatch:
+            pass
         if r is not None:
             result[pos] = r
 

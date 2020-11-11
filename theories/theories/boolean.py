@@ -30,6 +30,7 @@ class Boolean(TheorySystem):
 
 # Variables for later rules
 _n = Variable("n", sort=Boolean.sort)
+_m = Variable("m", sort=Boolean.sort)
 
 # Negation
 neg = Function("neg", 1, domain_sort=Boolean.sort, range_sort=Boolean.sort)
@@ -58,5 +59,38 @@ Boolean.define(
     RewriteSystem({
         RewriteRule(orb(Boolean.trueb, _n), Boolean.trueb),
         RewriteRule(orb(Boolean.falseb, _n), _n)
+    })
+)
+
+# Boolean Exclusive-Or
+xorb = Function("xorb", 2, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    xorb,
+    RewriteSystem({
+        RewriteRule(xorb(Boolean.trueb, Boolean.trueb), Boolean.falseb),
+        RewriteRule(xorb(Boolean.falseb, Boolean.falseb), Boolean.falseb),
+        RewriteRule(xorb(Boolean.trueb, Boolean.falseb), Boolean.trueb),
+        RewriteRule(xorb(Boolean.falseb, Boolean.trueb), Boolean.trueb)
+    })
+)
+
+# Boolean Equals
+eq = Function("eq", 2, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    eq,
+    RewriteSystem({
+        RewriteRule(eq(Boolean.trueb, Boolean.trueb), Boolean.trueb),
+        RewriteRule(eq(Boolean.falseb, Boolean.falseb), Boolean.trueb),
+        RewriteRule(eq(Boolean.trueb, Boolean.falseb), Boolean.falseb),
+        RewriteRule(eq(Boolean.falseb, Boolean.trueb), Boolean.falseb),
+    })
+)
+
+# Boolean Not-Equals
+neq = Function("neq", 2, domain_sort=Boolean.sort, range_sort=Boolean.sort)
+Boolean.define(
+    neq,
+    RewriteSystem({
+        RewriteRule(neq(_n, _m), neg(eq(_n, _m)))
     })
 )
