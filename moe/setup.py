@@ -12,7 +12,7 @@ for directory in directories:
 
 
 setup(name="moe",
-    version="0.0.1",
+    version="0.1",
     packages=find_packages(),
     scripts=["moe_tool", "moe_website"],
     install_requires = [
