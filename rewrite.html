@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rewrite 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="nav-item nav-item-0"><a href="#">Rewrite 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rewrite 0.1 documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-rewrite-s-documentation">
+<h1>Welcome to Rewrite’s documentation!<a class="headerlink" href="#welcome-to-rewrite-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-rewrite"></span><div class="section" id="rewrite-library">
+<h2>Rewrite Library<a class="headerlink" href="#rewrite-library" title="Permalink to this headline">¶</a></h2>
+</div>
+<span id="document-variants"></span><div class="section" id="module-rewrite.variants">
+<span id="variants-library"></span><h2>Variants Library<a class="headerlink" href="#module-rewrite.variants" title="Permalink to this headline">¶</a></h2>
+<p>The variants module is responsible for computing variants
+and identifying some properties about them.</p>
+<dl class="py class">
+<dt id="rewrite.variants.Variants">
+<em class="property">class </em><code class="sig-prename descclassname">rewrite.variants.</code><code class="sig-name descname">Variants</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">term</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>algebra.term.Variable<span class="p">, </span>algebra.term.Constant<span class="p">, </span>algebra.term.FuncTerm<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">rules</span><span class="p">:</span> <span class="n">rewrite.system.RewriteSystem</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rewrite.variants.Variants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct variants of a term given a rewrite system.</p>
+<dl class="simple">
+<dt>term<span class="classifier">Term</span></dt><dd><p>The term to compute the variants from.</p>
+</dd>
+<dt>rules<span class="classifier">RewriteSystem</span></dt><dd><p>The rules from which to compute the variants from.</p>
+</dd>
+</dl>
+<p>A variant of a term $t$ is a term that can be obtained by applying
+a sequence of rewrite rules to $t$.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">algebra</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rewrite</span> <span class="kn">import</span> <span class="n">RewriteRule</span><span class="p">,</span> <span class="n">RewriteSystem</span><span class="p">,</span> <span class="n">Variants</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r1</span> <span class="o">=</span> <span class="n">RewriteRule</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r2</span> <span class="o">=</span> <span class="n">RewriteRule</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vt</span> <span class="o">=</span> <span class="n">Variants</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">RewriteSystem</span><span class="p">({</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">vt</span><span class="p">)</span>
+<span class="go">[f(a, f(b, b)), b, f(a, b)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="rewrite.variants.is_finite">
+<code class="sig-prename descclassname">rewrite.variants.</code><code class="sig-name descname">is_finite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n"><a class="reference internal" href="index.html#rewrite.variants.Variants" title="rewrite.variants.Variants">rewrite.variants.Variants</a></span></em>, <em class="sig-param"><span class="n">bound</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#rewrite.variants.is_finite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check to see if there are a finite number of variants.</p>
+<p>Returns false if the variants are infinite or the bound is reached.</p>
+<dl class="simple">
+<dt>v<span class="classifier">Variants</span></dt><dd><p>The variants in which to check if it’s finite.</p>
+</dd>
+<dt>bound<span class="classifier">int</span></dt><dd><p>The bound at which to stop checking for variants.
+More specifically, the bound represents the maximum number of rewrite rules
+that the program is checking for. An infinite bound can be specified with -1.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="rewrite.variants.narrow">
+<code class="sig-prename descclassname">rewrite.variants.</code><code class="sig-name descname">narrow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">term</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>algebra.term.Variable<span class="p">, </span>algebra.term.Constant<span class="p">, </span>algebra.term.FuncTerm<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">goal_term</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>algebra.term.Variable<span class="p">, </span>algebra.term.Constant<span class="p">, </span>algebra.term.FuncTerm<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">rules</span><span class="p">:</span> <span class="n">rewrite.system.RewriteSystem</span></em>, <em class="sig-param"><span class="n">bound</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>List<span class="p">[</span>Tuple<span class="p">[</span>rewrite.rule.RewriteRule<span class="p">, </span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="headerlink" href="#rewrite.variants.narrow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sequence of rewrite rules necessary to rewrite one term to a goal term.
+If the term cannot be rewritten, this function will return None.
+A bound greater than -1 will set the function to stop
+attempting to reach the goal after a certain number of steps.</p>
+<dl class="simple">
+<dt>term<span class="classifier">Term</span></dt><dd><p>The term to start from.</p>
+</dd>
+<dt>goal_term<span class="classifier">Term</span></dt><dd><p>The term to attempt to rewrite to.</p>
+</dd>
+<dt>rules<span class="classifier">RewriteSystem</span></dt><dd><p>The rules from which to rewrite from.</p>
+</dd>
+<dt>bound<span class="classifier">int</span></dt><dd><p>The maximum number of times to attempt rewriting.
+-1 indicates an infinite bound.</p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">algebra</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rewrite</span> <span class="kn">import</span> <span class="n">RewriteRule</span><span class="p">,</span> <span class="n">RewriteSystem</span><span class="p">,</span> <span class="n">narrow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r1</span> <span class="o">=</span> <span class="n">RewriteRule</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r2</span> <span class="o">=</span> <span class="n">RewriteRule</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">narrow</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">),</span> <span class="n">RewriteSystem</span><span class="p">({</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">}),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">[(f(x, x) → x, &#39;2&#39;)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-rewrite">Rewrite Library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-variants">Variants Library</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="nav-item nav-item-0"><a href="#">Rewrite 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rewrite 0.1 documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, SymCollab.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
+    </div>
+  </body>
+</html>
