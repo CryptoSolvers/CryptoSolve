@@ -1,5 +1,12 @@
 #Elementary ACU-unification for single term pair
 
+####################################################
+#To-Do:
+#-- Fix the conversion from the diophantine solver
+#-- Add free function symbols
+#-- Allow more than one AC symbol
+#-- Test the solver and AC solutions
+
 #!/usr/bin/env python3
 from copy import deepcopy
 from algebra import *
