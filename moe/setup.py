@@ -3,9 +3,9 @@ from glob import glob
 
 # Add website files
 data_files = []
-directories = glob('moe/website/partials/**/', recursive=True) + \
-    glob('moe/website/static/**/', recursive=True) + \
-    glob('moe/website/templates/**/', recursive=True)
+directories = glob('symcollab/moe/website/partials/**/', recursive=True) + \
+    glob('symcollab/moe/website/static/**/', recursive=True) + \
+    glob('symcollab/moe/website/templates/**/', recursive=True)
 for directory in directories:
     files = list(filter(lambda x: x + "/" not in directories, glob(directory + "*")))
     data_files.append((directory, files))
@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name="symcollab-moe",
-    version="0.1.1",
+    version="0.1.3",
     packages=find_namespace_packages(include=["symcollab.*"]),
     long_description=long_description,
     long_description_content_type="text/markdown",
