@@ -1,4 +1,4 @@
-from theories import *
+from symcollab.theories import *
 import unittest
 
 class TestStub(unittest.TestCase):

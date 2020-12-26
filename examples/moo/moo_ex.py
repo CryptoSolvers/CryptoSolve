@@ -1,8 +1,8 @@
 """
 Example for setting up a MOOProgram
 """
-from algebra import Constant, Variable
-from moe.program import MOOProgram
+from symcollab.algebra import Constant, Variable
+from symcollab.moe.program import MOOProgram
 
 # Setting up terms
 s = Constant("s")

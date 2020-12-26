@@ -5,19 +5,19 @@ setup_package () {
 }
 
 # First uninstall any installed packages
-pip uninstall algebra
-pip uninstall xor
-pip uninstall theories
-pip uninstall Unification
-pip uninstall rewrite
-pip uninstall moe
+pip uninstall symcollab-algebra
+pip uninstall symcollab-xor
+pip uninstall symcollab-theories
+pip uninstall symcollab-unification
+pip uninstall symcollab-rewrite
+pip uninstall symcollab-moe
 
 # Then setup the packages to mirror the local repo
 setup_package algebra
 setup_package xor
-setup_package theories
 setup_package Unification
 setup_package rewrite
+setup_package theories
 setup_package moe
 
 # Developer utilities

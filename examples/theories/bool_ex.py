@@ -1,4 +1,4 @@
-from theories.boolean import Boolean
+from symcollab.theories.boolean import Boolean
 
 # Neg is indempotent
 result = Boolean.simplify(

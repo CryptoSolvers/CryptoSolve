@@ -1,4 +1,4 @@
-from theories.nat import Nat
+from symcollab.theories.nat import Nat
 
 one = Nat.S(Nat.zero)
 four = Nat.S(Nat.S(Nat.S(Nat.S(Nat.zero))))

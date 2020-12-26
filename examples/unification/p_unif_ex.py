@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from algebra import Constant, Function, Variable, Equation
-from xor.xorhelper import *
-from xor.structure import *
-from Unification.p_unif import p_unif
-from xor import *
+from symcollab.algebra import Constant, Function, Variable, Equation
+from symcollab.xor.xorhelper import *
+from symcollab.xor.structure import *
+from symcollab.Unification.p_unif import p_unif
+from symcollab.xor import *
 
 f = Function("f", 1)
 h = Function("h", 1)

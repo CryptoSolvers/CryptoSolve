@@ -1,8 +1,8 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
-setup(name="algebra",
-    version="0.1",
-    packages=find_packages(),
+setup(name="symcollab-algebra",
+    version="0.1.1",
+    packages=find_namespace_packages(include=["symcollab.*"]),
     install_requires = [
         "matplotlib~=3.1.1",
         "mypy~=0.740",

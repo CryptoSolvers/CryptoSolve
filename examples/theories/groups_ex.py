@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from algebra import  Variable
-from theories.groups import Group
+from symcollab.algebra import  Variable
+from symcollab.theories.groups import Group
 
 a = Variable("a", sort=Group.sort)
 b = Variable("b", sort=Group.sort)

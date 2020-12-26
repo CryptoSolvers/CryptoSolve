@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from algebra import Constant, Function, Variable
-from rewrite import RewriteRule, RewriteSystem, narrow, is_finite, Variants
+from symcollab.algebra import Constant, Function, Variable
+from symcollab.rewrite import RewriteRule, RewriteSystem, narrow, is_finite, Variants
 
 f = Function("f", 2)
 x = Variable("x")

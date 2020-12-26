@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from glob import glob
 
 # Add website files
@@ -11,15 +11,15 @@ for directory in directories:
     data_files.append((directory, files))
 
 
-setup(name="moe",
-    version="0.1",
-    packages=find_packages(),
+setup(name="symcollab-moe",
+    version="0.1.1",
+    packages=find_namespace_packages(include=["symcollab.*"]),
     scripts=["moe_tool", "moe_website"],
     install_requires = [
         # Our dependencies
-        "algebra",
-        "Unification",
-        "xor",
+        "symcollab-algebra",
+        "symcollab-unification",
+        "symcollab-xor",
         # Outside dependencies
         "Flask>=1.1.1",
         "mypy>=0.740",

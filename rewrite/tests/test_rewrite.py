@@ -1,5 +1,5 @@
-from rewrite import *
-from algebra import *
+from symcollab.rewrite import *
+from symcollab.algebra import *
 import unittest
 
 class TestRewrite(unittest.TestCase):

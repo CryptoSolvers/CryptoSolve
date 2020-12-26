@@ -1,5 +1,5 @@
-from theories.nat import Nat
-from theories.lemma import Lemma
+from symcollab.theories.nat import Nat
+from symcollab.theories.lemma import Lemma
 
 two = Nat.from_int(2)
 three = Nat.from_int(3)

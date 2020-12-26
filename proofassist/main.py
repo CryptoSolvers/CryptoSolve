@@ -1,7 +1,7 @@
 # TODO: Not accounting for proof steps being longer than a line long...
 
-from algebra import *
-from rewrite import *
+from symcollab.algebra import *
+from symcollab.rewrite import *
 import curses
 
 class GoalWindow:

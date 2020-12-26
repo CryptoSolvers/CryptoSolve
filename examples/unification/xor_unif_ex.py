@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from algebra import Function, Variable, Constant
-from xor.xorhelper import *
-from xor.structure import *
+from symcollab.algebra import Function, Variable, Constant
+from symcollab.xor.xorhelper import *
+from symcollab.xor.structure import *
 
 f = Function("f", 1)
 x = Variable("x")

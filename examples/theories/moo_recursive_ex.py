@@ -3,10 +3,10 @@
 A thought experiment on how to define
 recursive MOOs.
 """
-from algebra import Constant, Function, Variable
-from rewrite import RewriteRule, RewriteSystem, normal
-from xor import xor
-from theories.nat import Nat
+from symcollab.algebra import Constant, Function, Variable
+from symcollab.rewrite import RewriteRule, RewriteSystem, normal
+from symcollab.xor import xor
+from symcollab.theories.nat import Nat
 
 C = Function("C", 1, domain_sort=Nat.sort)
 P = Function("P", 1, domain_sort=Nat.sort)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from algebra import Function, Variable, Constant
-from Unification.unif import unif
+from symcollab.algebra import Function, Variable, Constant
+from symcollab.Unification.unif import unif
 
 # Setting up terms
 f = Function("f", 2)
