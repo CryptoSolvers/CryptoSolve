@@ -14,6 +14,7 @@ for directory in directories:
 setup(name="symcollab-moe",
     version="0.1.1",
     packages=find_namespace_packages(include=["symcollab.*"]),
+    url="https://github.com/symcollab/cryptosolve",
     scripts=["moe_tool", "moe_website"],
     install_requires = [
         # Our dependencies
