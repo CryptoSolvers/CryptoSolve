@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from algebra import *
-from xor import *
+from symcollab.algebra import *
+from symcollab.xor import *
 
 a = Constant("a")
 b = Constant("b")

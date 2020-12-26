@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from algebra import Constant, Function, Variable
-from rewrite import RewriteRule
+from symcollab.algebra import Constant, Function, Variable
+from symcollab.rewrite import RewriteRule
 
 a = Constant("a")
 b = Constant("b")

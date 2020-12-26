@@ -1,10 +1,10 @@
 """
 Examples from Hai's presentation on May 23rd 2020
 """
-from algebra import Function, Variable, Constant
-from xor import xor
-from xor.structure import Zero
-from moe.syntactic_check import moo_depth_random_check, \
+from symcollab.algebra import Function, Variable, Constant
+from symcollab.xor import xor
+from symcollab.xor.structure import Zero
+from symcollab.moe.syntactic_check import moo_depth_random_check, \
      moo_has_random, moo_f_depth
 
 

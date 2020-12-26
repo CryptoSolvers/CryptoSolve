@@ -1,4 +1,4 @@
-from moe import *
+from symcollab.moe import *
 import unittest
 
 class TestStub(unittest.TestCase):

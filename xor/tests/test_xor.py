@@ -1,5 +1,5 @@
-from xor import *
-from algebra import *
+from symcollab.xor import *
+from symcollab.algebra import *
 import unittest
 
 class TestXor(unittest.TestCase):

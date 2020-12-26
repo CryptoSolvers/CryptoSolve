@@ -1,5 +1,5 @@
-from theories.listing import Listing
-from theories.nat import Nat
+from symcollab.theories.listing import Listing
+from symcollab.theories.nat import Nat
 
 # Empty list is of length 0
 result = Listing.simplify(

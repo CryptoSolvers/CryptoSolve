@@ -1,8 +1,8 @@
 #!/usr/bin/env python3 -i
-from moe import *
-from Unification.p_unif import p_unif
-from Unification.p_syntactic import p_syntactic
-from Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.moe import *
+from symcollab.Unification.p_unif import p_unif
+from symcollab.Unification.p_syntactic import p_syntactic
+from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
 
 ##
 ### Welcome Message

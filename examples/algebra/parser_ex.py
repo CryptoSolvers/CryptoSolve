@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from algebra import Constant, Function, Parser, Variable
+from symcollab.algebra import Constant, Function, Parser, Variable
 
 f = Function("f", 2)
 a = Constant("a")

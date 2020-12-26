@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from theories import BooleanRing, RingConstant
+from symcollab.theories import BooleanRing, RingConstant
 
 a = RingConstant(BooleanRing, "a")
 b = RingConstant(BooleanRing, "b")

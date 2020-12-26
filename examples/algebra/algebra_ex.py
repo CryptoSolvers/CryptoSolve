@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from algebra import Constant, Equation, Function, Sort, \
+from symcollab.algebra import Constant, Equation, Function, Sort, \
      SubstituteTerm, Variable
-from algebra.dag import TermDAG
+from symcollab.algebra.dag import TermDAG
 
 # Setting up terms
 f = Function("f", 2)

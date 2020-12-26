@@ -1,4 +1,4 @@
-from Unification.unif import unif
+from symcollab.Unification.unif import unif
 import unittest
 
 class TestStub(unittest.TestCase):

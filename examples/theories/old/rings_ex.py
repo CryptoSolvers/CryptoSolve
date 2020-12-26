@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from theories import ACFunction, AFunction, Ring, RingConstant
+from symcollab.theories import ACFunction, AFunction, Ring, RingConstant
 
 r = Ring("r", ACFunction("add", 2), AFunction("mul", 2), "0")
 a = RingConstant(r, "a")

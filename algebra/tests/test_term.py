@@ -1,4 +1,4 @@
-from algebra import *
+from symcollab.algebra import *
 import unittest
 
 class TestTerm(unittest.TestCase):
