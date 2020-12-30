@@ -11,3 +11,4 @@ from .syntactic_check import *
 from .collisions import *
 from .generator import *
 from .filtered_generator import *
+from .additional_checks import *
