@@ -14,6 +14,22 @@ f = Function("f", 1)
 zero = Zero()
 
 
+#Def 6.4: degenerate
+
+def degenerate_check(ciphertext: Term, previous_ciphertexts: List[Term]) -> bool:
+    """
+    Check if symbolic history is degenerate
+    """
+    degen = False
+    previous_ciphertexts.append(ciphertext)
+    seq = zero
+    for t in previous_ciphertexts:
+        seq = xor(seq, t)
+        if seq == zero:
+            degen = True
+            break
+    return degen
+
 #Def 8.1: quasi-unsafe
 def search_for_quasi_unsafe(ciphertext: Term, constraints: Dict[Variable, List[Term]]) -> bool:
     """
