@@ -94,8 +94,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
-                         constraints: Dict[Variable, List[Term]],
-                         unif_algo: Callable) -> Optional[Union[SubstituteTerm, List[SubstituteTerm]]]:
+                         constraints: Dict[Variable, List[Term]]) -> Optional[Union[SubstituteTerm, List[SubstituteTerm]]]:
     """
     Search through the known ciphertext history and see if there are any collisions
     between the current ciphertext and a past one.
@@ -151,3 +150,5 @@ class MOOCheckResult:
         secureness or not.
         """
         return self.syntactic_result or not any_unifiers(self.collisions)
+
+
