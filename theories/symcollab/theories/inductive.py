@@ -18,7 +18,7 @@ class TheorySystem:
     RewriteSystem that governs it.
     """
     sort: Sort = None
-    rules: RewriteSystem = RewriteSystem(set())
+    rules: RewriteSystem = RewriteSystem()
     definitions: Dict[Function, RewriteSystem] = dict()
 
     @classmethod

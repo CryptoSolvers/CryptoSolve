@@ -3,7 +3,7 @@ This module is responsible for rewrite systems,
 a set of rewrite rules and operations on them.
 """
 from copy import deepcopy
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 from symcollab.algebra import SortMismatch, Term
 from .rule import RewriteRule
 
@@ -14,7 +14,9 @@ class RewriteSystem:
     A set of rewrite rules.
     Used primarily to hold properties of a rewrite system.
     """
-    def __init__(self, rules: Set[RewriteRule]):
+    def __init__(self, rules: Optional[Set[RewriteRule]]=None):
+        if rules is None:
+            rules = set()
         self.rules = rules
 
     def append(self, rule):
