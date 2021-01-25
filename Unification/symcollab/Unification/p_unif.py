@@ -2,7 +2,7 @@ from copy import deepcopy
 from itertools import *
 from symcollab.algebra import *
 from symcollab.xor import xor
-from symcollab.xor.structure import XORTerm, Zero, Disequations, Disequation, Equations
+from symcollab.xor.structure import XORTerm, Zero, Disequations, Disequation, Equations, is_zero
 from symcollab.xor.xorhelper import is_xor_term, xor_to_list, list_to_xor, simplify, xor_unification
 
 class P_unif_problem:
@@ -141,7 +141,7 @@ def get_bad_subterms(subst, v, t, p_unif_problem):
     #print("end constraints.")
     t = simplify_a_term(t)
     if (isinstance(t, Constant)):
-        if((t in new_terms) or (isinstance(t, Zero))):
+        if t in new_terms or is_zero(t):
             return []
         else:
             return [(v, t)]

@@ -171,7 +171,7 @@ class Variable:
     def __eq__(self, x):
         return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
     def __deepcopy__(self, memo):
-        return Variable(self.symbol, self.sort)
+        return Variable(self.symbol, deepcopy(self.sort))
 
 class FuncTerm:
     """
@@ -195,7 +195,7 @@ class FuncTerm:
     def __init__(self, function: Function, args):
         assert len(args) == function.arity
         self.function = function
-        self._arguments = args
+        self._arguments = tuple(args)
     @property
     def sort(self):
         return self.function.range_sort
@@ -266,7 +266,7 @@ class Constant(FuncTerm):
     def symbol(self, s):
         self.function.symbol = s
     def __deepcopy__(self, memo):
-        return Constant(self.symbol, self.sort)
+        return Constant(self.symbol, deepcopy(self.sort))
 
 
 Term = Union[Variable, Constant, FuncTerm]

@@ -1,12 +1,12 @@
 from copy import deepcopy
 from symcollab.algebra import Constant, Variable, FuncTerm, Equation, SubstituteTerm
 from symcollab.Unification.unif import unif
-from .structure import Zero, XORTerm, Equations, Disequations, Disequation
+from .structure import Zero, XORTerm, Equations, Disequations, Disequation, is_zero
 from .xor import xor
 
 def is_xor_term(t):
     #return (isinstance(t, FuncTerm)) and (isinstance(t.function, Xor))
-    if(isinstance(t, Zero)):
+    if is_zero(t):
         return False
     else:
         return (isinstance(t, FuncTerm) and t.function.symbol == "xor")
@@ -26,7 +26,7 @@ def xor_to_list(t):
 def simplify(lst):
     result = []
     for item in lst:
-        if(isinstance(item, Zero)):
+        if is_zero(item):
             continue
         if(item in result):
             result.remove(item)
@@ -56,7 +56,7 @@ def list_to_xor(lst):
 def collect_all_variables_in_term(t):
 #Returns a list of variables in a term.
 #f(x, g(y)) ==> [x,y]
-    if (isinstance(t, Zero)):
+    if is_zero(t):
         return []
     elif (isinstance(t, Constant)):
         return []
@@ -112,7 +112,7 @@ def name_xor_terms(t, eqs):
     # Purify arguments
     # Name top-level xor-subterms
     # Return (renamed_term, a set of equations)
-    if (isinstance(t, Zero)):
+    if is_zero(t):
         return (t, eqs)
     elif (isinstance(t, Constant)):
         return (t, eqs)
@@ -146,7 +146,7 @@ def name_xor_terms(t, eqs):
         return None
 
 def purify_a_term(t, eqs):
-    if (isinstance(t, Zero)):
+    if is_zero(t):
         return (t, eqs)
     elif (isinstance(t, Constant)):
         return (t, eqs)
@@ -190,7 +190,7 @@ def is_constrained_in_term(v, t):
     # That is, check if it appears underneath a function symbol.
 
     #Precondition: t should be purified.
-    if (isinstance(t, Zero)):
+    if is_zero(t):
         return False
     elif (isinstance(t, Constant)):
         return False
@@ -216,7 +216,7 @@ def is_constrained_in_equations(v, eqs):
     return result
 
 def normalize_an_equation(eq):
-    if(isinstance(eq.right_side,Zero)):
+    if is_zero(eq.right_side):
         lhs = eq.left_side
     else:
         lhs = xor(eq.left_side, eq.right_side)
@@ -289,7 +289,7 @@ class Rule_Trivial(XOR_Rule):
     def is_applicable(self, state):
         eqs = state.equations.contents
         for eq in eqs:
-            if (isinstance(eq.left_side, Zero) and isinstance(eq.right_side, Zero)):
+            if is_zero(eq.left_side) and is_zero(eq.right_side):
                 return True
         return False
     def apply(self, state):
@@ -298,7 +298,7 @@ class Rule_Trivial(XOR_Rule):
         substs = state.substitution
         for index in range(len(eqs)):
             eq = eqs[index]
-            if (isinstance(eq.left_side, Zero) and isinstance(eq.right_side, Zero)):
+            if is_zero(eq.left_side) and is_zero(eq.right_side):
                 del eqs[index]
                 return XOR_proof_state(Equations(eqs), diseqs, substs)
 
