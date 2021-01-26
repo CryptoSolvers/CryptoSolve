@@ -1,3 +1,9 @@
+
+from symcollab.algebra import Constant, Function, Variable, Term
+from .inductive import TheorySystem, system_from_sort
+from .boolean import Boolean
+
+# TODO: Rework the Lit and other classes/functions to use the Boolean structure
 class Lit:
 	def __init__(self, name:str, neg:bool):
 		self.name = name
