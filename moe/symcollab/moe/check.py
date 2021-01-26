@@ -56,7 +56,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             
             #check for invertibility
             if invert_check and i == 1:
-                invertible = InvertMOO(ciphertext, f"x_{i}", knows_iv)
+                invertible = InvertMOO(ciphertext, f"x_{i}", program.nonces, program.nonces[0], knows_iv)
 
             # Check for syntactic security
             if len(ciphertexts_received) > 1:
