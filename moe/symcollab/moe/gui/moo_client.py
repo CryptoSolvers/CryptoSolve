@@ -14,6 +14,8 @@ from symcollab.Unification.p_unif import p_unif
 from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
 from symcollab.algebra import Variable
 from symcollab.algebra import Term
+from symcollab.algebra import SubstituteTerm
+from typing import List, Union
 import PySimpleGUI as sg
 import operator
 import sys
@@ -451,14 +453,21 @@ def get_response(result) -> str:
         else:
             response += "NO UNIFIERS FOUND"
     else:
-        response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
-        for i in result.collisions:
-            response += str(i) + " "
+        response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) " + \
+            format_collisions(result.collisions)
     if result.invert_result:
         response += ", MOO is Invertible"
     else:
         response += ", MOO may not be Invertible"
     return response
+
+def format_collisions(subs: Union[SubstituteTerm, List[SubstituteTerm]]):
+    text = ""
+    if isinstance(subs, SubstituteTerm):
+        term_str = str(subs)
+    for term in subs:
+        term_str = str(term)
+    return text
 
 # tuple addition
 def add_t(t1: tuple, t2: tuple) -> tuple:
