@@ -465,8 +465,15 @@ def format_collisions(subs: Union[SubstituteTerm, List[SubstituteTerm]]):
     text = ""
     if isinstance(subs, SubstituteTerm):
         term_str = str(subs)
+        for line in term_str.split('\n'):
+            text += line + '\n'
+        text += '\n'
+        return text
     for term in subs:
         term_str = str(term)
+        for line in term_str.split('\n'):
+            text += line + '\n'
+        text += '\n'
     return text
 
 # tuple addition
