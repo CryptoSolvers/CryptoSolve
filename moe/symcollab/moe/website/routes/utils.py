@@ -70,4 +70,4 @@ def valid_moo_unif_pair(moo_string: str, unif_choice) -> bool:
     return moo_string in supported_chaining
 
 
-render_moo_template = partial(render_template, title="MOO Tool", navigation=navigation)
+render_moo_template = partial(render_template, title="CryptoSolve", navigation=navigation)
