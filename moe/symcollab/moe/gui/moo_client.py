@@ -377,38 +377,17 @@ def Launcher():
                 # generate random moos
                 filtered_gen = FilteredMOOGenerator(1, f_bound, iv_req, c_req)
                 moo_list = (next(filtered_gen) for i in range(moo_bound))
-
+                response = ""
                 # Check security of the modes of operation
                 moo_safe_list: List[Term] = list()
-                moo_unsafe_list: List[Term] = list()
                 for random_moo_term in moo_list:
-                    print("Considering...", random_moo_term)
+                    response += str(random_moo_term) + "\n"
                     cm = CustomMOO(random_moo_term)
                     moo_result = moo_check(cm.name, sched, unif, length_bound, knows_iv, invert_check)
                     if moo_result.secure:
                         moo_safe_list.append(random_moo_term)
-                    elif not moo_result.secure:
-                        moo_unsafe_list.append(random_moo_term)
 
-                unsafe_moos = ""
-                if len(moo_safe_list) == 0:
-                    response = "No safe MOOs found. The following MOO(s) were tested: \n"
-                    for term in moo_list:
-                        response += str(term) + "\n"
-                else:
-                    response = "Safe MOO(s) found. The following MOO(s) pass the security test: \n"
-                    print("Safe moos: \n")
-                    for term in moo_safe_list:
-                        response += str(term) + "\n"
-                        print(str(term) + "\n")
-                    if len(moo_unsafe_list) > 0:
-                        print("Unsafe moos: \n")
-                        for unsafe_term in moo_unsafe_list:
-                            unsafe_moos += str(unsafe_term) + "\n"
-                            print(str(unsafe_term) + "\n")
                 fileinfo += "Random output:\n" + response + "\n"
-                if len(moo_unsafe_list) > 0:
-                    fileinfo += "Unsafe moos: \n" + unsafe_moos + "\n"
                 window['-O4-'].update(response)
 
         # menu button events create popups
