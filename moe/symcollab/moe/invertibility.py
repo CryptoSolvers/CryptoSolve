@@ -17,59 +17,6 @@ _P = Variable("P_{i}")
 _f = Function("f", 1)
 _finv = Function("f^{-1}", 1)
 
-def invert_gaussian(TermSet: Set[Term], P: Constant) -> bool:
-    """
-    NOT COMPLETE:
-    Based on the method developed by Veena. Goal is the plaintext
-    constant P from a set of terms. Currently doesn't deal with
-    f.
-    """
-    Vars = set()
-    Cons = set()
-
-    #Set of all the variables and constants for all the terms
-    for t in TermSet:
-        Vars.update(get_vars(t))
-        Cons.update(get_constants(t))
-
-    #Create an ordering for the variables
-    term_items = list()
-    for x in Cons.union(Vars):
-        term_items.append(x)
-
-    #create the linear system
-    new_cons = len(TermSet)
-    row_len = len(term_items) + new_cons
-    M = []
-    term_count = 0
-    for t in TermSet:
-        temp=[]
-        for i in range(row_len):
-            if i < len(term_items):
-                if term_items[i] in get_vars_or_constants(t):
-                    temp.append(1)
-                else:
-                    temp.append(0)
-            else:
-                if i - len(term_items) == term_count:
-                    temp.append(-1)
-                else:
-                    temp.append(0)
-        term_count = term_count + 1
-        M.append(temp)
-    B = np.zeros(new_cons)
-    #Need to handle three cases here: (1) Square M, (2) Non-Square and row > col, (3) Non-Square col > row
-    if row_len == len(M): # m x n and m=n
-        sol = np.linalg.solve(M, B)
-    else: # m x n and m < n or m > n ### I think this works but may not get a unique solution!
-        sol = np.linalg.lstsq(M,B,rcond=-1)[0]
-
-    if sol.any():
-        return(True)
-    else:
-        return(False)
-
-
 
 def invert_simple(term):
     """
@@ -210,7 +157,7 @@ def deducible(term: Term, known_constants: Set[Constant]):
     # Passes all the criteria
     return True
     
-def InvertMOO(term: Term, plaintext: str, iv: bool ):
+def InvertMOO(term: Term, plaintext: str, nonces: list, nonceone: Constant, knowsiv: bool ):
     """
     NOT COMPLETE
     Implementation of Lemma 10 from the Indocrypt paper
@@ -235,26 +182,15 @@ def InvertMOO(term: Term, plaintext: str, iv: bool ):
     result = moo_check('cipher_block_chaining', "every", p_unif, 2, True, True)
     print(result.invert_result)
     """
-    
-    print("#############################")
-    print("The term is")
-    print(term)
-    print("The Plaintext is:")
-    print(plaintext)
-    if iv == False:
-        print("Test1")
-        return False
-    # Get constants from term without p_i
-    #p_i = Constant(plaintext)
-    #print(p_i)
-    #constants_from_term = get_constants(term, unique=True)
-    #constants_from_term.difference_update({p_i})
-    plaintext = Variable(plaintext)
-    # Make sure p_i only appears once
-    if count_occurence(plaintext, term) != 1:
-        print("Test2")
-        return False
+    if nonceone in get_constants(term, unique=True):
+        if knowsiv == False:
+            return False
+    #Make sure C_0 is only IV
+    if len(nonces) == 1:
+        plaintext = Variable(plaintext)
+        # Make sure C_i contains p_i but only once
+        if count_occurence(plaintext, term) == 1:
+            return True
 
     # Passes all the criteria
-    print("OK returning True")
-    return True
+    return False
