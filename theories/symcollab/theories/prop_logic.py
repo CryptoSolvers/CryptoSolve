@@ -1,28 +1,22 @@
 
 from symcollab.algebra import Constant, Function, Variable, Term
 from .inductive import TheorySystem, system_from_sort
-from .boolean import Boolean
+from .proposition import *
 
-# TODO: Rework the Lit and other classes/functions to use the Boolean structure
-class Lit:
-	def __init__(self, name:str, neg:bool):
-		self.name = name
-		self.neg = neg
-	def __str__(self):
-		if self.neg:
-			st = "-"+self.name
-		else:
-			st = self.name
-		return st
-	def nm(self):
-		if self.neg:
-			st = "-"+self.name
-		else:
-			st = self.name
-		return st
-	def negated(self):
-		return self.neg
-		
+""" 
+Example:
+P = Variable("P", sort=Prop.sort)
+Q = Variable("Q", sort=Prop.sort)
+R = Variable("R", sort=Prop.sort)
+S = Variable("S", sort=Prop.sort)
+C1 = Clause("C1", {Not(P), Q})
+C2 = Clause("C2", {Not(Q), Not(R), S})
+C3 = Clause("C3", {P})
+C4 = Clause("C4", {R})
+C5 = Clause("C5", {Not(S)})
+prop_dpp({C1, C2, C3, C4, C5}, {P, Q, R, S})
+"""
+
 
 class Clause:
 	def __init__(self, name:str, lits:set):
@@ -33,10 +27,7 @@ class Clause:
 	def values(self):
 		return self.lits
 	def names(self):
-		S = set()
-		for L in self.lits:
-			S.update({L.nm()})
-		return S
+		return lits
 	def intersection(self, C):
 		return self.lits.intersection(C.lits)
 	def union(self, C):
@@ -46,23 +37,23 @@ class Clause:
 	def rintersection(self, C):
 		for x in self.lits:
 			for y in C.lits:
-				if x.name == y.name and x.neg != y.neg:
+				if x == Not(y):
 					return {x, y}
 		return {}
-	def remove(self, L:Lit):
+	def remove(self, L:Variable):
 		if L in self.lits:
 			self.lits.remove(L)
 	def degen(self):
 		for x in self.lits:
 			for y in self.lits:
-				if x.name == y.name and x.neg != y.neg:
+				if x == Not(y):
 					return True
 		return False
-	def contains(self, p:str):
-		for x in self.lits:
-			if x.name == p:
-				return True
-		return False
+	def contains(self, p:Variable):
+		if p in self.lits:
+			return True
+		else:
+			return False
 
 def prop_resolution(C:Clause, D:Clause, name:str):
 	S = C.rintersection(D)
