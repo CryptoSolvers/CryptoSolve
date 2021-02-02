@@ -4,6 +4,8 @@ from .inductive import TheorySystem, system_from_sort
 from .proposition import *
 
 """ 
+Assumes conjunctive normal form, so we can treat each clause as a set. 
+
 Example:
 P = Variable("P", sort=Prop.sort)
 Q = Variable("Q", sort=Prop.sort)
