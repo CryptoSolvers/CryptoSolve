@@ -132,19 +132,19 @@ class SubstituteTerm:
             return "{ %s ↦ %s }" % (str(variable), str(term))
         str_repr = "{\n"
         i = 1
-        test = self._subSort(self.subs)
-        for string in test:
-            index = 2
-            for element in range(2, len(string)):
-                index = index + 1
-                if string[element].isdigit() is False:
-                    index = index - 1
-                    break
-            var = string[0:index]
-            term = string[index:len(string)]
-            str_repr += " " + var + " ↦ " + term
-            str_repr += ",\n" if i < len(self.subs) else ""
-            i += 1
+        if len(self.subs) < 9:
+            sorted_subs = sorted(self.subs, key=lambda k: k[0].symbol)
+            for variable, term in sorted_subs:
+                str_repr += "  " + str(variable) + " ↦ " + str(term)
+                str_repr += ",\n" if i < len(self.subs) else ""
+                i += 1
+        else:
+            subs_str = self._subSort(self.subs)
+            for string in subs_str:
+                str_repr += string
+                print(string)
+                str_repr += ",\n" if i < len(self.subs) else ""
+                i += 1
         str_repr += "\n}"
         return str_repr
 
@@ -214,12 +214,15 @@ class SubstituteTerm:
         return return_value
 
     def _subSort(self, subs: Set) -> list:
+        #creates an ordered list of formatted strings from the substitutions
+        #only using this method when the list of substitions is longer than 9,
+        #because thats where the issue occurs, everywhere else its fine
         unsorted_list = list(subs)
         sorted_list = [None] * len(subs)
         for variable, term in unsorted_list:
             var = str(variable)
             index = int(var[2:len(var)])
-            sorted_list[index-1] = str(variable) + str(term)
+            sorted_list[index-1] = str(variable) + " ↦ " + str(term)
         return sorted_list
 
 
