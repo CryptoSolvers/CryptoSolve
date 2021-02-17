@@ -4,7 +4,10 @@ They are a higher level of abstraction from booleans which
 can be computed.
 
 The rewrite rules here are used to convert propositions
-into Conjunctive Normal Form.
+into Conjunctive Form.
+
+Since there's currently no associativity implemented,
+it does not simplify to a normal form of a term.
 
 Inspired by "Implementing a Propositional Logic Theorem Prover in Haskell"
 by Laurence Edward Day
@@ -72,5 +75,15 @@ Prop.rules.extend(RewriteSystem({
 
     # Algebraic Distribution
     RewriteRule(Or(A, And(B, C)), And(Or(A, B), Or(A, C))),
-    RewriteRule(Or(And(A, B), C), And(Or(A, C), Or(B, C)))
+    RewriteRule(Or(And(A, B), C), And(Or(A, C), Or(B, C))),
+
+    # Associativity Rules
+    RewriteRule(Or(Or(A, B), C), Or(A, Or(B, C))),
+    RewriteRule(And(And(A, B), C), And(A, And(B, C))),
+
+    # Absorption Laws
+    RewriteRule(And(A, Or(A, B)), A),
+    RewriteRule(And(Or(A, B), A), A),
+    RewriteRule(And(B, Or(A, B)), B),
+    RewriteRule(And(Or(A, B), B), B)
 }))

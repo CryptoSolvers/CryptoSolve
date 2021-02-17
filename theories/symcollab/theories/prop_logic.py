@@ -1,7 +1,8 @@
 
-from symcollab.algebra import Constant, Function, Variable, Term
+from typing import List, Set
+from symcollab.algebra import Constant, Function, FuncTerm, Variable, Term
 from .inductive import TheorySystem, system_from_sort
-from .proposition import *
+from .proposition import Prop, Implies, Or, Not
 
 """ 
 Assumes conjunctive normal form, so we can treat each clause as a set. 
@@ -20,6 +21,53 @@ prop_dpp({C1, C2, C3, C4, C5}, {P, Q, R, S})
 """
 
 
+def clause_extractor(t: Term) -> Set[Term]:
+	"""
+	Extracts a clause out of an
+	Or rooted term. Assumes signature
+	{Or, Not}
+	"""
+	if isinstance(t, (Variable, Constant)):
+		return {t}
+	if isinstance(t, FuncTerm) and t.function == Not:
+		return {t}
+	result = set()
+	result = result.union(clause_extractor(t.arguments[0]))
+	result = result.union(clause_extractor(t.arguments[1]))
+	return result
+
+def ptc_helper(prop: Term) -> List[Set[Term]]:
+	"""
+	Assumes that term is in conjunctive normal
+	form and returns a list of clauses.
+	Signature must be {Or, Not, And}
+	"""
+	if isinstance(prop, (Variable, Constant)):
+		return [clause_extractor(prop)]
+	if isinstance(prop, FuncTerm) and prop.function in [Not, Or]:
+		return [clause_extractor(prop)]
+	
+	result = list()
+	for arg in prop.arguments:
+		result.extend(ptc_helper(arg))
+	return result
+
+def proposition_to_clause(prop: Term) -> List[Set[Term]]:
+	"""
+	Takes a proposition and returns it
+	as a set of clauses
+	"""
+	if not isinstance(prop, FuncTerm) or prop.function != Implies:
+		raise ValueError("[proposition_to_clause] must take Implication proposition as the input.")
+	# Negate conclusion as per the DPP resolution algorithm
+	prop_arguments = list(prop.arguments)
+	prop_arguments[1] = Not(prop_arguments[1])
+	prop.arguments = prop_arguments
+	# Convert proposition to conjunctive normal form
+	cf_prop = Prop.simplify(prop)
+	return ptc_helper(cf_prop)
+
+
 class Clause:
 	def __init__(self, name:str, lits:set):
 		self.name = name
@@ -29,7 +77,7 @@ class Clause:
 	def values(self):
 		return self.lits
 	def names(self):
-		return lits
+		return self.lits
 	def intersection(self, C):
 		return self.lits.intersection(C.lits)
 	def union(self, C):
