@@ -2,6 +2,7 @@
 
 ####################################################
 #To-Do:
+#-- Add ACU, ACUI, and AG  unification
 #-- Fix the conversion from the diophantine solver
 #-- Add free function symbols
 #-- Allow more than one AC symbol
@@ -59,6 +60,7 @@ def convert_eq(U: set, func: str):
 		row.append(var_count[x])
 	e = parse_expr(e)
 	
+	#This will give solutions, but not limited to positive, so ACU
 	sol = diop_linear(e)
 	
 	F = deepcopy(func)
