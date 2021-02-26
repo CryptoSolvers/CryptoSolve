@@ -30,7 +30,7 @@ source senv/bin/activate
 <u>Install moe package</u>
 
 ```bash
-./install_packages
+./install_packages.sh
 ```
 
 If you encounter any permission errors, edit the file to look like the following instead,
