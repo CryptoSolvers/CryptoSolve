@@ -2,6 +2,7 @@
 
 ####################################################
 #To-Do:
+#-- Add ACU, ACUI, and AG  unification
 #-- Fix the conversion from the diophantine solver
 #-- Add free function symbols
 #-- Allow more than one AC symbol
@@ -16,6 +17,7 @@ from sympy import symbols # type: ignore
 from sympy.solvers.diophantine import diop_linear # type: ignore
 from sympy.parsing.sympy_parser import parse_expr # type: ignore
 from collections import Counter
+import re
 
 
 #convert a set of term equations into a single
@@ -54,17 +56,31 @@ def convert_eq(U: set, func: str):
 		temp = str(x)
 		i += 1
 		e = e + str(var_count[x]) +"*"+ temp + (" + " if i < len(var_count) else "")
-		temp = symbols(temp, integer=True)
+		temp = symbols(temp, integer=True, positive=True)
 		variables.append(temp)
 		row.append(var_count[x])
 	e = parse_expr(e)
 	
+	#This will give solutions, but not limited to positive, so ACU
 	sol = diop_linear(e)
+	
 	
 	F = deepcopy(func)
 	j = 0 
 	delta = SubstituteTerm()
-	print(variables)
+	
+	zeros = set()
+	for term in sol:
+		regex = r'-[\d]*[\*]*[-]*(t_[\d]+)'
+		match = re.findall(regex, str(term))
+		for m in match:
+			zeros.add(m)
+	sol2 = list()
+	for term in sol:
+		for z in zeros:
+			term = re.sub(z, '0', str(term))
+			sol2.append(term)
+	
 	for x in range(0, len(variables)):
 		
 		if row[x] == 0:
@@ -73,13 +89,15 @@ def convert_eq(U: set, func: str):
 		else:
 			var_list = list()
 			num = '0'
-			if '*' in str(sol[j]):
-				num, var = str(sol[j]).split("*", 1)
+			if '*' in str(sol2[j]):
+				num, var = str(sol2[j]).split("*", 1)
 			else:
-				var = str(sol[j])
-			var = Variable(var)	 	
-			
-			num = int(num)
+				var = str(sol2[j])
+			var = Variable(var)
+			try:
+				num = int(num)
+			except:
+				num = parse_expr(num)
 			func = Function(func, 2)
 			ran = str()
 			if num > 0:
@@ -96,7 +114,7 @@ def convert_eq(U: set, func: str):
 					ran = ran + ')'	
 			else:
 				ran = var				
-			y = Variable(str(sol[j]))
+			y = Variable(str(sol2[j]))
 			if num > 0:
 				T = FuncTerm(Function(str(func.symbol), 2), [str(var),ran])
 			else:
@@ -106,7 +124,6 @@ def convert_eq(U: set, func: str):
 			j+= 1
 	
 	return delta
-	
 	
 		
 
@@ -143,3 +160,42 @@ def ac_unify(U: set):
 	delta = SubstituteTerm()
 	delta=convert_eq(U, e.right_side.function.symbol)
 	print(delta)
+	
+	
+def mut_rule(U: set):
+	#Mutate Rule
+	for i in list(U):
+			if isinstance(U[i].left_side, FuncTerm) and isinstance(U[i].right_side, FuncTerm):
+				if U[i].left_side.function.symbol == U[i].right_side.function.symbol:
+					dec = map(lambda t1, t2: Equation(t1, t2), list(U[i].left_side.arguments), list(U[i].right_side.arguments))
+					del U[i]
+					for d in dec:
+						U[z] = d
+						z += 1
+
+#def merge_rule(U: set):
+	#Merge Rule
+
+#def varep_rule(U: set):
+	#Var-Rep Rule
+
+#def rep_rule(U: set):
+	#Rep Rule
+
+def check_rule(U: set):
+	#Check Rule
+	#Just one level cycles, need to improve to any level
+	for i, e in U.items():
+			if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+				if e.left_side in e.right_side:
+					print('Occurs Check')
+					#We could think of an improved method for errors
+					return False
+
+#def eqe_rule(U: set):
+	#EQE Rule
+
+def s_ac_unif(U: set):
+	print("OK")
+	
+
