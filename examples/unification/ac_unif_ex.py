@@ -28,14 +28,6 @@ ac_unify(U)
 
 ac_unify(U2)
 
-#example that fails current implementation:
-lhs = f(x, y)
-rhs = f(z, z)
-e3 = Equation(lhs, rhs)
-U3 = set()
-U3.add(e3)
-ac_unify(U3)
-
 
 
 from symcollab.algebra import Constant, Function, Variable, Equation

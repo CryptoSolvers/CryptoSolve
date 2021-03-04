@@ -60,49 +60,68 @@ def convert_eq(U: set, func: str):
 		variables.append(temp)
 		row.append(var_count[x])
 	e = parse_expr(e)
-	print("The equations created to be sent to the diop solver: ")
-	print(e)
-	
-	print("Variable Counts:")
-	print(var_count)
-	
-	print("Variables Row:")
-	print(row)
-	
-	print("Variables List: ")
-	print(variables)
 	
 	#This will give solutions, but not limited to positive, so ACU
 	sol = diop_linear(e)
-	print("The solution returned by the diop solver")
-	print(sol)
 	
 	
 	F = deepcopy(func)
 	j = 0 
 	delta = SubstituteTerm()
-	print(variables)
 	
 	zeros = set()
 	for term in sol:
-		regex = r'-[\d]*[\*]*(t_[\d]+)'
+		regex = r'-[\d]*[\*]*[-]*(t_[\d]+)'
 		match = re.findall(regex, str(term))
 		for m in match:
 			zeros.add(m)
+	sol2 = list()
 	for term in sol:
 		for z in zeros:
 			term = re.sub(z, '0', str(term))
-			print(term)
-	print(sol)
+			sol2.append(term)
 	
 	for x in range(0, len(variables)):
 		
 		if row[x] == 0:
 			temp = Variable(str(variables[x]))
 			delta.add(temp, temp)
-		#else:
-		
-		
+		else:
+			var_list = list()
+			num = '0'
+			if '*' in str(sol2[j]):
+				num, var = str(sol2[j]).split("*", 1)
+			else:
+				var = str(sol2[j])
+			var = Variable(var)
+			try:
+				num = int(num)
+			except:
+				num = parse_expr(num)
+			func = Function(func, 2)
+			ran = str()
+			if num > 0:
+				for y in range(0, num):
+					if y == 0:
+						ran = ran
+					if y >= 1 and y <= num-2:	
+						ran = ran + F + '(' + str(var) + ','
+					if y == num-1:
+						ran = ran + str(var) 
+					if y == num:
+						num = num		
+				for y in range(2, num):
+					ran = ran + ')'	
+			else:
+				ran = var				
+			y = Variable(str(sol2[j]))
+			if num > 0:
+				T = FuncTerm(Function(str(func.symbol), 2), [str(var),ran])
+			else:
+				T = var	
+			z= Variable(str(variables[x]))
+			delta.add(z, T)
+			j+= 1
 	
 	return delta
 	
@@ -180,39 +199,3 @@ def s_ac_unif(U: set):
 	print("OK")
 	
 
-
-# var_list = list()
-			# num = '0'
-			# if '*' in str(sol[j]):
-				# num, var = str(sol[j]).split("*", 1)
-			# else:
-				# var = str(sol[j])
-			# var = Variable(var)	 	
-			
-			# num = int(num)
-			# func = Function(func, 2)
-			# ran = str()
-			# if num > 0:
-				# for y in range(0, num):
-					# if y == 0:
-						# ran = ran
-					# if y >= 1 and y <= num-2:	
-						# ran = ran + F + '(' + str(var) + ','
-					# if y == num-1:
-						# ran = ran + str(var) 
-					# if y == num:
-						# num = num		
-				# for y in range(2, num):
-					# ran = ran + ')'	
-			# else:
-				# ran = var				
-			# y = Variable(str(sol[j]))
-			# if num > 0:
-				# T = FuncTerm(Function(str(func.symbol), 2), [str(var),ran])
-			# else:
-				# T = var	
-			# z= Variable(str(variables[x]))
-			# delta.add(z, T)
-			# j+= 1
-	
-	# return delta
