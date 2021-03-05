@@ -5,6 +5,7 @@ Welcome to Rewrite's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   rewrite
+   rule
+   system
    variants
 

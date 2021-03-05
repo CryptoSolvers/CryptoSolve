@@ -1,4 +1,4 @@
 Term DAG Library
 ================
-.. automodule:: algebra.dag
+.. automodule:: symcollab.algebra.dag
    :members:

@@ -30,6 +30,6 @@ x = Variable("x")
 IV = Constant("IV")
 C1 = xor(x, IV)
 
-InvertMOO(C1, "x", L, IV, True)
+print("MOO Invertible?", InvertMOO(C1, "x", [IV], IV, True))
 
 

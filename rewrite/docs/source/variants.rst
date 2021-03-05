@@ -1,5 +1,5 @@
 Variants Library
 ==================
-.. automodule:: rewrite.variants
+.. automodule:: symcollab.rewrite.variants
    :members:
 

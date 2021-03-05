@@ -1,4 +1,4 @@
 Term String Parser
 ==================
-.. automodule:: algebra.parser
+.. automodule:: symcollab.algebra.parser
    :members:
