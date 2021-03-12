@@ -23,7 +23,7 @@ class MutateNode:
 
 #Mutation Rule ID
 def mutation_rule1(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -53,7 +53,7 @@ def mutation_rule1(U: list, var_count):
 
 #Mutation Rule C
 def mutation_rule2(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -83,7 +83,7 @@ def mutation_rule2(U: list, var_count):
 
 #Mutation Rule A1
 def mutation_rule3(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -119,7 +119,7 @@ def mutation_rule3(U: list, var_count):
 
 #Mutation Rule A2
 def mutation_rule4(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -155,7 +155,7 @@ def mutation_rule4(U: list, var_count):
 
 #Mutation Rule RC
 def mutation_rule5(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -192,7 +192,7 @@ def mutation_rule5(U: list, var_count):
 
 #Mutation Rule LC
 def mutation_rule6(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -229,7 +229,7 @@ def mutation_rule6(U: list, var_count):
 
 #Mutation Rule MC
 def mutation_rule7(U: list, var_count):
-	TempEq = list(U)[0]
+	TempEq = U[0]
 	eqfound = False
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -420,20 +420,34 @@ def build_tree(root: MutateNode, var_count):
 		for e in cn.data:
 			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 				solved = False
-		if solved != True: 
-			cn.id = MutateNode(mutation_rule1(cn.data, var_count))
+		if solved != True:
+			dcopy = list()
+			dcopy = deepcopy(cn.data) 
+			cn.id = MutateNode(mutation_rule1(dcopy, var_count))
 			Q.append(cn.id)
-			cn.c = MutateNode(mutation_rule2(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.c = MutateNode(mutation_rule2(dcopy, var_count))
 			Q.append(cn.c)
-			cn.a1 = MutateNode(mutation_rule3(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
 			Q.append(cn.a1)
-			cn.a2 = MutateNode(mutation_rule4(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
 			Q.append(cn.a2)
-			cn.rc = MutateNode(mutation_rule5(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
 			Q.append(cn.rc)
-			cn.lc = MutateNode(mutation_rule6(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
 			Q.append(cn.lc)
-			cn.mc = MutateNode(mutation_rule7(cn.data, var_count))
+			dcopy = list()
+			dcopy = deepcopy(cn.data)
+			cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
 			Q.append(cn.mc)
 		else:
 			return(cn.data)
