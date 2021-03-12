@@ -399,7 +399,7 @@ def build_tree(root: MutateNode, var_count):
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
-	while Q != list() and len(Q) <= 10:
+	while Q != list() and len(Q) <= 50:
 		cn = Q.pop(0)
 		#Apply S rules - mutate
 		Max = 10
@@ -451,6 +451,7 @@ def build_tree(root: MutateNode, var_count):
 			Q.append(cn.mc)
 		else:
 			return(cn.data)
+		#print(len(Q))
 	return(list())
 		
 def synt_ac_unif(U: set):
