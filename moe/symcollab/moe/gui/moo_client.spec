@@ -6,7 +6,7 @@ block_cipher = None
 
 
 a = Analysis(['moo_client.py'],
-             pathex=['/home/raymondkauffman/Desktop/moe_code/moe/symcollab/moe/gui'],
+             pathex=['/..'],
              binaries=[],
              datas=[],
              hiddenimports=[],
