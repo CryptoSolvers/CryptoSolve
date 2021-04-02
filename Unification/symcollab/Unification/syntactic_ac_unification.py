@@ -17,9 +17,25 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
+#helper function to check for linear term
+def linear(t: term):
+	V = get_vars(t)
+	if len(V) == len(set(V)):
+		return(True)
+	else:
+		return(False)
+
+#helper function to get the init set of vars
+def helper_gvs(U: set):
+	V = set()
+	for e in U:
+		V = V.union(get_vars(e.left_side))
+		V = V.union(get_vars(e.right_side))
+	return(V)
+
+
 #Converts equations in U s.t. for 
 #each s = t in U, var(s) \cap var(t) = 0
-
 def helper_convert(U: list):
 	rmvdl = list()
 	addl = list()
@@ -320,7 +336,7 @@ def help_eq_eq(e1: Equation, e2: Equation):
 		return False 
 	
 
-def s_rules(U:list, var_count):
+def s_rules(U:list, var_count, VS1:set):
 	#orient
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
@@ -424,14 +440,20 @@ def s_rules(U:list, var_count):
 	#print("print U after remove dup: ")
 	#print(U)
 	
-	#Mutate
-	#U = mutation_rules(U, var_count)
+	#Prune rule
+	VS2 = helper_gvs(set(U))
+	VS2 = VS2.difference(VS1)
+	for e in U:
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+			if e.left_side in VS2:
+				if not linear(e.right_side):
+					return list()
 	
 	#End
 	return(U)
 	
 	
-def build_tree(root: MutateNode, var_count):
+def build_tree(root: MutateNode, var_count, VS1):
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
@@ -443,7 +465,7 @@ def build_tree(root: MutateNode, var_count):
 		Utemp = list()
 		while (Utemp != cn.data):
 			Utemp = cn.data
-			cn.data = s_rules(cn.data, var_count)
+			cn.data = s_rules(cn.data, var_count, VS1)
 			count = count + 1
 			#Will remove when we add pruning rule
 			if count > Max:
@@ -497,8 +519,10 @@ def synt_ac_unif(U: set):
 	Max = 3
 	count = 0
 	var_count = [0]
+	#get the intial set of vars
+	VS1 = helper_gvs(U)
 	N1 = MutateNode(list(U))
-	res = build_tree(N1, var_count)
+	res = build_tree(N1, var_count, VS1)
 	#delta = SubstituteTerm()
 	print("Solution: ")
 	print(res)
