@@ -17,7 +17,43 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
+#Converts equations in U s.t. for 
+#each s = t in U, var(s) \cap var(t) = 0
 
+def helper_convert(U: list):
+	rmvdl = list()
+	addl = list()
+	for e in U:
+		rmvd = False
+		IL = list()
+		IR = list()
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+			dep = min(depth(e.left_side), depth(e.right_side))
+			L = IL = get_vars_or_constants(e.left_side)
+			IR = get_vars_or_constants(e.right_side)
+			for var in L:
+				if var in IR:
+					IL.remove(var)
+					IR.remove(var)
+					rmvd = True
+		if rmvd == True:
+			rmvdl.append(e)
+			t1 = IL[0]
+			if len(IL) > 1: 
+				t1 = FuncTerm(e.right_side.function, [IL[0], IL[1]])
+				for x in range(2, len(IL)):
+					t1 = FuncTerm(e.right_side.function, [IL[x], t1])
+			t2 = IR[0]
+			if len(IR) > 1:
+				t2 = FuncTerm(e.right_side.function, [IR[0], IR[1]])
+				for y in range(2, len(IR)):
+					t2 = FuncTerm(e.right_side.function, [IR[y], t2])
+			addl.append(Equation(t1, t2))
+	if len(rmvdl) > 0:
+		for x in rmvdl:
+			U.remove(x)
+		U.extend(addl)
+	return(U)
 
 #Rules
 
@@ -456,7 +492,7 @@ def build_tree(root: MutateNode, var_count):
 		
 def synt_ac_unif(U: set):
 	#counter until prune is implemented
-	print("Syntactic Ac-Unification on the following problem: ")
+	print("Syntactic AC-Unification on the following problem: ")
 	print(U)
 	Max = 3
 	count = 0
