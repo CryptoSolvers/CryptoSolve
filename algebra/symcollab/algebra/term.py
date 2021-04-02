@@ -462,3 +462,10 @@ class Equation:
 
     def __repr__(self):
         return str(self.left_side) + " = " + str(self.right_side)
+
+    def __eq__(self, x):
+        if(type(self) != type(x)):
+            return False
+        set1 = {self.left_side, self.right_side}
+        set2 = {x.left_side, x.right_side}
+        return set1 == set2
