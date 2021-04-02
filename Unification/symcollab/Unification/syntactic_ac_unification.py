@@ -17,6 +17,8 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
+#Helper function to convert to linear
+
 #helper function to check for linear term
 def linear(t: term):
 	V = get_vars(t)
@@ -420,7 +422,18 @@ def s_rules(U:list, var_count, VS1:set):
 				return list()
 	
 	#EQE rule
-	#add this rule
+	Uremove = list()
+	VP = helper_gvs(set(U))
+	for e in U:
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+			if e.left_side not in VS1:
+				ST = VP.difference(set(get_vars(e.left_side)))
+				if e.left_side not in ST:
+					Uremove.append(e)
+	for e in Uremove:
+		print("EQE remove: ")
+		print(e)
+		U.remove(e)
 	
 	#remove dup
 	#print("U before remove dup: ")
@@ -447,6 +460,8 @@ def s_rules(U:list, var_count, VS1:set):
 		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 			if e.left_side in VS2:
 				if not linear(e.right_side):
+					print("Prune: ")
+					print(e)
 					return list()
 	
 	#End
