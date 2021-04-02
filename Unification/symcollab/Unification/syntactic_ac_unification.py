@@ -17,12 +17,16 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
-#Helper function to convert to linear
+
 
 #helper function to check for linear term
-def linear(t: term):
+def linear(t: term, VS1: set):
 	V = get_vars(t)
-	if len(V) == len(set(V)):
+	VTL = list()
+	for var in V:
+		if var not in VS1:
+			VTL=VTL.append(var)
+	if len(VTL) == len(set(VTL)):
 		return(True)
 	else:
 		return(False)
@@ -459,7 +463,7 @@ def s_rules(U:list, var_count, VS1:set):
 	for e in U:
 		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 			if e.left_side in VS2:
-				if not linear(e.right_side):
+				if not linear(e.right_side, VS1):
 					print("Prune: ")
 					print(e)
 					return list()
