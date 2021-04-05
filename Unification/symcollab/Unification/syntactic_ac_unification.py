@@ -476,7 +476,7 @@ def build_tree(root: MutateNode, var_count, VS1):
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
-	while Q != list() and len(Q) <= 50:
+	while Q != list() and len(Q) <= 20:
 		cn = Q.pop(0)
 		#Apply S rules - mutate
 		Max = 10
@@ -493,7 +493,8 @@ def build_tree(root: MutateNode, var_count, VS1):
 		if cn.data == list():
 			return(list())
 		#Test if solved, if so stop
-		solved = True
+		#Need to update this solved check
+		solved = False
 		for e in cn.data:
 			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 				solved = False
