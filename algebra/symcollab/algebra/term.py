@@ -463,6 +463,9 @@ class Equation:
     def __repr__(self):
         return str(self.left_side) + " = " + str(self.right_side)
 
+    def __hash__(self):
+        return hash((self.left_side, self.right_side))
+
     def __eq__(self, x):
         if(type(self) != type(x)):
             return False
