@@ -17,7 +17,44 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
+#helper function for solved fomrs
+def found_cycle(var: Variable, S: set, U: list):
+	for x in S:
+		if x == var:
+			return(True)
+	for x in S:
+		for e in U:
+			if isinstance(e.left_side, Variable) and x == e.left_side:
+				U1 = deepcopy(U)
+				U1.remove(e)
+				return(found_cycle(var, get_vars(e.right_side), U1))
+	return(False)
 
+#helper function for solved forms
+def solved_form(U: list):
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
+	solved = True
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+			solved = False
+			return(solved)
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+			if e.left_side in get_vars(e.right_side):
+				solved = False
+				return(soved)
+			S = get_vars(e.right_side)
+			var = e.left_side
+			U1 = deepcopy(U)
+			U1.remove(e)
+			if found_cycle(var, S, U1):
+				solved = False
+				return(solved)
+	return(solved)
 
 #helper function to check for linear term
 def linear(t: term, VS1: set):
@@ -107,6 +144,12 @@ def mutation_rule1(U: list, var_count):
 		m1.append(Equation(var2, TempEq.left_side.arguments[1]))
 		m1.append(Equation(var2, TempEq.right_side.arguments[1]))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U) 
 
 #Mutation Rule C
@@ -137,6 +180,12 @@ def mutation_rule2(U: list, var_count):
 		m1.append(Equation(var2, TempEq.left_side.arguments[1]))
 		m1.append(Equation(var1, TempEq.right_side.arguments[1]))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 
 #Mutation Rule A1
@@ -173,6 +222,12 @@ def mutation_rule3(U: list, var_count):
 		m1.append(Equation(var1, TempEq.right_side.arguments[0]))
 		m1.append(Equation(TempEq.right_side.arguments[1], t2))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 
 #Mutation Rule A2
@@ -209,6 +264,12 @@ def mutation_rule4(U: list, var_count):
 		m1.append(Equation(TempEq.right_side.arguments[0], t1))
 		m1.append(Equation(var3, TempEq.right_side.arguments[1]))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 
 #Mutation Rule RC
@@ -245,6 +306,12 @@ def mutation_rule5(U: list, var_count):
 		m1.append(Equation(TempEq.right_side.arguments[0], t2))
 		m1.append(Equation(var2, TempEq.right_side.arguments[1]))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 	
 
@@ -282,6 +349,12 @@ def mutation_rule6(U: list, var_count):
 		m1.append(Equation(var2, TempEq.right_side.arguments[0]))
 		m1.append(Equation(TempEq.right_side.arguments[1], t2))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 
 
@@ -325,6 +398,12 @@ def mutation_rule7(U: list, var_count):
 		m1.append(Equation(TempEq.right_side.arguments[0], t3))
 		m1.append(Equation(TempEq.right_side.arguments[1], t4))
 		U = U + m1
+	#orient
+	for e in U:
+		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, Variable):
+			temp = e.left_side
+			e.left_side = e.right_side
+			e.right_side = temp
 	return(U)
 
 
@@ -476,12 +555,14 @@ def build_tree(root: MutateNode, var_count, VS1):
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
-	while Q != list() and len(Q) <= 20:
+	while Q != list() and len(Q) <= 50:
 		cn = Q.pop(0)
 		#Apply S rules - mutate
 		Max = 10
 		count =0
 		Utemp = list()
+		print("Data1: ")
+		print(cn.data)
 		while (Utemp != cn.data):
 			Utemp = cn.data
 			cn.data = s_rules(cn.data, var_count, VS1)
@@ -490,46 +571,53 @@ def build_tree(root: MutateNode, var_count, VS1):
 			if count > Max:
 				print("Hit Max")
 				break
-		if cn.data == list():
-			return(list())
+		if cn.data != list():
+			#return(list())
 		#Test if solved, if so stop
 		#Need to update this solved check
-		solved = False
-		for e in cn.data:
-			if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+			solved = True
+		#for e in cn.data:
+		#	if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		#		solved = False
+			print("Data2: ")
+			print(cn.data)
+			if not solved_form(cn.data):
 				solved = False
-		if solved != True:
-			dcopy = list()
-			dcopy = deepcopy(cn.data) 
-			cn.id = MutateNode(mutation_rule1(dcopy, var_count))
-			Q.append(cn.id)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.c = MutateNode(mutation_rule2(dcopy, var_count))
-			Q.append(cn.c)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
-			Q.append(cn.a1)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
-			Q.append(cn.a2)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
-			Q.append(cn.rc)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
-			Q.append(cn.lc)
-			dcopy = list()
-			dcopy = deepcopy(cn.data)
-			cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
-			Q.append(cn.mc)
-		else:
-			return(cn.data)
-		#print(len(Q))
+				print("Solved flase")
+			if solved != True:
+				dcopy = list()
+				dcopy = deepcopy(cn.data) 
+				cn.id = MutateNode(mutation_rule1(dcopy, var_count))
+				Q.append(cn.id)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.c = MutateNode(mutation_rule2(dcopy, var_count))
+				Q.append(cn.c)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
+				Q.append(cn.a1)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
+				Q.append(cn.a2)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
+				Q.append(cn.rc)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
+				Q.append(cn.lc)
+				dcopy = list()
+				dcopy = deepcopy(cn.data)
+				cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
+				Q.append(cn.mc)
+			else:
+				print("Solved True")
+				return(cn.data)
+		print(len(Q))
+	print("Return empty list")
 	return(list())
 		
 def synt_ac_unif(U: set):
