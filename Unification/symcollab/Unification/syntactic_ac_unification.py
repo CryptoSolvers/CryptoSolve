@@ -547,6 +547,25 @@ def s_rules(U:list, var_count, VS1:set):
 					#print(e)
 					return list()
 	
+	#New Rule, remove useless variable equalities
+	VS2 = helper_gvs(set(U))
+	VS2 = VS2.difference(VS1)
+	Uremove = list()
+	for e in U:
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, Variable):
+			Utemp = deepcopy(U)
+			Utemp.remove(e)
+			V = helper_gvs(Utemp)
+			if e.left_side in VS2:
+				if e.left_side not in helper_gvs(Utemp):
+					Uremove.append(e)
+			elif e.right_side in VS2:
+				if e.right_side not in helper_gvs(Utemp):
+					Uremove.append(e)
+	for e in Uremove:
+		U.remove(e) 
+	
+	
 	#End
 	return(U)
 	
