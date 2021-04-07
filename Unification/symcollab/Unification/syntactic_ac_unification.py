@@ -46,7 +46,7 @@ def solved_form(U: list):
 		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 			if e.left_side in get_vars(e.right_side):
 				solved = False
-				return(soved)
+				return(solved)
 			S = get_vars(e.right_side)
 			var = e.left_side
 			U1 = deepcopy(U)
@@ -514,8 +514,8 @@ def s_rules(U:list, var_count, VS1:set):
 				if e.left_side not in ST:
 					Uremove.append(e)
 	for e in Uremove:
-		print("EQE remove: ")
-		print(e)
+		#print("EQE remove: ")
+		#print(e)
 		U.remove(e)
 	
 	#remove dup
@@ -543,8 +543,8 @@ def s_rules(U:list, var_count, VS1:set):
 		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
 			if e.left_side in VS2:
 				if not linear(e.right_side, VS1):
-					print("Prune: ")
-					print(e)
+					#print("Prune: ")
+					#print(e)
 					return list()
 	
 	#End
@@ -552,17 +552,16 @@ def s_rules(U:list, var_count, VS1:set):
 	
 	
 def build_tree(root: MutateNode, var_count, VS1):
+	Sol = list()
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
-	while Q != list() and len(Q) <= 50:
+	while Q != list() and len(Q) <= 100:
 		cn = Q.pop(0)
 		#Apply S rules - mutate
 		Max = 10
 		count =0
 		Utemp = list()
-		print("Data1: ")
-		print(cn.data)
 		while (Utemp != cn.data):
 			Utemp = cn.data
 			cn.data = s_rules(cn.data, var_count, VS1)
@@ -579,11 +578,8 @@ def build_tree(root: MutateNode, var_count, VS1):
 		#for e in cn.data:
 		#	if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 		#		solved = False
-			print("Data2: ")
-			print(cn.data)
 			if not solved_form(cn.data):
 				solved = False
-				print("Solved flase")
 			if solved != True:
 				dcopy = list()
 				dcopy = deepcopy(cn.data) 
@@ -614,11 +610,13 @@ def build_tree(root: MutateNode, var_count, VS1):
 				cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
 				Q.append(cn.mc)
 			else:
-				print("Solved True")
-				return(cn.data)
-		print(len(Q))
-	print("Return empty list")
-	return(list())
+				#print("Solved True")
+				#return(cn.data)
+				Sol.append(cn.data)
+		#print(len(Q))
+	#print("Return empty list")
+	#return(list())
+	return(Sol)
 		
 def synt_ac_unif(U: set):
 	#counter until prune is implemented
@@ -633,5 +631,9 @@ def synt_ac_unif(U: set):
 	res = build_tree(N1, var_count, VS1)
 	#delta = SubstituteTerm()
 	print("Solution: ")
-	print(res)
+	if res == list():
+		print("No solution found")
+	else:
+		for s in res:
+			print(s)
 	return(res)
