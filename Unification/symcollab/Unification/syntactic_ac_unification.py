@@ -17,7 +17,7 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 
-#helper function for solved fomrs
+#helper function for solved forms
 def found_cycle(var: Variable, S: set, U: list):
 	for x in S:
 		if x == var:
@@ -39,6 +39,11 @@ def solved_form(U: list):
 			e.left_side = e.right_side
 			e.right_side = temp
 	solved = True
+	for e1 in U:
+		for e2 in U:
+			if e1 != e2 and e1.left_side == e2.left_side:
+				solved = False
+				return(solved) 
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			solved = False
@@ -438,8 +443,9 @@ def s_rules(U:list, var_count, VS1:set):
 	for i in range(len(U)):
 		if isinstance(U[i].left_side, Variable) and isinstance(U[i].right_side, FuncTerm):
 			for j in range(len(U)):
-				if not help_eq_eq(U[i], U[j]) and U[i].left_side == U[j].left_side:
-					U[j].left_side = U[i].right_side
+				if isinstance(U[j].left_side, Variable) and isinstance(U[j].right_side, FuncTerm):
+					if not help_eq_eq(U[i], U[j]) and U[i].left_side == U[j].left_side:
+						U[j].left_side = U[i].right_side
 	
 	#print("U after merge: ")
 	#print(U)
@@ -457,7 +463,12 @@ def s_rules(U:list, var_count, VS1:set):
 			if addeq == True:
 				Uadd.append(e1)
 	for e in Uadd:
-		delta.add(e.left_side, e.right_side)
+		print(e)
+		if e.right_side in VS1:
+			delta.add(e.left_side, e.right_side)
+		else:
+			delta.add(e.right_side, e.left_side)
+		print(delta)
 	for e1 in U:
 		applysub = True
 		for e2 in Uadd:
@@ -558,10 +569,12 @@ def s_rules(U:list, var_count, VS1:set):
 			V = helper_gvs(Utemp)
 			if e.left_side in VS2:
 				if e.left_side not in helper_gvs(Utemp):
-					Uremove.append(e)
+					if e.right_side not in VS1:
+						Uremove.append(e)
 			elif e.right_side in VS2:
 				if e.right_side not in helper_gvs(Utemp):
-					Uremove.append(e)
+					if e.right_side not in VS1:
+						Uremove.append(e)
 	for e in Uremove:
 		U.remove(e) 
 	
@@ -575,10 +588,10 @@ def build_tree(root: MutateNode, var_count, VS1):
 	Q = list()
 	Q.append(root)
 	#the length bound will be removed when we add pruning
-	while Q != list() and len(Q) <= 100:
+	while Q != list() and len(Q) <= 300:
 		cn = Q.pop(0)
 		#Apply S rules - mutate
-		Max = 10
+		Max = 50
 		count =0
 		Utemp = list()
 		while (Utemp != cn.data):
