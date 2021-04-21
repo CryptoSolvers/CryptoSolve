@@ -797,6 +797,11 @@ def s_rules(U:list, var_count, VS1:set):
 				#print(ST)
 				if e.left_side not in ST:
 					Uremove.append(e)
+			elif e.right_side not in VS1:
+				Utemp.remove(e)
+				ST = get_vars_from_list(Utemp)
+				if e.right_side not in ST:
+					Uremove.append(e)
 	for e in Uremove:
 		#print("EQE remove: ")
 		#print(e)
