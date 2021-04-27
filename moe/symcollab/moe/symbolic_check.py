@@ -26,36 +26,55 @@ def elim_f(top_f_terms: Set[Equation]) -> Set[Equation]:
 		if isinstance(eq.left_side, FuncTerm):
 			if eq.left_side.function == f and is_zero(eq.right_side):
 				elim_f_set.remove(eq)
-		if isinstance(eq.right_side, FuncTerm):
+		elif isinstance(eq.right_side, FuncTerm):
 			if eq.right_side.function == f and is_zero(eq.left_side):
 				elim_f_set.remove(eq)
 
 	return elim_f_set
 
 """
-Given a list of sessions, which contain terms, find any f-rooted terms
-that xor to zero and remove them, returning the new List
+Given a set of equations, remove those in the form of 
+C_{p,i-a} xor C_{q, j-a} = 0, where i!=j
 """
-def elim_c(sessions: List[List[Term]]) -> List[List[Term]]:
-	elim_c_list = deepcopy(sessions)
-	for i in range(0, len(sessions)-1):
-		session1 = sessions[i]
-		session2 = sessions[i+1]
-		j = len(session1)-1
-		while j >= 0:
-			term1 = session1[j]
-			k = len(session2)-1
-			while k >= 0:
-				term2 = session2[k]
-				if isinstance(term1, FuncTerm) and isinstance(term2, FuncTerm):
-					if term1.function == f and term2.function == f:
-						if is_zero(xor(term1, term2)):
-							elim_c_list[i].pop(j)
-							elim_c_list[i+1].pop(k)
-				k = k-1
-			j = j-1
-
-	return elim_c_list
+def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
+	elim_c_set = deepcopy(top_f_terms)
+	c = Function("C", 3)
+	p = Constant('p')
+	q = Constant('q')
+	i = Constant('i')
+	j = Constant('j')
+	for eq in top_f_terms:
+		args = None
+		if isinstance(eq.left_side, FuncTerm):
+			if eq.left_side.function == xor and is_zero(eq.right_side):
+				args = eq.left_side._arguments
+		elif isinstance(eq.right_side, FuncTerm):
+			if eq.right_side.function == xor and is_zero(eq.left_side):
+				args = eq.right_side._arguments
+		if args!= None and len(args) == 2:
+			t1 = args[0]
+			t2 = args[1]
+			t1_is_c = False
+			t2_is_c = False
+			a1 = None
+			a2 = None
+			if t1.function == c and t2.function == c:
+				cargs1 = t1._arguments
+				cargs2 = t2._arguments
+				if len(cargs1) == 3 and len(cargs2) == 3:
+					a1 = cargs1[2]
+					a2 = cargs2[2]
+					if cargs1[0] == p and cargs1[1] == i:
+						t1_is_c = True
+						if cargs2[0] == q and cargs2[1] == j:
+							t2_is_c = True
+					elif cargs1[0] == q and cargs1[1] == j:
+						t1_is_c = True
+						if cargs2[0] == p and cargs2[1] == i:
+							t2_is_c = True
+			if a1 == a2:
+				elim_c_set.remove(eq)
+	return elim_c_set
 
 
 """
@@ -71,7 +90,7 @@ def occurs_check(e: Equation) -> bool:
 			return True
 	return False
 
-def pick_f():
+def pick_f():()
 
 def pick_c():
 
