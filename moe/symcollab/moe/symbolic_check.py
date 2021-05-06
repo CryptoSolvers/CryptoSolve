@@ -91,7 +91,7 @@ def occurs_check(equations: Set[Equation], max_depth: int) -> bool:
 	for term in terms:
 		print("building tree for ", term)
 		root_node = AnyNode(term=term, parent=None)
-		depth = build_tree(root_node, term, equations, 1)
+		depth = build_tree(root_node, term, equations, 1) + 1
 		print(RenderTree(root_node))
 		print(depth)
 
@@ -111,7 +111,7 @@ def build_tree(node: AnyNode, term: Term, equations: Set[Equation], depth: int) 
 				other = left
 			node = AnyNode(term=other, parent=cur)
 			#print("n_d: ", node.depth, " d ", depth)
-			if node.depth > cur.depth:
+			if node.depth > build_tree.depth:
 			#	print("eeee")
 				build_tree.depth = node.depth
 				#print(depth)
