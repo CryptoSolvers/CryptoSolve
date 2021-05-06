@@ -10,6 +10,7 @@ from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equa
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
+from anytree import AnyNode, RenderTree
 
 f = Function("f", 1)
 zero = Zero()
@@ -76,21 +77,51 @@ def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
 				elim_c_set.remove(eq)
 	return elim_c_set
 
+root_node = None
+
+def occurs_check(equations: Set[Equation], max_depth: int) -> bool:
+	cycle = False
+	terms : Set[Term] = set()
+	for eq in equations:
+		left = eq.left_side
+		right = eq.right_side
+		terms.add(left)
+		terms.add(right)
+
+	for term in terms:
+		print("building tree for ", term)
+		root_node = AnyNode(term=term, parent=None)
+		depth = build_tree(root_node, term, equations, 1)
+		print(RenderTree(root_node))
+		print(depth)
+
+	return False
+#
+def build_tree(node: AnyNode, term: Term, equations: Set[Equation], depth: int) -> int:
+	build_tree.depth = depth
+	cur = node
+	for eq in equations:
+		left = eq.left_side
+		right = eq.right_side
+		if (cur.term == left or cur.term == right) and \
+		 (cur.parent == None or cur.parent != None and cur.parent.term != left and cur.parent.term != right):
+			if cur.term == left:
+				other = right
+			else:
+				other = left
+			node = AnyNode(term=other, parent=cur)
+			#print("n_d: ", node.depth, " d ", depth)
+			if node.depth > cur.depth:
+			#	print("eeee")
+				build_tree.depth = node.depth
+				#print(depth)
+			#print(depth)
+			build_tree(node, other, equations, build_tree.depth)
+	return build_tree.depth
+
 
 """
-def occurs_check(e: Equation) -> bool:
-	l = e.left_side
-	r = e.right_side
-	if (isinstance(r, Variable) and isinstance(l, FuncTerm)):
-		temp = r
-		r = l
-		l = temp
-	if isinstance(l, Variable) and isinstance(r, FuncTerm):
-		if l in r:
-			return True
-	return False
-
-def pick_f():()
+def pick_f():
 
 def pick_c():
 

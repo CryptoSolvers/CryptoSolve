@@ -1,11 +1,4 @@
-from copy import deepcopy
-from symcollab.algebra import *
-import numpy as np # type: ignore
-from sympy.solvers.diophantine import diophantine # type: ignore
-from sympy import symbols # type: ignore
-from sympy.solvers.diophantine import diop_linear # type: ignore
-from sympy.parsing.sympy_parser import parse_expr # type: ignore
-from collections import Counter
+from algebra import *
 
 def occurs_check(U: set):
 	for e in U:
@@ -29,7 +22,7 @@ def occurs_check(U: set):
 								return False
 
 def occurs_check2(U: set, depth, e, e2):
-	if depth > len(U)
+	if depth > len(U):
 		return False
 
 	for e3 in U:
@@ -37,10 +30,10 @@ def occurs_check2(U: set, depth, e, e2):
 			if isinstance(e3.left_side, Variable) and isinstance(e3.right_side, FuncTerm):
 				if e2.left_side in e3.right_side:
 					if e3.right_side in e.left_side:
-						return True:
+						return True
 					else:
 						if occurs_check2(U, depth+1, e, e3):
 							return True
-			else if isinstance(e3.left_side, Variable) and isinstance(e3.right_side, Variable):
+			elif isinstance(e3.left_side, Variable) and isinstance(e3.right_side, Variable):
 				if occurs_check2(U, depth+1, e, e3):
 							return True
