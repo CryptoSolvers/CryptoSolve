@@ -6,7 +6,8 @@ Based on Hai Lin's work.
 """
 
 from typing import Tuple, Dict, List, Optional, Set
-from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
+from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation, get_vars
+from symcollab.rewrite import RewriteRule
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
@@ -48,10 +49,10 @@ def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
 		args = None
 		if isinstance(eq.left_side, FuncTerm):
 			if eq.left_side.function == xor and is_zero(eq.right_side):
-				args = eq.left_side._arguments
+				args = eq.left_side.arguments
 		elif isinstance(eq.right_side, FuncTerm):
 			if eq.right_side.function == xor and is_zero(eq.left_side):
-				args = eq.right_side._arguments
+				args = eq.right_side.arguments
 		if args!= None and len(args) == 2:
 			t1 = args[0]
 			t2 = args[1]
@@ -60,8 +61,8 @@ def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
 			a1 = None
 			a2 = None
 			if t1.function == c and t2.function == c:
-				cargs1 = t1._arguments
-				cargs2 = t2._arguments
+				cargs1 = t1.arguments
+				cargs2 = t2.arguments
 				if len(cargs1) == 3 and len(cargs2) == 3:
 					a1 = cargs1[2]
 					a2 = cargs2[2]
@@ -77,48 +78,48 @@ def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
 				elim_c_set.remove(eq)
 	return elim_c_set
 
-root_node = None
-
-def occurs_check(equations: Set[Equation], max_depth: int) -> bool:
-	cycle = False
-	terms : Set[Term] = set()
-	for eq in equations:
-		left = eq.left_side
-		right = eq.right_side
-		terms.add(left)
-		terms.add(right)
-
-	for term in terms:
-		print("building tree for ", term)
-		root_node = AnyNode(term=term, parent=None)
-		depth = build_tree(root_node, term, equations, 1) + 1
-		print(RenderTree(root_node))
-		print(depth)
-
+"""
+Given a set of equations, returns true if an occurs check exists 
+"""
+def occurs_check(top_f_terms: Set[Equation]) -> bool:
+	for e in top_f_terms:
+		var = None
+		term = None
+		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
+			var = e.left_side
+			term = e.right_side
+		elif  isinstance(e.right_side, Variable) and isinstance(e.left_side, FuncTerm):
+			var = e.right_side
+			term = e.left_side
+		if var != None and term != None:
+			if var in term:
+				return True
+			check_vars = set(get_vars(term))
+			check_eq = deepcopy(top_f_terms)
+			check_eq.remove(e)
+			if found_cycle(var, check_vars, check_eq):
+				return True
 	return False
-#
-def build_tree(node: AnyNode, term: Term, equations: Set[Equation], depth: int) -> int:
-	build_tree.depth = depth
-	cur = node
-	for eq in equations:
-		left = eq.left_side
-		right = eq.right_side
-		if (cur.term == left or cur.term == right) and \
-		 (cur.parent == None or cur.parent != None and cur.parent.term != left and cur.parent.term != right):
-			if cur.term == left:
-				other = right
-			else:
-				other = left
-			node = AnyNode(term=other, parent=cur)
-			#print("n_d: ", node.depth, " d ", depth)
-			if node.depth > build_tree.depth:
-			#	print("eeee")
-				build_tree.depth = node.depth
-				#print(depth)
-			#print(depth)
-			build_tree(node, other, equations, build_tree.depth)
-	return build_tree.depth
 
+"""
+Returns true when a cycle is found, which occurs when a variable is written in terms of itself
+"""
+def found_cycle(target: Variable, check: Set[Variable], equations: Set[Equation]) -> bool:
+	for var in check:
+		if var == target:
+			return True
+
+		for e in equations:
+			term = None
+			if isinstance(e.left_side, Variable) and var == e.left_side:
+				term = e.right_side
+			elif isinstance(e.right_side, Variable) and var == e.right_side:
+				term = e.left_side
+			if term != None:
+				eq = deepcopy(equations)
+				eq.remove(e)
+				return found_cycle(target, get_vars(term), eq)
+	return False
 
 """
 def pick_f():

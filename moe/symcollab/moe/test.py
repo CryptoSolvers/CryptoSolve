@@ -1,4 +1,5 @@
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
+from symcollab.rewrite import RewriteRule
 from symbolic_check import elim_f, elim_c, occurs_check
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.xor import xor
@@ -63,21 +64,45 @@ print(len(new_set))
 for eq in new_set:
 	print(eq)
 """
-f = Function("f", 1)
+f = Function("f", 2)
 g = Function("g", 1)
-y = Function("y", 1)
-x = Variable("x")
 z = Variable("z")
+x = Variable("x")
+y = Variable("y")
 b = Variable("b")
+a = Variable("a")
 
-f_x = FuncTerm(f, [x])
-g_z = FuncTerm(g, [z])
-y_b = FuncTerm(y, [b])
+fyz = FuncTerm(f, [y, z])
+gb = FuncTerm(g, [b])
+fxz = FuncTerm(f, [x, z])
+fba = FuncTerm(f, [b, a])
 
+"""
+r = RewriteRule(x, b)
+print(f_x)
 
-eq1 = Equation(f_x, g_z)
-eq2 = Equation(g_z, y_b)
-eq3 = Equation(b, f_x)
+print("Applying rewrite rule")
+
+new = r.apply(y(g(f(f(x)))))
+print(new.items())
+for item in new.items():
+	print(item)
+
+print(isinstance(new['1'], FuncTerm))
+"""
+eq1 = Equation(fyz, x)
+eq2 = Equation(y, gb)
+eq3 = Equation(b, fxz)
+eq4 = Equation(z, fba)
+print(eq1)
+print(eq2)
+print(eq3)
 
 occ = {eq1, eq2, eq3}
-print(occurs_check(occ, 10))
+print(occurs_check(occ))
+
+print(eq1)
+print(eq2)
+print(eq4)
+occ = {eq1, eq2, eq4}
+print(occurs_check(occ))
