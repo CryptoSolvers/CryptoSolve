@@ -77,7 +77,7 @@ class Term_Forest:
 				node = AnyNode(term=term)
 				self.forest.append(node)
 				self.__build_tree(node)
-			self.index = self.index + 1
+			self.index += 1
 
 	# Recursively generate possible list of terms to add
 	# Will not add any terms that already exist in the forest
@@ -92,6 +92,8 @@ class Term_Forest:
 					if n.depth+1 > self.tree_heights[self.index]:
 						self.tree_heights[self.index] = n.depth + 1
 					self.__build_tree(n)
+				else:
+					self.tree_heights[self.index] = self.max_height
 
 	# Recursively generate every possible way to rewrite a term
 	def __generate_terms(self, nt: Term) -> List[Term]:
@@ -112,6 +114,7 @@ class Term_Forest:
 			for t in args:
 				t_children = self.__generate_terms(t)
 				for _o in t_children:
+					# replace the argument t with the term it is equal to
 					new_args = [_o if i==t else i for i in args]
 					rw = FuncTerm(f, new_args)
 					children.append(rw)
@@ -121,21 +124,32 @@ class Term_Forest:
 	# display each tree in the forest
 	def __str__(self):
 		forest_str = ""
+		index = 0
 		for n in self.forest:
+			index += 1
 			for pre, _, node in RenderTree(n):
 				forest_str += ("%s%s" % (pre, node.term)) + "\n"
+			forest_str += "height: " + str(self.get_height(n)) + "\n"
 
 		return forest_str
 
-	# Print out a descritpion of the attributes of the forest 
+	# take one of the root terms in the forest and return the height of that tree
+	def get_height(self, root: AnyNode) -> int:
+		index = 0
+		for t in self.terms:
+			if root.term == t:
+				return self.tree_heights[index]
+			index += 1
+
+	# Print out a description of the attributes of the forest 
 	def describe(self) -> str:
 		description = "There are " + str(len(self.terms)) + " unique terms in the seed that spawned the forest:\n"
-		description = description + str(self.terms) + "\n\n"
-		description = description + "The forest contains " + str(len(self.forest)) + " root terms:\n"
+		description += str(self.terms) + "\n\n"
+		description += "The forest contains " + str(len(self.forest)) + " root terms:\n"
 		_terms = list()
 		for node in self.forest:
 			_terms.append(str(node.term))
-		description = description + str(_terms) + "\n\n"
-		description = description + "The forest contains " + str(len(self.history)) + " unique terms:\n"
-		description = description + str(self.history) + "\n"
+		description += str(_terms) + "\n\n"
+		description += "The forest contains " + str(len(self.history)) + " unique terms:\n"
+		description += str(self.history) + "\n"
 		return description

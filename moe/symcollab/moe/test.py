@@ -76,8 +76,6 @@ gb = FuncTerm(g, [b])
 fxz = FuncTerm(f, [x, z])
 fba = FuncTerm(f, [b, a])
 
-print(get_last(new))
-
 
 """
 eq1 = Equation(fyz, x)
