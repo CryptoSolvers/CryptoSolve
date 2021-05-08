@@ -1,6 +1,5 @@
 from typing import Tuple, Dict, List, Optional, Set
 from term import *
-from symcollab.rewrite import RewriteRule
 from anytree import AnyNode, RenderTree
 
 """
