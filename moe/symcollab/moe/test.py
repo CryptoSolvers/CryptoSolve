@@ -1,5 +1,4 @@
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
-from symcollab.rewrite import RewriteRule
 from symbolic_check import elim_f, elim_c, occurs_check
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.xor import xor
@@ -77,18 +76,9 @@ gb = FuncTerm(g, [b])
 fxz = FuncTerm(f, [x, z])
 fba = FuncTerm(f, [b, a])
 
-"""
-r = RewriteRule(x, b)
-print(f_x)
+print(get_last(new))
 
-print("Applying rewrite rule")
 
-new = r.apply(y(g(f(f(x)))))
-print(new.items())
-for item in new.items():
-	print(item)
-
-print(isinstance(new['1'], FuncTerm))
 """
 eq1 = Equation(fyz, x)
 eq2 = Equation(y, gb)
@@ -106,3 +96,4 @@ print(eq2)
 print(eq4)
 occ = {eq1, eq2, eq4}
 print(occurs_check(occ))
+"""

@@ -7,11 +7,9 @@ Based on Hai Lin's work.
 
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation, get_vars
-from symcollab.rewrite import RewriteRule
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
-from anytree import AnyNode, RenderTree
 
 f = Function("f", 1)
 zero = Zero()
