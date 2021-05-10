@@ -184,12 +184,11 @@ class Term_Forest:
 	def __ne__(self, other):
 		return not self == other
 
-	#@staticmethod
 	def contains(self, term):
 		return term in self.__history
 
 	def __hash__(self):
-		_str = ""
+		_str = str(self.max_height)
 		for eq in self.seed:
 			_str += str(eq)
 		print(_str)
