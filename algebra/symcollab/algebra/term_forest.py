@@ -191,7 +191,6 @@ class Term_Forest:
 		_str = str(self.max_height)
 		for eq in self.seed:
 			_str += str(eq)
-		print(_str)
 		return hash(_str)
 
 	# given one of the root terms in the forest and return the height of that tree
