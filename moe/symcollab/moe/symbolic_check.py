@@ -72,7 +72,7 @@ def elim_c(top_f_terms: Set[Equation]) -> Set[Equation]:
 						t1_is_c = True
 						if cargs2[0] == p and cargs2[1] == i:
 							t2_is_c = True
-			if a1 == a2:
+			if t1_is_c and t2_is_c and a1 == a2:
 				elim_c_set.remove(eq)
 	return elim_c_set
 
@@ -118,11 +118,11 @@ def found_cycle(target: Variable, check: Set[Variable], equations: Set[Equation]
 				eq.remove(e)
 				return found_cycle(target, get_vars(term), eq)
 	return False
-
 """
 def pick_f():
 
 def pick_c():
-
-def pick_fail():
 """
+
+def pick_fail(top_f_terms: Set[Equation]):
+	
