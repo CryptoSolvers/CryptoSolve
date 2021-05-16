@@ -184,7 +184,7 @@ class Term_Forest:
 	def __ne__(self, other):
 		return not self == other
 
-	def contains(self, term):
+	def __contains__(self, term):
 		return term in self.__history
 
 	def __hash__(self):
