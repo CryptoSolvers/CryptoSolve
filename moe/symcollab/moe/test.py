@@ -26,10 +26,7 @@ def test_elimf():
 	print("Testing elim_f with ", topf)
 	new_set = elim_f(topf)
 	print("Result ", new_set)
-
-test_elimf()
-
-print()
+	print()
 
 def test_elimc():
 	c = Function("C", 3)
@@ -66,39 +63,32 @@ def test_elimc():
 	print("Testing elim_c with ", topf)
 	new_set = elim_c(topf)
 	print("Result: ", new_set)
-
-test_elimc()
-
-print()
+	print()
 
 def test_occurs():
-	f = Function("f", 2)
+	f = Function("f", 1)
 	g = Function("g", 1)
+	c = Function("C", 3)
+	p = Constant('p')
+	q = Constant('q')
+	i = Constant('i')
 	z = Variable("z")
 	x = Variable("x")
 	y = Variable("y")
 	b = Variable("b")
 	a = Variable("a")
 
-	fyz = FuncTerm(f, [y, z])
-	gb = FuncTerm(g, [b])
-	fxz = FuncTerm(f, [x, z])
-	fba = FuncTerm(f, [b, a])
+	cpi = FuncTerm(c, [p, i, Constant("1")])
+	fcpi = FuncTerm(f, [cpi])
+	e1 = Equation(cpi, fcpi)
+	e2 = Equation(x, FuncTerm(f, [g(x)]))
+	e3 = Equation(x, FuncTerm(f, [b]))
 
-	eq1 = Equation(fyz, x)
-	eq2 = Equation(y, gb)
-	eq3 = Equation(b, fxz)
-	eq4 = Equation(z, fba)
-
-	occ = {eq1, eq2, eq3}
+	occ = {e1, e2, e3}
 	print("Testing occurs check with ", occ)
-	print("Was there an occurs check: ", occurs_check(occ))
+	print("new set: ", occurs_check(occ))
 	print()
-	
-	occ = {eq1, eq2, eq4}
-	print("Testing occurs check with ", occ)
-	print("Was there an occurs check: ", occurs_check(occ))
-	
-test_occurs()
 
-print()
+test_elimc()
+test_elimf()
+test_occurs()
