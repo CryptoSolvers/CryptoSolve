@@ -3,6 +3,9 @@ Functions that check symbolically
 the security of a mode of operation.
 
 Based on Hai Lin's work.
+
+To see examples of how the inference rules work, please run $ python3 test.py
+in the same directory as this file
 """
 
 from typing import Tuple, Dict, List, Optional, Set
@@ -40,6 +43,9 @@ def elim_f(sigma: Set[Equation]) -> Set[Equation]:
 """
 Given a set of equations, remove those in the form of 
 C_{p,i-a} xor C_{q, j-a} = 0, where i!=j
+Each equation is checked to see if it has the format of
+C(p, i, a) xor C(q, j, a) = 0
+if it matches then it will be removed, it is assumed that i!=j
 """
 def elim_c(sigma: Set[Equation]) -> Set[Equation]:
 	elim_c_set = deepcopy(sigma)
@@ -51,14 +57,16 @@ def elim_c(sigma: Set[Equation]) -> Set[Equation]:
 		elif isinstance(eq.right_side, FuncTerm):
 			if eq.right_side.function == xor and is_zero(eq.left_side):
 				args = eq.right_side.arguments
+		# if args == None that means the equation does not use xor
 		if args!= None and len(args) == 2:
 			t1 = args[0]
 			t2 = args[1]
-			t1_is_c = False
-			t2_is_c = False
+			t1_is_c = False # checking for format C(p, i, a) or
+			t2_is_c = False # checking for format C(q, j, a)
 			a1 = None
 			a2 = None
-			if t1.function == c and t2.function == c:
+			if isinstance(t1, FuncTerm) and t1.function == c \
+			and isinstance(t2, FuncTerm) and t2.function == c:
 				cargs1 = t1.arguments
 				cargs2 = t2.arguments
 				if len(cargs1) == 3 and len(cargs2) == 3:
@@ -76,6 +84,12 @@ def elim_c(sigma: Set[Equation]) -> Set[Equation]:
 				elim_c_set.remove(eq)
 	return elim_c_set
 
+"""
+Checks each equation in a set of equations for an occurs check
+Does NOT check the entire set for an occurs check, only each equation one by one
+For the general occurs check which considers the entire set, see the commented out
+code at the bottom of this file
+"""
 def occurs_check(sigma: Set[Equation]) -> Set[Equation]:
 	occurs_set = deepcopy(sigma)
 	for e in sigma:
@@ -108,23 +122,7 @@ def pick_fail(sigma: Set[Equation], cipherblock: Equation) -> Set[Equation]:
 """
 # old code that might be useful for something else but isnt applicable in this situation
 
-def found_cycle(t1, t2) -> bool:
-	if t1 in t2 or t2 in t1:
-		occurs_set.remove(e)
-	elif isinstance(t1, FuncTerm):
-		args = t1.arguments
-		for arg in args:
-			detect = found_cycle(arg, t2)
-			if detect:
-				return detect
-	elif isinstance(t2, FuncTerm):
-		args = t2.arguments
-		for arg in args:
-			detect = found_cycle(arg, t1)
-			if detect:
-				return detect
-
-Given a set of equations, returns true if an occurs check exists 
+Given a set of equations, returns true if an occurs check exists between all of the equations
 def occurs_check(sigma: Set[Equation]) -> bool:
 	for e in sigma:
 		var = None
