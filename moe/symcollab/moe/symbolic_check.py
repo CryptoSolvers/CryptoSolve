@@ -11,6 +11,7 @@ in the same directory as this file
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation, get_vars
 from symcollab.xor import xor
+from symcollab.xor.xorhelper import is_XOR_Term, is_xor_term, xor_to_list
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
 
@@ -41,7 +42,7 @@ def elim_f(sigma: Set[Equation]) -> Set[Equation]:
 	return elim_f_set
 
 """
-Given a set of equations, remove those in the form of 
+Given a set of equations, remove those in the form of
 C_{p,i-a} xor C_{q, j-a} = 0, where i!=j
 Each equation is checked to see if it has the format of
 C(p, i, a) xor C(q, j, a) = 0
@@ -99,6 +100,48 @@ def occurs_check(sigma: Set[Equation]) -> Set[Equation]:
 			occurs_set.remove(e)
 
 	return occurs_set
+
+"""
+Implementing pick_f inference rule
+"""
+def pick_f(sigma: Set[Equation]) -> [Set[Equation]]:
+	results = []
+	for eq in sigma:
+		if check_xor_structure(eq.left_side) and is_zero(eq.right_side):
+			n = len(xor_to_list(eq.left_side))
+			sigmaMinusEq = deepcopy(sigma)
+			sigmaMinusEq.remove(eq)
+			for k in range(n):
+				results.append(set(form_equations_list(eq.left_side, k)).union(sigmaMinusEq))
+			return results
+		elif check_xor_structure(eq.right_side) and is_zero(eq.left_side):
+			n = len(xor_to_list(eq.right_side))
+			sigmaMinusEq = deepcopy(sigma).remove(eq)
+			for k in range(n):
+				results = results.append(set(form_equations_list(eq.right_side, k)).union(sigmaMinusEq))
+			return results
+
+def check_xor_structure(t: FuncTerm):
+	if is_xor_term(t):
+		if not isinstance(t.arguments[0], Variable) and t.arguments[0].function == f and not isinstance(t.arguments[1], Variable) and t.arguments[1].function == f:
+			return True
+		elif is_xor_term(t.arguments[0]) and not isinstance(t.arguments[1], Variable) and t.arguments[1].function == f:
+			return check_xor_structure(t.arguments[0])
+		else:
+			return False
+	else:
+		return False
+
+def form_equations_list(xorTerm: FuncTerm, k) -> Set[Equation]:
+	subtermList = xor_to_list(xorTerm)
+	tList = []
+	tSubK = subtermList[k].arguments[0]
+	for indexedFTerm in enumerate(subtermList, start=0):
+		if not indexedFTerm[0] == k:
+			fArg = indexedFTerm[1].arguments[0]
+			tList.append(Equation(xor(tSubK,fArg), zero))
+	return set(tList)
+
 
 """
 def pick_f(sigma: Set[Equation]) -> Set[Equation]:

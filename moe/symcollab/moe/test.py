@@ -1,8 +1,9 @@
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
-from symbolic_check import elim_f, elim_c, occurs_check
+from symbolic_check import elim_f, elim_c, occurs_check, check_xor_structure, form_equations_list, pick_f
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero
+from symcollab.xor.xorhelper import xor_to_list
 from symcollab.algebra.term import get_vars
 
 def test_elimf():
@@ -89,6 +90,34 @@ def test_occurs():
 	print("new set: ", occurs_check(occ))
 	print()
 
+def test_check_xor_structure():
+	f = Function("f", 1)
+	a = Constant("a")
+	b = Constant("b")
+	c = Constant("c")
+	x = Variable("x")
+	z = Zero()
+
+	func = FuncTerm(f, [a])
+	func1 = FuncTerm(f, [b])
+	func2 = FuncTerm(f, [c])
+	func3 = FuncTerm(f, [x])
+	func4 = xor(func, func1)
+	func5 = xor(func2, func3)
+
+	eq1 = Equation(func, b)
+	eq2 = Equation(func3, c)
+	eq3 = Equation(func5, z)
+	eq4 = Equation(xor(func2, func3), z)
+	eq5 = Equation(xor(func4, func5), z)
+
+	topf : Set[Equation] = {eq1, eq2, eq3, eq5}
+
+	print("Testing pick_f with equation set: ", topf)
+	print("Result pick_f: ", pick_f(topf))
+
+
 test_elimc()
 test_elimf()
 test_occurs()
+test_check_xor_structure()
