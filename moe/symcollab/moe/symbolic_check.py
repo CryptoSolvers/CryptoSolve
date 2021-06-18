@@ -142,6 +142,86 @@ def form_equations_list(xorTerm: FuncTerm, k) -> Set[Equation]:
 			tList.append(Equation(xor(tSubK,fArg), zero))
 	return set(tList)
 
+def pick_fail(sigma: Set[Equation], size_f) -> Set[Equation]:
+	result_set = deepcopy(sigma)
+
+	for eq in sigma:
+
+		# term t, that is xor-rooted and t = 0 is an eq.
+		t = None
+        # Check if equation is of the form t = 0 or 0 = t where t is xor term
+		if isinstance(eq.left_side, FuncTerm):
+			if is_xor_term(eq.left_side) and is_zero(eq.right_side):
+				t = eq.left_side
+		elif isinstance(eq.right_side, FuncTerm):
+			if is_xor_term(eq.right_side) and is_zero(eq.right_side):
+				t = eq.right_side
+
+		if t != None:
+			termList = xor_to_list(t) # Convert the xor term to a list.
+			cpis = list(filter(lambda xs: isinstance(xs, FuncTerm) and xs.function == c, termList)) # Find all C-rooted terms
+			if len(cpis) == 1: # There can be only one C-rooted term for this rule to execute
+				cpi = cpis[0]
+				fs = list(filter(lambda ys: isinstance(ys, FuncTerm) and ys.function == f, termList)) # Find all f-rooted terms
+				if len(fs) == len(termList)-1: # All other terms should be f-rooted, except the C
+					if size_f > len(fs): # if size_f(Cpi) > n
+						result_set.remove(eq) # conclusion
+	return result_set
+
+def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, size_f, moo_gen) -> Set[Equation]:
+	result_set = deepcopy(sigma)
+
+	for eq in sigma:
+
+		# term t, that is xor-rooted and t = 0 is an eq.
+		t = None
+
+		# Check if equation is of the form t = 0 or 0 = t where t is xor term
+		if isinstance(eq.left_side, FuncTerm):
+			if is_xor_term(eq.left_side) == xor and is_zero(eq.right_side):
+				t = eq.left_side
+		elif isinstance(eq.right_side, FuncTerm):
+			if is_xor_term(eq.right_side) == xor and is_zero(eq.right_side):
+				t = eq.right_side
+
+		if t != None:
+			termList = xor_to_list(t)
+			cpis = list(filter(lambda xs: isinstance(xs, FuncTerm) and xs.function == c, termList)) # Find all C-rooted terms
+			if len(cpis) == 1: # There can be only one C-rooted term for this rule to execute
+				cpi = cpis[0]
+				fs = list(filter(lambda ys: isinstance(ys, FuncTerm) and ys.function == f, termList)) # Find all f-rooted terms
+				if len(fs) == len(termList)-1: # All other terms should be f-rooted, except the C
+					if size_f <= len(fs): # sizef(Cpi) <= n
+						# Check Cpi \in CVar(tm) U CVar(tm')
+						if tm.contains(cpi) or tmPrime.contains(cpi):
+							unfold = moo_gen(int(cpi.subterms[0].symbol), int(cpi.subterms[1].symbol))
+							f_rooted_summand = list(filter(lambda x: isinstance(x, FuncTerm) and x.function == f, xor_to_list(unfold)))[0]
+							for k in fs:
+								result_set.append(Equation(f_rooted_summand.subterms[0], k.subterms[0]))
+							result_set.remove(eq)
+	return result_set
+
+# Example c generator for unfolding
+def cbc_gen(p, i):
+	if i == 0:
+		return Constant('r'+str(p))
+	else:
+		return xor(
+			FuncTerm(Function("f",1), [cbc_gen(p,i-1)]),
+			Variable("x"+str(p)+str(i))
+		)
+
+def ex4_gen(p, i):
+	if i == 0:
+		return Constant('r'+str(p))
+	else:
+		return xor(
+			xor (
+					FuncTerm(f, [ex4_gen(p,i-1)]),
+					FuncTerm(f, [FuncTerm(f, [ex4_gen(p,i-1)])])
+				),
+				Variable("x"+str(p)+str(i))
+		)
 
 """
 def pick_f(sigma: Set[Equation]) -> Set[Equation]:

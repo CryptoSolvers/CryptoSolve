@@ -1,5 +1,5 @@
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
-from symbolic_check import elim_f, elim_c, occurs_check, check_xor_structure, form_equations_list, pick_f
+from symbolic_check import elim_f, elim_c, occurs_check, check_xor_structure, form_equations_list, pick_f, cbc_gen, ex4_gen, pick_fail, pick_c
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero
@@ -115,9 +115,87 @@ def test_check_xor_structure():
 
 	print("Testing pick_f with equation set: ", topf)
 	print("Result pick_f: ", pick_f(topf))
+	print()
+
+def test_cbc_gen():
+	res = cbc_gen(1,2)
+	print("Testing CBC MOO generator: ", res)
+	print()
+
+def test_ex4_gen():
+	res = ex4_gen(1,2)
+	print("Testing EX4 MOO generator:", res)
+	print()
+
+def test_pick_fail():
+	c = Function("C",3)
+	f = Function("f",1)
+	a = Constant("a")
+	b = Constant('1')
+	e = Constant("e")
+	p = Constant('p')
+	q = Constant('q')
+	i = Constant('i')
+	j = Constant('j')
+	x  = Variable("x")
+	z  = Zero()
+
+	func = FuncTerm(f, [a])
+	func2 = FuncTerm(f, [e])
+
+	func_pi = FuncTerm(c, [p, i, b])
+	func_qj = FuncTerm(c, [q, j, b])
+
+	eq1 = Equation(func, z)
+	eq2 = Equation(func_qj, x)
+	eq3 = Equation(xor(func_pi, func), z)
+	eq4 = Equation(xor(xor(func_pi, func), func2), z)
+
+	topf : Set[Equation] = {eq1, eq4}
+	print("Testing pick_fail with ", topf)
+	new_set = pick_fail(topf, 1)
+	print("Result: ", new_set)
+	print()
+
+	topf : Set[Equation] = {eq1, eq2, eq3}
+	print("Testing pick_fail with ", topf)
+	new_set = pick_fail(topf, 2)
+	print("Result: ", new_set)
+	print()
+
+def test_pick_c():
+	c = Function("C",3)
+	f = Function("f",1)
+	a = Constant("a")
+	b = Constant('1')
+	p = Constant('p')
+	q = Constant('q')
+	i = Constant('i')
+	j = Constant('j')
+	x  = Variable("x")
+	z  = Zero()
+
+	func = FuncTerm(f, [a])
+
+	func_pi = FuncTerm(c, [p, i, b])
+	func_qj = FuncTerm(c, [q, j, b])
+
+	eq1 = Equation(func, z)
+	eq2 = Equation(func_qj, x)
+	eq3 = Equation(xor(func_pi, func), 0)
+
+	topf : Set[Equation] = {eq1, eq2, eq3}
+	print("Testing pick_c with ", topf)
+	#new_set = pick_c(topf, 2, ) # Incomplete
+	#print("Result: ", new_set)
+	#print()
 
 
 test_elimc()
 test_elimf()
 test_occurs()
 test_check_xor_structure()
+test_cbc_gen()
+test_ex4_gen()
+test_pick_fail()
+#test_pick_c()
