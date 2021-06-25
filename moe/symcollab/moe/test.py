@@ -1,5 +1,5 @@
 from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
-from symbolic_check import elim_f, elim_c, occurs_check, check_xor_structure, form_equations_list, pick_f, cbc_gen, ex4_gen, pick_fail, pick_c
+from symbolic_check import *
 from typing import Tuple, Dict, List, Optional, Set
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero
@@ -153,13 +153,13 @@ def test_pick_fail():
 
 	topf : Set[Equation] = {eq1, eq4}
 	print("Testing pick_fail with ", topf)
-	new_set = pick_fail(topf, 1)
+	new_set = pick_fail(topf, cbc_gen)
 	print("Result: ", new_set)
 	print()
 
 	topf : Set[Equation] = {eq1, eq2, eq3}
 	print("Testing pick_fail with ", topf)
-	new_set = pick_fail(topf, 2)
+	new_set = pick_fail(topf, ex4_gen)
 	print("Result: ", new_set)
 	print()
 
@@ -190,6 +190,9 @@ def test_pick_c():
 	#print("Result: ", new_set)
 	#print()
 
+def test_algorithm():
+	print("Checking symbolic security of MOO:", symbolic_cbc_gen("p", "i"))
+	symbolic_check(symbolic_cbc_gen)
 
 test_elimc()
 test_elimf()
@@ -199,3 +202,4 @@ test_cbc_gen()
 test_ex4_gen()
 test_pick_fail()
 #test_pick_c()
+test_algorithm()

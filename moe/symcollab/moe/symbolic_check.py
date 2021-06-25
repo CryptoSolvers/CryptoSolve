@@ -23,7 +23,92 @@ q = Constant('q')
 i = Constant('i')
 j = Constant('j')
 
-#def moo_symbolic_check(sigma: Set[Equation], cipherblock: Equation):
+# Check the symbolic security of moo
+def symbolic_check(moo_gen):
+	g = list(gamma(moo_gen, "p", "i", "q", "j"))
+	for m in range(len(g)):
+		for m_prime in range(m+1, len(g)):
+			xor_term = xor(g[m], g[m_prime])
+			xor_equation_set = set([Equation(xor_term, zero)])
+			inference_set = infer(xor_equation_set, moo_gen)
+			if len(inference_set) > 0:
+				return False
+	return True
+
+# Apply the inference rules until no longer possible.
+def infer(s : Set[Equation], moo_gen) -> Set[Equation]:
+
+	tm_xor_tm_prime = xor_to_list(list(s)[0].left_side)
+	print(tm_xor_tm_prime)
+	tm = tm_xor_tm_prime[0]
+	tm_prime = tm_xor_tm_prime[1]
+
+	s_new = s
+
+	while True: # Repeat until no rules can be applied.
+
+		app = elim_f(s_new)
+		if app != s_new:
+			print("Applied elim_f rule")
+			print("Infered set: ", app)
+			s_new = app
+			continue
+
+		app = elim_c(s_new)
+		if app != s_new:
+			print("Applied elim_c rule")
+			print("Infered set: ", app)
+			s_new = app
+			continue
+
+		app = occurs_check(s_new)
+		if app != s_new:
+			print("Applied occurs_check rule")
+			print("Infered set: ", app)
+			s_new = app
+			continue
+
+		app = pick_f(s_new)
+		if app != s_new:
+			print("Applied pick_f rule")
+			print("Infered set: ", app)
+			s_new = app[0] #Non-determinism, how do we handle multiple choices?
+			continue
+
+		app = pick_c(s_new, tm, tm_prime, moo_gen)
+		if app != s_new:
+			print("Applied pick_c rule")
+			print("Infered set: ", app)
+			s_new = app
+			continue
+
+		app = pick_fail(s_new, moo_gen)
+		if app != s_new:
+			print("Applied pick_fail rule")
+			print("Infered set: ", app)
+			s_new = app
+			continue
+
+		break
+
+	return s_new
+
+# Compute the set Gamma
+def gamma(moo_gen, p_label, i_label, q_label, j_label):
+	cpi = moo_gen(p_label, i_label)
+	cqj = moo_gen(q_label, j_label)
+	return set(top_f_terms(cpi)).union(set(top_f_terms(cqj)))
+
+# Return list of top-f-terms of a given cipher block term.
+def top_f_terms(cipher_block_term):
+	xor_list = xor_to_list(cipher_block_term)
+	is_f_predicate = lambda x: isinstance(x, FuncTerm) and x.function == f
+	return list(filter(is_f_predicate, xor_list))
+
+# Compute size_f of a mode of operation.
+def compute_size_f(moo_gen, i):
+	cipher_block = moo_gen("p", i)
+	return len(top_f_terms(cipher_block))
 
 """
 Given a set of equations, remove any in the form of f(t) = 0, returning
@@ -106,6 +191,7 @@ Implementing pick_f inference rule
 """
 def pick_f(sigma: Set[Equation]) -> [Set[Equation]]:
 	results = []
+	backup = deepcopy(sigma)
 	for eq in sigma:
 		if check_xor_structure(eq.left_side) and is_zero(eq.right_side):
 			n = len(xor_to_list(eq.left_side))
@@ -120,6 +206,7 @@ def pick_f(sigma: Set[Equation]) -> [Set[Equation]]:
 			for k in range(n):
 				results = results.append(set(form_equations_list(eq.right_side, k)).union(sigmaMinusEq))
 			return results
+	return backup
 
 def check_xor_structure(t: FuncTerm):
 	if is_xor_term(t):
@@ -142,8 +229,9 @@ def form_equations_list(xorTerm: FuncTerm, k) -> Set[Equation]:
 			tList.append(Equation(xor(tSubK,fArg), zero))
 	return set(tList)
 
-def pick_fail(sigma: Set[Equation], size_f) -> Set[Equation]:
+def pick_fail(sigma: Set[Equation], moo_gen) -> Set[Equation]:
 	result_set = deepcopy(sigma)
+	size_f = compute_size_f(moo_gen, 1)
 
 	for eq in sigma:
 
@@ -168,8 +256,9 @@ def pick_fail(sigma: Set[Equation], size_f) -> Set[Equation]:
 						result_set.remove(eq) # conclusion
 	return result_set
 
-def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, size_f, moo_gen) -> Set[Equation]:
+def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> Set[Equation]:
 	result_set = deepcopy(sigma)
+	size_f = compute_size_f(moo_gen, 1)
 
 	for eq in sigma:
 
@@ -201,6 +290,8 @@ def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, size_f, moo_ge
 							result_set.remove(eq)
 	return result_set
 
+
+
 # Example c generator for unfolding
 def cbc_gen(p, i):
 	if i == 0:
@@ -222,6 +313,21 @@ def ex4_gen(p, i):
 				),
 				Variable("x"+str(p)+str(i))
 		)
+
+# Treat the subscripts as labels
+def symbolic_cbc_gen(session_label, block_label):
+
+	a = Constant("1")
+	p = Constant(session_label)
+	i = Constant(block_label)
+
+	cInner = FuncTerm(c, [p,i,a])
+	x = Variable("xpi")
+	return xor (
+		FuncTerm(f, [cInner]),
+		x
+	)
+
 
 """
 def pick_f(sigma: Set[Equation]) -> Set[Equation]:
