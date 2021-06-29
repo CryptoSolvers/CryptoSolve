@@ -36,11 +36,17 @@ def found_cycle(var: Variable, S: set, U: list):
 		for e in U:
 			if isinstance(e.left_side, Variable) and x == e.left_side:
 				U1 = deepcopy(U)
-				U1.remove(e)
+				try:
+					U1.remove(e)
+				except:
+					print("Equation already removed")
 				return(found_cycle(var, get_vars(e.right_side), U1))
 			elif isinstance(e.right_side, Variable) and x == e.right_side:
 				U1 = deepcopy(U)
-				U1.remove(e)
+				try:
+					U1.remove(e)
+				except:
+					print("Equation already removed")
 				return(found_cycle(var, get_vars(e.left_side), U1))
 	return(False)
 
@@ -824,7 +830,7 @@ def s_rules(U:list, var_count, VS1:set):
 	return(U)
 	
 	
-def build_tree(root: MutateNode, var_count, VS1):
+def build_tree(root: MutateNode, var_count, VS1, single_sol):
 	EQS = list()
 	Sol = list()
 	Q = list()
@@ -965,26 +971,38 @@ def build_tree(root: MutateNode, var_count, VS1):
 					#print("Solved True")
 					#return(cn.data)
 					Sol.append(cn.data)
+					if single_sol == True:
+						return(Sol)
 			#print("Len 2: " + str(len(Q)))
 		#print("Return empty list")
 		#return(list())
 	return(Sol)
 		
-def synt_ac_unif(U: set):
-	print("Syntactic AC-Unification on the following problem: ")
-	print(U)
+def synt_ac_unif(U: set, single_sol: bool = True):
+	#print("Syntactic AC-Unification on the following problem: ")
+	#print(U)
 	Max = 3
 	count = 0
 	var_count = [0]
 	#get the intial set of vars
 	VS1 = helper_gvs(U)
 	N1 = MutateNode(list(U))
-	res = build_tree(N1, var_count, VS1)
-	#delta = SubstituteTerm()
-	print("Solution: ")
-	if res == list():
-		print("No solution found")
-	else:
-		for s in res:
-			print(s)
-	return(res)
+	res = build_tree(N1, var_count, VS1, single_sol)
+	final_sol = list()
+	for solve in res:
+		delta = SubstituteTerm()
+		for e in solve:
+			try:
+				delta.add(e.left_side, e.right_side)
+			except:
+				print("error adding substitution")
+		final_sol.append(delta)
+	#print("Solution: ")
+	#if res == list():
+	#	print("No solution found")
+	#else:
+	#	for s in res:
+	#		print(s)
+	#print(final_sol)
+	#return(res)
+	return(final_sol)

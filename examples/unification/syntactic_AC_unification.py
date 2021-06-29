@@ -17,7 +17,9 @@ z1 = Variable("z1")
 #Example 1
 e = Equation(f(x, y), f(x1, y1))
 U = {e}
-sol = synt_ac_unif(U)
+sol = synt_ac_unif(U) #For a single solution
+# also sol = synt_ac)unif(U, True)
+sol = synt_ac_unif(U, False) # For all solutions
 
 
 #Example 2
