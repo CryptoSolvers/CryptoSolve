@@ -36,7 +36,6 @@ def symbolic_check(moo_gen):
 	return True
 
 # Apply the inference rules until no longer possible.
-# infer :: Set[Equation] -> moo_gen -> Bool
 def infer(s : Set[Equation], tm, tm_prime, moo_gen):
 
 	print("Current set of equations: ", s)
