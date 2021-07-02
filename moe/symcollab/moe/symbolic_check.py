@@ -30,68 +30,63 @@ def symbolic_check(moo_gen):
 		for m_prime in range(m+1, len(g)):
 			xor_term = xor(g[m], g[m_prime])
 			xor_equation_set = set([Equation(xor_term, zero)])
-			inference_set = infer(xor_equation_set, moo_gen)
-			if len(inference_set) > 0:
+			inference_result = infer(xor_equation_set, g[m], g[m_prime], moo_gen)
+			if not inference_result:
 				return False
 	return True
 
 # Apply the inference rules until no longer possible.
-def infer(s : Set[Equation], moo_gen) -> Set[Equation]:
+# infer :: Set[Equation] -> moo_gen -> Bool
+def infer(s : Set[Equation], tm, tm_prime, moo_gen):
 
-	tm_xor_tm_prime = xor_to_list(list(s)[0].left_side)
-	print(tm_xor_tm_prime)
-	tm = tm_xor_tm_prime[0]
-	tm_prime = tm_xor_tm_prime[1]
+	print("Current set of equations: ", s)
+	ret_value = False
 
-	s_new = s
+	s_new = elim_f(s)
+	if s != s_new:
+		print("Applied elim_f rule")
+		print("Infered set: ", s_new)
+		return infer(s_new, tm, tm_prime, moo_gen)
 
-	while True: # Repeat until no rules can be applied.
+	s_new = elim_c(s)
+	if s != s_new:
+		print("Applied elim_c rule")
+		print("Infered set: ", s_new)
+		return infer(s_new, tm, tm_prime,moo_gen)
 
-		app = elim_f(s_new)
-		if app != s_new:
-			print("Applied elim_f rule")
-			print("Infered set: ", app)
-			s_new = app
-			continue
+	s_new = occurs_check(s)
+	if s != s_new:
+		print("Applied occurs_check rule")
+		print("Infered set: ", s_new)
+		return infer(s_new, tm, tm_prime, moo_gen)
 
-		app = elim_c(s_new)
-		if app != s_new:
-			print("Applied elim_c rule")
-			print("Infered set: ", app)
-			s_new = app
-			continue
+	s_new = pick_f(s)
+	if s != s_new:
+		print("Applied pick_f rule")
+		print("Infered set: ", s_new)
+		for s_eq in s_new:
+			ret_value = infer(s_eq, tm, tm_prime, moo_gen) or ret_value
+		return ret_value
 
-		app = occurs_check(s_new)
-		if app != s_new:
-			print("Applied occurs_check rule")
-			print("Infered set: ", app)
-			s_new = app
-			continue
+	s_new = pick_c(s, tm, tm_prime, moo_gen)
+	if s != s_new:
+		print("Applied pick_c rule")
+		print("Infered set: ", s_new)
+		for s_eq in s_new:
+			ret_value = infer(s_eq, tm, tm_prime, moo_gen) or ret_value
+		return ret_value
 
-		app = pick_f(s_new)
-		if app != s_new:
-			print("Applied pick_f rule")
-			print("Infered set: ", app)
-			s_new = app[0] #Non-determinism, how do we handle multiple choices?
-			continue
+	s_new = pick_fail(s, moo_gen)
+	if s != s_new:
+		print("Applied pick_fail rule")
+		print("Infered set: ", s_new)
+		return infer(s_new, tm, tm_prime, moo_gen)
 
-		app = pick_c(s_new, tm, tm_prime, moo_gen)
-		if app != s_new:
-			print("Applied pick_c rule")
-			print("Infered set: ", app)
-			s_new = app
-			continue
-
-		app = pick_fail(s_new, moo_gen)
-		if app != s_new:
-			print("Applied pick_fail rule")
-			print("Infered set: ", app)
-			s_new = app
-			continue
-
-		break
-
-	return s_new
+	print("No rules apply!")
+	if len(s) > 0:
+		return False
+	else:
+		return True
 
 # Compute the set Gamma
 def gamma(moo_gen, p_label, i_label, q_label, j_label):
@@ -256,8 +251,9 @@ def pick_fail(sigma: Set[Equation], moo_gen) -> Set[Equation]:
 						result_set.remove(eq) # conclusion
 	return result_set
 
-def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> Set[Equation]:
-	result_set = deepcopy(sigma)
+def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> [Set[Equation]]:
+
+	results = []
 	size_f = compute_size_f(moo_gen, 1)
 
 	for eq in sigma:
@@ -284,11 +280,15 @@ def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> Se
 						# Check Cpi \in CVar(tm) U CVar(tm')
 						if tm.contains(cpi) or tmPrime.contains(cpi):
 							unfold = moo_gen(int(cpi.subterms[0].symbol), int(cpi.subterms[1].symbol))
-							f_rooted_summand = list(filter(lambda x: isinstance(x, FuncTerm) and x.function == f, xor_to_list(unfold)))[0]
-							for k in fs:
-								result_set.append(Equation(f_rooted_summand.subterms[0], k.subterms[0]))
-							result_set.remove(eq)
-	return result_set
+							f_rooted_summands = list(filter(lambda x: isinstance(x, FuncTerm) and x.function == f, xor_to_list(unfold)))
+							for f_root_summand in f_rooted_summands:
+								result_set = deepcopy(sigma)
+								for k in fs:
+									result_set.append(Equation(f_rooted_summand.subterms[0], k.subterms[0]))
+								result_set.remove(eq)
+								results.append(result_set)
+							return results
+	return sigma # Have to return the original set of equations.
 
 
 
@@ -328,6 +328,24 @@ def symbolic_cbc_gen(session_label, block_label):
 		x
 	)
 
+def symbolic_ex4_gen(session_label, block_label):
+
+	a = Constant("1")
+	p = Constant(session_label)
+	i = Constant(block_label)
+
+	cInner = FuncTerm(c, [p,i,a])
+	x = Variable("xpi")
+
+	fSummandOne = FuncTerm(f, [cInner])
+
+	fSummandTwo = FuncTerm(f, [FuncTerm(f, [cInner])])
+
+	return xor (
+		fSummandOne,
+		fSummandTwo,
+		x
+	)
 
 """
 def pick_f(sigma: Set[Equation]) -> Set[Equation]:
