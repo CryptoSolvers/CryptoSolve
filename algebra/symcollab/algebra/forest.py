@@ -47,7 +47,7 @@
 """
 from copy import deepcopy
 from functools import partial
-from typing import Tuple, Dict, List, Optional, Set
+from typing import List
 from anytree import AnyNode, RenderTree
 from .term import Equation, Term, FuncTerm
 

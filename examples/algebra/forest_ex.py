@@ -1,6 +1,5 @@
 from copy import deepcopy
-from typing import Tuple, Dict, List, Optional, Set
-from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
+from symcollab.algebra import Function, Variable, Constant, FuncTerm, Equation
 from symcollab.algebra.forest import Term_Forest
 
 def test_small():
