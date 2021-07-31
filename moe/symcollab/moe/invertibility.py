@@ -11,7 +11,7 @@ from symcollab.xor import xor
 from symcollab.moe.program import MOOProgram
 import numpy as np
 
-__all__ = ['invert_simple', 'moo_invert', 'invert_gaussian', 'deducible']
+__all__ = ['invert_simple', 'moo_invert', 'deducible']
 
 _P = Variable("P_{i}")
 _f = Function("f", 1)
