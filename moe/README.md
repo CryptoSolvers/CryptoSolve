@@ -16,8 +16,8 @@ The MOE program actions engaged in by the oracle are the following, where the ra
 
 ## Interfaces Included
 
-There is a terminal based tool that can be found as `moe_tool` in the root folder. It provides a help functionality which talks about the different parameters the tool takes.
+There is a terminal based tool that can be found as `moo_tool` in the root folder. It provides a help functionality which talks about the different parameters the tool takes.
 
-A web based interface also exists. To start the webserver execute the `moe_website` script located at the root folder. The web based interface features a simulation tool that walks through the interactions between the Advesary and Oracle as well as a tool to find attacks on the cryptosystem.
+A web based interface also exists. To start the webserver execute the `moo_website` script located at the root folder. The web based interface features a simulation tool that walks through the interactions between the Advesary and Oracle as well as a tool to find attacks on the cryptosystem.
 
 An attack on the cryptosystem is found if p_unifiers exist between ciphertexts.

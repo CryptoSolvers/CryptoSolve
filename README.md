@@ -45,8 +45,8 @@ Now you can run the examples! In the future, don't forget to `source` the enviro
 
 The following commands are then in your path:
 
-- moe_tool : Runs the command line version of the tool
-- moe_website : Runs the website version of the tool
+- moo_tool : Runs the command line version of the tool
+- moo_website : Runs the website version of the tool
 
 ## Libraries Included
 
