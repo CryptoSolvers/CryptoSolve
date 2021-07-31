@@ -3,15 +3,12 @@ Functions that check symbolically
 the security of a mode of operation.
 
 Based on Hai Lin's work.
-
-To see examples of how the inference rules work, please run $ python3 test.py
-in the same directory as this file
 """
 
-from typing import Tuple, Dict, List, Optional, Set
-from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation, get_vars
+from typing import Set
+from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
 from symcollab.xor import xor
-from symcollab.xor.xorhelper import is_XOR_Term, is_xor_term, xor_to_list
+from symcollab.xor.xorhelper import is_xor_term, xor_to_list
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
 
@@ -23,8 +20,8 @@ q = Constant('q')
 i = Constant('i')
 j = Constant('j')
 
-# Check the symbolic security of moo
 def symbolic_check(moo_gen):
+	"""Check the symbolic security of a MOO"""
 	g = list(gamma(moo_gen, "p", "i", "q", "j"))
 	for m in range(len(g)):
 		for m_prime in range(m+1, len(g)):
@@ -35,8 +32,8 @@ def symbolic_check(moo_gen):
 				return False
 	return True
 
-# Apply the inference rules until no longer possible.
 def infer(s : Set[Equation], tm, tm_prime, moo_gen):
+	"""Apply the inference rules until no longer possible."""
 
 	print("Current set of equations: ", s)
 	ret_value = False
@@ -87,28 +84,30 @@ def infer(s : Set[Equation], tm, tm_prime, moo_gen):
 	else:
 		return True
 
-# Compute the set Gamma
 def gamma(moo_gen, p_label, i_label, q_label, j_label):
+	"""Compute the set Gamma"""
 	cpi = moo_gen(p_label, i_label)
 	cqj = moo_gen(q_label, j_label)
 	return set(top_f_terms(cpi)).union(set(top_f_terms(cqj)))
 
-# Return list of top-f-terms of a given cipher block term.
 def top_f_terms(cipher_block_term):
+	"""Return list of top-f-terms of a given cipher block term"""
 	xor_list = xor_to_list(cipher_block_term)
 	is_f_predicate = lambda x: isinstance(x, FuncTerm) and x.function == f
 	return list(filter(is_f_predicate, xor_list))
 
-# Compute size_f of a mode of operation.
+
 def compute_size_f(moo_gen, i):
+	"""Compute size_f of a mode of operation"""
 	cipher_block = moo_gen("p", i)
 	return len(top_f_terms(cipher_block))
 
-"""
-Given a set of equations, remove any in the form of f(t) = 0, returning
-the new list
-"""
+
 def elim_f(sigma: Set[Equation]) -> Set[Equation]:
+	"""
+	Given a set of equations, remove any in the form of f(t) = 0, returning
+	the new list
+	"""
 	elim_f_set = deepcopy(sigma)
 	for eq in sigma:
 		if isinstance(eq.left_side, FuncTerm):
@@ -120,14 +119,15 @@ def elim_f(sigma: Set[Equation]) -> Set[Equation]:
 
 	return elim_f_set
 
-"""
-Given a set of equations, remove those in the form of
-C_{p,i-a} xor C_{q, j-a} = 0, where i!=j
-Each equation is checked to see if it has the format of
-C(p, i, a) xor C(q, j, a) = 0
-if it matches then it will be removed, it is assumed that i!=j
-"""
+
 def elim_c(sigma: Set[Equation]) -> Set[Equation]:
+	"""
+	Given a set of equations, remove those in the form of
+	C_{p,i-a} xor C_{q, j-a} = 0, where i!=j
+	Each equation is checked to see if it has the format of
+	C(p, i, a) xor C(q, j, a) = 0
+	if it matches then it will be removed, it is assumed that i!=j
+	"""
 	elim_c_set = deepcopy(sigma)
 	for eq in sigma:
 		args = None
@@ -164,13 +164,14 @@ def elim_c(sigma: Set[Equation]) -> Set[Equation]:
 				elim_c_set.remove(eq)
 	return elim_c_set
 
-"""
-Checks each equation in a set of equations for an occurs check
-Does NOT check the entire set for an occurs check, only each equation one by one
-For the general occurs check which considers the entire set, see the commented out
-code at the bottom of this file
-"""
+
 def occurs_check(sigma: Set[Equation]) -> Set[Equation]:
+	"""
+	Checks each equation in a set of equations for an occurs check
+	Does NOT check the entire set for an occurs check, only each equation one by one
+	For the general occurs check which considers the entire set, see the commented out
+	code at the bottom of this file
+	"""
 	occurs_set = deepcopy(sigma)
 	for e in sigma:
 		t1 = e.left_side
@@ -180,10 +181,9 @@ def occurs_check(sigma: Set[Equation]) -> Set[Equation]:
 
 	return occurs_set
 
-"""
-Implementing pick_f inference rule
-"""
-def pick_f(sigma: Set[Equation]) -> [Set[Equation]]:
+
+def pick_f(sigma: Set[Equation]) -> Set[Equation]:
+	"""Implementing pick_f inference rule"""
 	results = []
 	backup = deepcopy(sigma)
 	for eq in sigma:
@@ -250,7 +250,7 @@ def pick_fail(sigma: Set[Equation], moo_gen) -> Set[Equation]:
 						result_set.remove(eq) # conclusion
 	return result_set
 
-def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> [Set[Equation]]:
+def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> Set[Equation]:
 
 	results = []
 	size_f = compute_size_f(moo_gen, 1)
@@ -288,122 +288,3 @@ def pick_c(sigma: Set[Equation], tm: FuncTerm, tmPrime: FuncTerm, moo_gen) -> [S
 								results.append(result_set)
 							return results
 	return sigma # Have to return the original set of equations.
-
-
-
-# Example c generator for unfolding
-def cbc_gen(p, i):
-	if i == 0:
-		return Constant('r'+str(p))
-	else:
-		return xor(
-			FuncTerm(Function("f",1), [cbc_gen(p,i-1)]),
-			Variable("x"+str(p)+str(i))
-		)
-
-def ex4_gen(p, i):
-	if i == 0:
-		return Constant('r'+str(p))
-	else:
-		return xor(
-			xor (
-					FuncTerm(f, [ex4_gen(p,i-1)]),
-					FuncTerm(f, [FuncTerm(f, [ex4_gen(p,i-1)])])
-				),
-				Variable("x"+str(p)+str(i))
-		)
-
-# Treat the subscripts as labels
-def symbolic_cbc_gen(session_label, block_label):
-
-	a = Constant("1")
-	p = Constant(session_label)
-	i = Constant(block_label)
-
-	cInner = FuncTerm(c, [p,i,a])
-	x = Variable("xpi")
-	return xor (
-		FuncTerm(f, [cInner]),
-		x
-	)
-
-def symbolic_ex4_gen(session_label, block_label):
-
-	a = Constant("1")
-	p = Constant(session_label)
-	i = Constant(block_label)
-
-	cInner = FuncTerm(c, [p,i,a])
-	x = Variable("xpi")
-
-	fSummandOne = FuncTerm(f, [cInner])
-
-	fSummandTwo = FuncTerm(f, [FuncTerm(f, [cInner])])
-
-	return xor (
-		fSummandOne,
-		fSummandTwo,
-		x
-	)
-
-"""
-def pick_f(sigma: Set[Equation]) -> Set[Equation]:
-
-def pick_c(sigma: Set[Equation], cipherblock: Equation) -> Set[Equation]:
-
-def pick_fail(sigma: Set[Equation], cipherblock: Equation) -> Set[Equation]:
-	for eq in sigma:
-		args = None
-		if isinstance(eq.left_side, FuncTerm):
-			if eq.left_side.function == xor and is_zero(eq.right_side):
-				args = eq.left_side.arguments
-		elif isinstance(eq.right_side, FuncTerm):
-			if eq.right_side.function == xor and is_zero(eq.left_side):
-				args = eq.right_side.arguments
-		if args != None && len(args) == 2:
-			cpi = args[0]
-			t = args[1]
-"""
-
-"""
-# old code that might be useful for something else but isnt applicable in this situation
-
-Given a set of equations, returns true if an occurs check exists between all of the equations
-def occurs_check(sigma: Set[Equation]) -> bool:
-	for e in sigma:
-		var = None
-		term = None
-		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
-			var = e.left_side
-			term = e.right_side
-		elif isinstance(e.right_side, Variable) and isinstance(e.left_side, FuncTerm):
-			var = e.right_side
-			term = e.left_side
-		if var != None and term != None:
-			if var in term:
-				return True
-			check_vars = set(get_vars(term))
-			check_eq = deepcopy(sigma)
-			check_eq.remove(e)
-			if found_cycle(var, check_vars, check_eq):
-				return True
-	return False
-
-Returns true when a cycle is found, which occurs when a variable is written in terms of itself
-def found_cycle(target: Variable, check: Set[Variable], equations: Set[Equation]) -> bool:
-	for var in check:
-		if var == target:
-			return True
-
-		for e in equations:
-			term = None
-			if isinstance(e.left_side, Variable) and var == e.left_side:
-				term = e.right_side
-			elif isinstance(e.right_side, Variable) and var == e.right_side:
-				term = e.left_side
-			if term != None:
-				eq = deepcopy(equations)
-				eq.remove(e)
-				return found_cycle(target, get_vars(term), eq)
-	return False
-"""

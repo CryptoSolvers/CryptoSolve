@@ -1,10 +1,66 @@
-from symcollab.algebra import Term, Function, Variable, Constant, FuncTerm, Equation
-from symbolic_check import *
-from typing import Tuple, Dict, List, Optional, Set
+from typing import Set
+from symcollab.algebra import Function, Variable, Constant, FuncTerm, Equation
 from symcollab.xor import xor
 from symcollab.xor.structure import Zero
-from symcollab.xor.xorhelper import xor_to_list
-from symcollab.algebra.term import get_vars
+from symcollab.moe.symbolic_check import f, c, elim_c, elim_f, pick_f, symbolic_check, occurs_check, pick_fail
+
+# from symbolic_check import *
+
+
+# Example c generator for unfolding
+def cbc_gen(p, i):
+	if i == 0:
+		return Constant('r'+str(p))
+	else:
+		return xor(
+			FuncTerm(Function("f",1), [cbc_gen(p,i-1)]),
+			Variable("x"+str(p)+str(i))
+		)
+
+def ex4_gen(p, i):
+	if i == 0:
+		return Constant('r'+str(p))
+	else:
+		return xor(
+			xor (
+					FuncTerm(f, [ex4_gen(p,i-1)]),
+					FuncTerm(f, [FuncTerm(f, [ex4_gen(p,i-1)])])
+				),
+				Variable("x"+str(p)+str(i))
+		)
+
+# Treat the subscripts as labels
+def symbolic_cbc_gen(session_label, block_label):
+
+	a = Constant("1")
+	p = Constant(session_label)
+	i = Constant(block_label)
+
+	cInner = FuncTerm(c, [p,i,a])
+	x = Variable("xpi")
+	return xor (
+		FuncTerm(f, [cInner]),
+		x
+	)
+
+def symbolic_ex4_gen(session_label, block_label):
+
+	a = Constant("1")
+	p = Constant(session_label)
+	i = Constant(block_label)
+
+	cInner = FuncTerm(c, [p,i,a])
+	x = Variable("xpi")
+
+	fSummandOne = FuncTerm(f, [cInner])
+
+	fSummandTwo = FuncTerm(f, [FuncTerm(f, [cInner])])
+
+	return xor (
+		fSummandOne,
+		fSummandTwo,
+		x
+	)
 
 def test_elimf():
 	f  = Function("f", 1)
