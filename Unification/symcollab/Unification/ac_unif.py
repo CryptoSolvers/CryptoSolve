@@ -9,20 +9,22 @@
 #-- Test the solver and AC solutions
 
 #!/usr/bin/env python3
+from collections import Counter
 from copy import deepcopy
-from symcollab.algebra import *
+from typing import Set
+import re
 import numpy as np # type: ignore
+from symcollab.algebra import *
 from sympy.solvers.diophantine import diophantine # type: ignore
 from sympy import symbols # type: ignore
 from sympy.solvers.diophantine import diop_linear # type: ignore
 from sympy.parsing.sympy_parser import parse_expr # type: ignore
-from collections import Counter
-import re
+from . import Unification_Algorithms
 
 
 #convert a set of term equations into a single
 #linear homogeneous diophantine equation
-def convert_eq(U: set, func: str):
+def convert_eq(U: Set[Equation], func: str):
 	var_count=dict()
 	first=True
 	for e in U:
@@ -129,7 +131,9 @@ def convert_eq(U: set, func: str):
 
 #Assumes currently that we have a single AC-symbol
 #need to update to allow other function symbols and cons 
-def ac_unify(U: set):
+
+@Unification_Algorithms.register('AC')
+def ac_unify(U: Set[Equation]):
 	
 	#Check if they are the same term
 	for e in list(U):
@@ -162,7 +166,7 @@ def ac_unify(U: set):
 	print(delta)
 	
 	
-def mut_rule(U: set):
+def mut_rule(U: Set[Equation]):
 	#Mutate Rule
 	for i in list(U):
 			if isinstance(U[i].left_side, FuncTerm) and isinstance(U[i].right_side, FuncTerm):
@@ -173,16 +177,16 @@ def mut_rule(U: set):
 						U[z] = d
 						z += 1
 
-#def merge_rule(U: set):
+#def merge_rule(U: Set[Equation]):
 	#Merge Rule
 
-#def varep_rule(U: set):
+#def varep_rule(U: Set[Equation]):
 	#Var-Rep Rule
 
-#def rep_rule(U: set):
+#def rep_rule(U: Set[Equation]):
 	#Rep Rule
 
-def check_rule(U: set):
+def check_rule(U: Set[Equation]):
 	#Check Rule
 	#Just one level cycles, need to improve to any level
 	for i, e in U.items():
@@ -192,10 +196,10 @@ def check_rule(U: set):
 					#We could think of an improved method for errors
 					return False
 
-#def eqe_rule(U: set):
+#def eqe_rule(U: Set[Equation]):
 	#EQE Rule
 
-def s_ac_unif(U: set):
+def s_ac_unif(U: Set[Equation]):
 	print("OK")
 	
 

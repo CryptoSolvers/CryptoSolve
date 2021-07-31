@@ -5,7 +5,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
 from symcollab.algebra import SubstituteTerm, Term, Variable
-from symcollab.Unification.p_unif import p_unif
+from symcollab.Unification.constrained.p_unif import p_unif
 from symcollab.xor.structure import Zero
 from .program import MOOProgram
 from .collisions import find_collision

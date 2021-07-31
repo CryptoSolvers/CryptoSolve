@@ -5,11 +5,11 @@ Welcome to Unification's documentation!
    :members:
    :undoc-members:
 
-.. automodule:: Unification.p_syntactic 
+.. automodule:: Unification.constrained.p_syntactic 
    :members:
    :undoc-members:
 
-.. automodule:: Unification.p_unif
+.. automodule:: Unification.constrained.p_unif
    :members:
    :undoc-members:
 

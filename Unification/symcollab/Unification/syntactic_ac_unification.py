@@ -28,7 +28,7 @@ def get_vars_from_list(U: list):
 	return(V)
 
 #helper function for solved forms
-def found_cycle(var: Variable, S: set, U: list):
+def found_cycle(var: Variable, S: Set[Equation], U: list):
 	for x in S:
 		if x == var:
 			return(True)
@@ -130,7 +130,7 @@ def solved_form_vd(U: list, VS1: set):
 	return(True)
 
 #helper function to check for linear term
-def linear(t: term, VS1: set):
+def linear(t: term, VS1: Set[Equation]):
 	V = get_vars(t)
 	VTL = list()
 	for var in V:
@@ -142,7 +142,7 @@ def linear(t: term, VS1: set):
 		return(False)
 
 #helper function to get the init set of vars
-def helper_gvs(U: set):
+def helper_gvs(U: Set[Equation]):
 	V = set()
 	for e in U:
 		V = V.union(get_vars(e.left_side))
@@ -977,7 +977,7 @@ def build_tree(root: MutateNode, var_count, VS1, single_sol):
 		#print("Return empty list")
 		#return(list())
 	return(Sol)
-		
+
 def synt_ac_unif(U: set, single_sol: bool = True):
 	#print("Syntactic AC-Unification on the following problem: ")
 	#print(U)

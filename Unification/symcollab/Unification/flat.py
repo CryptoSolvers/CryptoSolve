@@ -3,9 +3,10 @@
 
 
 #!/usr/bin/env python3
+from typing import Set
 from symcollab.algebra import *
 
-def flat(U: set):
+def flat(U: Set[Equation]):
 	#break equations into two
 	z=0
 	
