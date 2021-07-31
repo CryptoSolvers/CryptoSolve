@@ -1,9 +1,3 @@
-from typing import Tuple, Dict, List, Optional, Set
-from term import *
-from anytree import AnyNode, RenderTree
-from copy import deepcopy
-from functools import partial
-
 """
 	A forest data structure that contains trees of terms 
 	spawned from a list of equations. Recursively 
@@ -51,6 +45,12 @@ from functools import partial
 	|
 	+__c
 """
+from copy import deepcopy
+from functools import partial
+from typing import Tuple, Dict, List, Optional, Set
+from anytree import AnyNode, RenderTree
+from .term import Equation, Term, FuncTerm
+
 class Term_Forest:
 
 	def __init__(self, seed: List[Equation], max_height: int):
