@@ -428,7 +428,7 @@ class Rule_N_Decompose(XOR_Rule):
         else:
             new_equation = Equation(Zero(), Zero())
         equations1.append(new_equation)
-        unifier = unif(first_term, second_term)
+        unifier = unif({Equation(first_term, second_term)})
         #equations1.append(Equation(xor(first_term.arg, second_term.arg), Zero()))
 
         #if((first_term == second_term) or (unifier.domain() != [])):
@@ -480,7 +480,7 @@ class Rule_Decompose(XOR_Rule):
         eq = self.is_applicable(state)
         first = eq.left_side.arguments[0]
         second = eq.left_side.arguments[1]
-        sigma = unif(first, second)
+        sigma = unif({Equation(first, second)})
         if(sigma == False):
             return (False, None)
         else:
