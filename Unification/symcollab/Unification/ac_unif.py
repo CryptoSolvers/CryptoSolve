@@ -198,4 +198,3 @@ def check_rule(U: set):
 def s_ac_unif(U: set):
 	print("OK")
 	
-
