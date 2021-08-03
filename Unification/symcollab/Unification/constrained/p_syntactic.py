@@ -1,10 +1,14 @@
-from .unif import unif
-from symcollab.algebra import FuncTerm, Term, Variable
 from typing import Dict, List
+from symcollab.algebra import FuncTerm, Term, Variable, Equation
+from ..unif import unif
+
 
 def p_syntactic(l: Term, r: Term, constraints : Dict[Variable, List[Term]]):
-    """ p_syntactic is syntactic unification with the assurance that the unifier satisfies the constraints given"""
-    sigma = unif(l, r)
+    """
+    p_syntactic is syntactic unification with the assurance
+    that the unifier satisfies the constraints given.
+    """
+    sigma = unif({Equation(l, r)})
     if sigma == False:
         return sigma
     sigma_domain, sigma_range = zip(*sigma.subs)

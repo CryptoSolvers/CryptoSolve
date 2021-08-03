@@ -26,8 +26,6 @@ class CallableRegistry:
       registered to match the argument.
     """
     def __init__(self, enforce_arity: int = -1):
-        if enforce_arity < 0:
-            raise ValueError(f"enforce_arity must be zero or positive not {enforce_arity}.")
         self.enforce_arity = enforce_arity
         self.callables: Dict[str, Callable] = dict()
 

@@ -8,8 +8,8 @@ from symcollab.algebra import Variable, Function, Constant, Parser, Term, FuncTe
 from symcollab.moe.website import app
 from symcollab.moe.check import moo_check
 from symcollab.moe.custom import CustomMOO
-from symcollab.Unification.p_unif import p_unif
-from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.xor import xor
 from .utils import format_substitutions, render_moo_template, \
     restrict_to_range, unif_algo

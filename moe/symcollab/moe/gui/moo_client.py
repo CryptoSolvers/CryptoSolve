@@ -8,10 +8,10 @@ from symcollab.moe.custom import CustomMOO
 from symcollab.moe.program import MOOProgram
 from symcollab.moe.filtered_generator import FilteredMOOGenerator
 from symcollab.Unification.unif import unif
-from symcollab.Unification.p_syntactic import p_syntactic
+from symcollab.Unification.constrained.p_syntactic import p_syntactic
 from symcollab.Unification.ac_unif import ac_unify
-from symcollab.Unification.p_unif import p_unif
-from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.algebra import Variable
 from symcollab.algebra import Term
 from symcollab.algebra import SubstituteTerm

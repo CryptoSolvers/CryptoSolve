@@ -4,9 +4,9 @@ finding collisions.
 """
 from typing import Callable, Dict, List, Optional
 from symcollab.algebra import Equation, SubstituteTerm, Term, Variable
-from symcollab.Unification.p_unif import p_unif
-from symcollab.Unification.p_syntactic import p_syntactic
-from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.p_syntactic import p_syntactic
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.xor.structure import Equations
 
 __all__ = ['find_collision']

@@ -3,6 +3,7 @@ import functools
 
 from copy import deepcopy
 from symcollab.xor.xorhelper import *
+from . import Unification_Algorithms
 
 class BFunction:
     def __init__(self, symbol : str, arity : int):
@@ -717,6 +718,7 @@ def b_unify(state):
 
     return (False, [])
 
+@Unification_Algorithms.register("Boolean")
 def Boolean_unify(term1, term2):
     new_term = Xor_BTerm([term1, term2])
     new_term = new_term.simplify()

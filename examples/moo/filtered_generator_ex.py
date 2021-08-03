@@ -4,7 +4,7 @@ Example usage of the FilteredMOOGenerator.
 from symcollab.moe.filtered_generator import FilteredMOOGenerator
 from symcollab.moe.custom import CustomMOO
 from symcollab.moe.check import moo_check
-from symcollab.Unification.p_unif import p_unif
+from symcollab.Unification.constrained.p_unif import p_unif
 
 # Creates the generator
 g = FilteredMOOGenerator(
