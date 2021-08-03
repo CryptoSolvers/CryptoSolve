@@ -11,6 +11,7 @@ from .program import MOOProgram
 from .collisions import find_collision
 from .syntactic_check import moo_depth_random_check
 from .invertibility import InvertMOO
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 
 
 __all__ = ['moo_check']
@@ -48,7 +49,8 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     for i in range(1, length_bound + 1):
         plaintext = Variable(f"x_{i}")
         constraints[plaintext] = deepcopy(known_terms)
-        known_terms.append(plaintext)
+        if unif_algo != XOR_rooted_security:
+            known_terms.append(plaintext)
 
         result = program.rcv_block(plaintext)
         if result is not None:
@@ -59,16 +61,17 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
                 invertible = InvertMOO(ciphertext, f"x_{i}", program.nonces, program.nonces[0], knows_iv)
 
             # Check for syntactic security
-            if len(ciphertexts_received) > 1:
-                last_ciphertext = ciphertexts_received[-1]
-                if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return MOOCheckResult(True, None, invertible)
+            #if len(ciphertexts_received) > 1:
+            #    last_ciphertext = ciphertexts_received[-1]
+            #    if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
+            #        return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
+            new_constraints = deepcopy(constraints)
             collisions = search_for_collision(
                 ciphertext,
                 ciphertexts_received,
-                constraints,
+                new_constraints,
                 unif_algo
             )
             if any_unifiers(collisions):
@@ -100,6 +103,12 @@ def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
     Search through the known ciphertext history and see if there are any collisions
     between the current ciphertext and a past one.
     """
+    if unif_algo == XOR_rooted_security:        
+        terms = deepcopy(previous_ciphertexts)
+        terms.append(ciphertext)
+        unifiers = XOR_rooted_security(terms, constraints).solve()
+        return unifiers
+
     collisions = None
     for known_ciphertext in previous_ciphertexts:
         collisions = find_collision(known_ciphertext, ciphertext, constraints, unif_algo)
