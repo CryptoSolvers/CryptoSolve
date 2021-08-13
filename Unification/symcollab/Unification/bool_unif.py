@@ -61,7 +61,8 @@ class BTerm:
             for arg in self.arguments:
                 simplified_args.append(arg.simplify())
             simplified_args = list(map(h, simplified_args))
-            new_args = functools.reduce(lambda x, y: x + y, simplified_args)
+            if len(simplified_args) > 0:
+                new_args = functools.reduce(lambda x, y: x + y, simplified_args)
 
             result = []
             for new_arg in new_args:
