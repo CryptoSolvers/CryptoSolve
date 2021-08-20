@@ -11,7 +11,7 @@ from symcollab.xor import xor
 from symcollab.xor.xorhelper import is_xor_term, xor_to_list
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
-from generator import MOOGenerator
+from .generator import MOOGenerator
 
 f = Function("f", 1)
 zero = Zero()

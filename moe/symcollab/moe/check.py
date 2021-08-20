@@ -51,13 +51,12 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         p = Constant(session_label)
         i = Constant(block_label)
         a = Constant("1")
-        pList = [0,Variable(f"x{session_label}{block_label}")]
-        cList = [0,c(p, i, a)]
-        return program.chaining_function(2, [], pList, cList)
+        pList = [0,0,Variable(f"x{session_label}{block_label}")]
+        cList = [0,c(p, i, a),0]
+        return program.chaining_function(3, [0], pList, cList)
 
-    symbolic_check_result = symbolic_check(symbolic_moo_gen)
-    print("Result :", symbolic_check_result)
-    return
+    symbolic_check_secure = symbolic_check(symbolic_moo_gen)
+    print("Result :", symbolic_check_secure)
 
     for i in range(1, length_bound + 1):
         plaintext = Variable(f"x_{i}")
@@ -78,6 +77,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             #    last_ciphertext = ciphertexts_received[-1]
             #    if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
             #        return MOOCheckResult(True, None, invertible)
+
+            if not symbolic_check_secure:
+                return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
             new_constraints = deepcopy(constraints)
