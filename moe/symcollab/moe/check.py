@@ -46,13 +46,16 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     invertible = False
     # Start interactions
 
+    # Custom case seems to fail, but it may be a parse error
+    # xor(f(C[i-1]),xor(f(f(C[i-1])),P[i])) does not parse, but it is correct.
+
     def symbolic_moo_gen(session_label, block_label):
         c = Function("C", 3)
         p = Constant(session_label)
         i = Constant(block_label)
         a = Constant("1")
-        pList = [0,0,Variable(f"x{session_label}{block_label}")]
-        cList = [0,c(p, i, a),0]
+        pList = [Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}")]
+        cList = [c(p, i, a),c(p, i, a),c(p, i, a)]
         return program.chaining_function(3, [0], pList, cList)
 
     symbolic_check_secure = symbolic_check(symbolic_moo_gen)
@@ -78,7 +81,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             #    if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
             #        return MOOCheckResult(True, None, invertible)
 
-            if not symbolic_check_secure:
+            if symbolic_check_secure:
                 return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
