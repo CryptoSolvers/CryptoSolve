@@ -148,6 +148,8 @@ class MOOCheckResult:
     collisions
       Result of the unification algorithm attempting to find a
       substitution that causes two ciphertexts to collapse to zero.
+    invert_result
+      Whether or not the MOO is invertible
     """
     syntactic_result: bool
     collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
