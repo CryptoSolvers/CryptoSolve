@@ -1,80 +1,67 @@
-from symcollab.algebra import *
-from .ac import *
-from .rings import *
-from copy import deepcopy
+"""
+UNFINISHED
+An implementation of Algebraic Fields. This module can use some rework
+to utilize the sort attribute in the algebra module.
 
-# A field is a commutative (multiplication is commutative) ring with unity 
-# where every nonzero element is invertible (has an inverse)
-class Field(Ring):
-    def __init__(self, name : str, add_operation : ACFunction, mul_operation : AFunction, zero_symbol = "0", unity_symbol = "1", mul_inv_symbol = None):
-        if not isinstance(mul_operation, CFunction):
-            raise ValueError("Multiplication operation must be both associative and commutative")
-        super().__init__(name, add_operation, mul_operation, zero_symbol = zero_symbol, unity_symbol = unity_symbol)
-        self.set_zero(FieldConstant(self, zero_symbol))
-        self.unity = FieldConstant(self, unity_symbol)
-        self.add = FieldFunction(self, add_operation)
-        self.mul = FieldFunction(self, mul_operation)
-        self.group.op = self.add # Turns GroupFunction into a FieldFunction
-        self.inv = FieldInverseFunction(self, name + "_inv" if mul_inv_symbol is None else mul_inv_symbol)
+See nat.py for a more modern take of implementing a theory.
+"""
+from symcollab.algebra import Constant, Function, Term, Variable
+from symcollab.rewrite import RewriteRule, RewriteSystem, normal
+from .rings import Ring
+from .inductive import Inductive, TheorySystem
 
-class FieldInverseFunction(Function):
-    def __init__(self, f : Field, symbol : str):
-        super().__init__(symbol, 1)
-        self.field = f
-    def __call__(self, x):
-        if x == self.field.zero:
-            raise ValueError("Cannot take the multiplicative inverse of zero")
-        if isinstance(x, FuncTerm) and isinstance(x.function, FieldInverseFunction):
-            return x.arguments[0]
-        return FuncTerm(self, (x,))
+__all__ = ['Field']
 
-class FieldFunction(ACFunction):
-    def __init__(self, f : Field, fn : Function):
-        super().__init__(fn.symbol, fn.arity)
-        self.field = f
-        self.function = fn
-    def __call__(self, *args):
-        term = self.function(*args)
-        # Important for function calls that returns only a constant
-        if not isinstance(term, FuncTerm) or term.function.arity == 0:
-            return deepcopy(term)
-        result = FieldFuncTerm(self.field, term)
-        result.set_function(self)
-        return result
+# TODO: Capture the commutative property of addition & multiplication
+# TODO: Make sure zero is noninvertible
 
+@Inductive
+class Field(TheorySystem):
+    """
+    A field is a ring with every nonzero element
+    having a multiplicative inverse.
+    """
+    add = Function("add", 2)
+    mul = Function("mul", 2)
+    negate = Function("neg", 1)
+    inverse = Function("inv", 1)
+    zero = Constant("0")
+    unity = Constant("1")
 
-# Class that describes an element of the field inherits the ring element.
-# Mainly allows for multiplicative inverses
-class FieldElement(RingElement):
-    def __init__(self, r : Ring):
-        RingElement.__init__(self, r)
-        # Properties of multiplication return (True, result) if one matches otherwise (false, None)
-    def _ringmulprops(self, x):
-        if self == self.ring.inv(x) or x == self.ring.inv(self):
-            return (True, deepcopy(self.ring.unity))
-        return super()._ringmulprops(x)
-    def __truediv__(self, x):
-        return self.__mul__(self.ring.inv(x))
-    def __rtruediv__(self, x):
-        return self.__rmul__(self.ring.inv(x))
-
-class FieldVariable(RingVariable, FieldElement):
-    def __init__(self, r : Ring, symbol : str):
-        RingVariable.__init__(self, r, symbol)
-        FieldElement.__init__(self, r)
-    def __hash__(self):
-        return hash((self.ring, self.symbol))
-    def __eq__(self, x):
-        return type(self) is type(x) and self.group == x.group and self.symbol == x.symbol
-
-class FieldFuncTerm(RingFuncTerm, FieldElement, ACTerm):
-    def __init__(self, r : Ring, term : ACTerm):
-        RingFuncTerm.__init__(self, r, term)
-        FieldElement.__init__(self, r)
-        ACTerm.__init__(self, term.function, term.arguments)
-        self.term = term
-
-class FieldConstant(RingConstant, FieldElement):
-    def __init__(self, f : Field, symbol : str):
-        RingConstant.__init__(self, f, symbol)
-        FieldElement.__init__(self, f)
+_x = Variable("x", sort=Field.sort)
+_y = Variable("y", sort=Field.sort)
+# TODO: Fix symbols of Ring and Field rules
+Field.rules = RewriteSystem(Ring.rules.rules | {
+    ## One and Zero
+    # 1 * 0 -> 0
+    RewriteRule(Field.mul(Field.unity, Field.zero), Field.zero),
+    # 0 * 1 -> 0
+    RewriteRule(Field.mul(Field.zero, Field.unity), Field.zero),
+    # 1 + 0 -> 1
+    RewriteRule(Field.add(Field.unity, Field.zero), Field.unity),
+    # 0 + 1 -> 1
+    RewriteRule(Field.add(Field.zero, Field.unity), Field.unity),
+    ## Unity Rules
+    # 1 * x → x
+    RewriteRule(Field.mul(Field.unity, _x), _x),
+    # x * 1 → x
+    RewriteRule(Field.mul(_x, Field.unity), _x),
+    # -1 * x → -x
+    RewriteRule(Field.mul(Field.negate(Field.unity), _x), Field.negate(_x)),
+    # x * -1 → -x
+    RewriteRule(Field.mul(_x, Field.negate(Field.unity)), Field.negate(_x)),
+    # x * i(x) → 1
+    RewriteRule(Field.mul(_x, Field.inverse(_x)), Field.unity),
+    # i(x) * x → 1
+    RewriteRule(Field.mul(Field.inverse(_x), _x), Field.unity),
+    ## Inverse Rules
+    # i(i(x)) → x
+    RewriteRule(Field.inverse(Field.inverse(_x)), _x),
+    # i(x * y) → i(y) * i(x)
+    RewriteRule(Field.inverse(Field.mul(_x, _y)), Field.mul(Field.inverse(_y), Field.inverse(_x))),
+    ## Interplay between associativity and inverses
+    # x * (i(x) * y) → y
+    RewriteRule(Field.mul(_x, Field.mul(Field.inverse(_x), _y)), _y),
+    # i(x) * (x * y) → y
+    RewriteRule(Field.mul(Field.inverse(_x), Field.mul(_x, _y)), _y)
+})

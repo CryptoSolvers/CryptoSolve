@@ -2,7 +2,7 @@
 from typing import List, Set
 from symcollab.algebra import Constant, Function, FuncTerm, Variable, Term
 from .inductive import TheorySystem, system_from_sort
-from .proposition import Prop, Implies, Or, Not
+# from .proposition import Prop, Implies, Or, Not
 
 """ 
 Assumes conjunctive normal form, so we can treat each clause as a set. 
