@@ -4,7 +4,7 @@ Module to check security of modes of operations.
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
-from symcollab.algebra import SubstituteTerm, Term, Variable
+from symcollab.algebra import SubstituteTerm, Term, Variable, Constant, Function
 from symcollab.Unification.constrained.p_unif import p_unif
 from symcollab.xor.structure import Zero
 from .program import MOOProgram
@@ -12,7 +12,7 @@ from .collisions import find_collision
 from .syntactic_check import moo_depth_random_check
 from .invertibility import InvertMOO
 from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
-
+from .symbolic_check import symbolic_check
 
 __all__ = ['moo_check']
 
@@ -45,7 +45,22 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     result = None
     invertible = False
     # Start interactions
-    
+
+    # Custom case seems to fail, but it may be a parse error
+    # xor(f(C[i-1]),xor(f(f(C[i-1])),P[i])) does not parse, but it is correct.
+
+    def symbolic_moo_gen(session_label, block_label):
+        c = Function("C", 3)
+        p = Constant(session_label)
+        i = Constant(block_label)
+        a = Constant("1")
+        pList = [Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}")]
+        cList = [c(p, i, a),c(p, i, a),c(p, i, a)]
+        return program.chaining_function(3, [0], pList, cList)
+
+    symbolic_check_secure = symbolic_check(symbolic_moo_gen)
+    print("Result :", symbolic_check_secure)
+
     for i in range(1, length_bound + 1):
         plaintext = Variable(f"x_{i}")
         constraints[plaintext] = deepcopy(known_terms)
@@ -55,7 +70,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         result = program.rcv_block(plaintext)
         if result is not None:
             ciphertext = unravel(result.message, result.substitutions)
-            
+
             #check for invertibility
             if invert_check and i == 1:
                 invertible = InvertMOO(ciphertext, f"x_{i}", program.nonces, program.nonces[0], knows_iv)
@@ -65,6 +80,9 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
             #    last_ciphertext = ciphertexts_received[-1]
             #    if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
             #        return MOOCheckResult(True, None, invertible)
+
+            if symbolic_check_secure:
+                return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
             new_constraints = deepcopy(constraints)
@@ -103,7 +121,7 @@ def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
     Search through the known ciphertext history and see if there are any collisions
     between the current ciphertext and a past one.
     """
-    if unif_algo == XOR_rooted_security:        
+    if unif_algo == XOR_rooted_security:
         terms = deepcopy(previous_ciphertexts)
         terms.append(ciphertext)
         unifiers = XOR_rooted_security(terms, constraints).solve()

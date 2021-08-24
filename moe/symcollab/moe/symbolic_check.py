@@ -11,6 +11,7 @@ from symcollab.xor import xor
 from symcollab.xor.xorhelper import is_xor_term, xor_to_list
 from symcollab.xor.structure import Zero, is_zero
 from copy import deepcopy
+from .generator import MOOGenerator
 
 f = Function("f", 1)
 zero = Zero()
@@ -20,6 +21,42 @@ q = Constant('q')
 i = Constant('i')
 j = Constant('j')
 
+def start(moo_generator):
+	pattern = next(moo_generator)
+	return lambda block_label, session_label: moo_mapper(pattern, block_label, session_label)
+
+def moo_mapper(generated_moo_term, block_label, session_label):
+	if isinstance(generated_moo_term, Variable): # base cases
+		var_name = generated_moo_term.symbol[0] # Assuming 'C' or 'P'
+		subscripts = generated_moo_term.symbol.split('[')[1].split(']')[0].split('-')
+
+		if len(subscripts) > 1:
+			index = subscripts[1]
+		else:
+			index = "0"
+
+		if var_name == 'C':
+			return c(Constant(block_label),Constant(session_label),Constant(index))
+		elif var_name == 'P':
+			return Variable(f'x{block_label}{index}')
+		else:
+			raise Exception("Unknown variable symbol found.")
+
+	else: # Function symbol
+		fun_name = generated_moo_term.function.symbol
+		if fun_name == 'f':
+			return f(moo_mapper(generated_moo_term.arguments[0], block_label, session_label)) # Recurse
+		elif fun_name == 'xor':
+			return xor(
+				moo_mapper(generated_moo_term.arguments[0],block_label, session_label),
+				moo_mapper(generated_moo_term.arguments[1],block_label, session_label)
+			)
+		elif fun_name == 'r':
+			return c(p,zero,zero)
+		else:
+			raise Exception("Unknown function symbol found")
+
+# Check the symbolic security of moo
 def symbolic_check(moo_gen):
 	"""Check the symbolic security of a MOO"""
 	g = list(gamma(moo_gen, "p", "i", "q", "j"))
