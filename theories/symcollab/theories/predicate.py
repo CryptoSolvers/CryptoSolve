@@ -2,15 +2,12 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Dict, NamedTuple, List, Optional, Set, Union
-from symcollab.algebra import Term
+from symcollab.algebra import Term, Variable
 
 __all__ = [
     'Relation', 'Predicate', 'Proposition',
     'Connective', 'And', 'Or', 'Imp', 'Iff',
-    'Not', 'Formula', 'Valuation', 'prop_eval',
-    'atoms', 'possible_valuations', 'satisfiable_valuations',
-    'tautology', 'unsatisfiable', 'satisfiable',
-    'is_propositional_formula'
+    'Not', 'ForAll', 'Exists', 'Formula', 'Valuation'
 ]
 
 class Relation:
@@ -27,6 +24,9 @@ class Relation:
         assert len(args) == self.arity
         assert all(lambda x: isinstance(x, Term), args)
         return Predicate(self, args)
+
+    def __hash__(self):
+        return hash(("Relation", self.name, self.arity))
 
     def __repr__(self):
         return f"Relation(name={self.name}, arity={self.arity})"
@@ -49,8 +49,10 @@ class Predicate:
         """Returns the name of the proposition."""
         return self.relation.name
     def __hash__(self):
-        return hash(("Predicate", self.relation, self.args))
+        return hash(("Predicate", self.relation, *self.args))
     def __repr__(self):
+        if self.relation.arity == 0:
+            return self.relation.name
         return f"{self.relation.name}({', '.join(map(repr, self.args))})"
     def __eq__(self, other):
         return type(self) == type(other) \
@@ -62,6 +64,7 @@ class Proposition(Predicate):
     def __init__(self, name: str):
         super().__init__(Relation(name, 0), [])
 
+# TODO: Try to make this an Abstract Class
 class Connective(NamedTuple):
     """
     A binary operator that takes
@@ -92,136 +95,147 @@ class Iff(Connective):
 class Not:
     """Negation of a formula"""
     subformula: 'Formula'
-    def __repr__(self):
-        return f"Not({self.subformula})"
     def __hash__(self):
         return hash((self.__class__.__name__, self.subformula))
-    def __eq__(self, other):
-        return type(self) == type(other) \
-            and self.subformula == other.subformula
+    def __repr__(self):
+        return f"Not({self.subformula})"
     def __contains__(self, x):
         return x == self.subformula
 
-Formula = Union[Predicate, Not, Connective, bool]
+@dataclass
+class ForAll:
+    bound_variable: Variable
+    subformula: 'Formula'
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.bound_variable, self.subformula))
+    # TODO: Should I have __contains__ ?
+
+class Exists:
+    def __init__(self, bound_variable: Variable, subformula: 'Formula'):
+        self.bound_variable = bound_variable
+        self.subformula = subformula
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.bound_variable, self.subformula))
+    # TODO: Should I have __contains__ ?
+
+Formula = Union[Predicate, Not, Connective, ForAll, Exists, bool]
 Valuation = Dict[Predicate, bool]
 
-def prop_eval(formula: Formula, valuation: Optional[Valuation] = None) -> bool:
+
+###############################################3
+#### Encoding of First-Order Logic below
+#### Implementation subject to change
+
+from copy import deepcopy
+from functools import reduce
+from typing import Any
+from symcollab.algebra import Function, FuncTerm, \
+    Constant, SubstituteTerm, get_vars
+
+GroundTerm = Union[FuncTerm, Constant]
+def is_ground(t: Term):
     """
-    Evaluate a propositional formula given a
-    valuation dictionary v mapping Propositions to booleans.
+    Returns whether or not a term is ground
+    which means it has no Variables
     """
-    # Base Case
-    if isinstance(formula, bool):
-        return formula
+    if isinstance(t, Constant):
+        return True
+    if isinstance(t, Variable):
+        return False
+    result = True
+    for ti in t.arguments:
+        result = result or is_ground(ti)
+    return result
 
-    # Return the valuation of the predicate
-    if isinstance(formula, Predicate):
-        if valuation is None or formula not in valuation:
-            raise ValueError(f"Predicate {formula.name} is not in valuation dictionary v.")
-        return valuation[formula]
+TermValuation = Dict[Variable, GroundTerm]
 
-    # Not Case
-    if isinstance(formula, Not):
-        return not prop_eval(formula.subformula, valuation)
+def fvt(t: Term) -> Set[Variable]:
+    """Returns the set of variables from a term."""
+    return get_vars(t, unique=True)
 
-    # Connective Case
-    subformula0 = prop_eval(formula[0], valuation)
-    subformula1 = prop_eval(formula[1], valuation)
-    if isinstance(formula, And):
-        return subformula0 and subformula1
-    if isinstance(formula, Or):
-        return subformula0 or subformula1
-    if isinstance(formula, Imp):
-        return not subformula0 or subformula1
-    # Last case if Iff
-    return subformula0 == subformula1
-
-def atoms(formula: Formula) -> Set[Predicate]:
-    """Returns a set of predicates in a formula."""
+# TODO: Need to check the free version
+def vars_from_formula(formula: Formula, only_free = False) -> Set[Variable]:
+    """
+    Variables in a first order formula.
+    """
     if isinstance(formula, bool):
         return set()
+
     if isinstance(formula, Predicate):
-        return {formula}
+        if formula.relation.arity == 0:
+            return set()
+        if formula.relation.arity == 1:
+            return fvt(formula.args[0])
+        # Combine the fvt from all the terms in the predicate
+        return set(reduce(lambda a, b: a | b, (fvt(t) for t in formula.args)))
+
     if isinstance(formula, Not):
-        return atoms(formula.subformula)
-    # Otherwise it's a connective
-    return atoms(formula[0]) | atoms(formula[1])
+        return vars_from_formula(formula.subformula)
 
-def possible_valuations(predicates: Set[Predicate],
-  valuation: Optional[Valuation] = None) -> List[Valuation]:
-    """
-    Takes a set of predicates and returns a
-    list of all possible valuations.
-    """
-    # We're going to recurse down on predicates
+    if isinstance(formula, Connective):
+        return vars_from_formula(formula[0]) | vars_from_formula(formula[1])
 
-    if valuation is None:
-        valuation = dict()
+    if isinstance(formula, (ForAll, Exists)):
+        if not only_free:
+            return {formula.bound_variable} | vars_from_formula(formula.subformula)
+        return vars_from_formula(formula.subformula) - {formula.bound_variable}
 
-    # Base case
-    if len(predicates) == 0:
-        return [valuation]
+    raise ValueError(f"Unexpected type {type(formula)}")
 
-    pred = predicates.pop()
+def fv(formula: Formula) -> Set[Variable]:
+    """Returns a set of free variables in a formula."""
+    return vars_from_formula(formula, True)
 
-    # Branch where pred is True
-    predicates1 = deepcopy(predicates)
-    valuation1 = deepcopy(valuation)
-    valuation1[pred] = True
+def subformulaapply(formula: Formula, sigma: SubstituteTerm):
+    """Applies a substitution to a formula."""
+    # Can't apply a substitution to a bool or Proposition
+    if isinstance(formula, (bool, Proposition)):
+        return formula
 
-    # Branch where pred is False
-    predicates2 = deepcopy(predicates)
-    valuation2 = deepcopy(valuation)
-    valuation2[pred] = False
+    if isinstance(formula, Predicate):
+        # If the arity is zero, then it's a Proposition
+        if formula.relation.arity == 0:
+            return formula
+        # Otherwise, apply the substitution to all
+        # the terms in the predicate
+        new_terms = [
+            term * sigma
+            for term in formula.args
+        ]
+        return formula.relation(*new_terms)
 
-    # Add branches to list
-    return possible_valuations(predicates1, valuation1) \
-           + possible_valuations(predicates2, valuation2)
+    if isinstance(formula, Connective):
+        return formula.__class__(
+            subformulaapply(formula[0], sigma),
+            subformulaapply(formula[1], sigma)
+        )
+    if isinstance(formula, Not):
+        return Not(subformulaapply(formula.subformula, sigma))
 
-def satisfiable_valuations(formula: Formula) -> List[Valuation]:
-    """
-    Takes a formula and returns a list
-    of satisfiable valuations.
-    """
-    # Return only valuations that evaluate to true under the formula
-    return [
-        valuation for valuation in possible_valuations(atoms(formula)) \
-        if prop_eval(formula, valuation)
-    ]
+    if isinstance(formula, (ForAll, Exists)):
+        # TODO: This is based on how Substitions are
+        # currently handled. If we decide that its a bug
+        # we'll have to rewrite this logic....
+        if formula.bound_variable in sigma.range():
+            new_bvar = _fresh_var_in_formula(formula)
+            sigma.add(formula.bound_variable, new_bvar)
+            return formula.__class__(
+                new_bvar,
+                subformulaapply(formula.subformula, sigma)
+            )
 
-def tautology(formula: Formula) -> bool:
-    """
-    Takes a formula and states
-    whether its a tautology (always true)
-    """
-    # Return true if the formula is true for all possible valuations
-    # of its predicates.
-    return all(
-        (prop_eval(formula, v) for v in possible_valuations(atoms(formula)))
-    )
+        if formula.bound_Variable in sigma.domain():
+            sigma.remove(formula.bound_variable)
 
-def unsatisfiable(formula: Formula) -> bool:
-    """
-    Naive implementation that takes
-    a formula and returns true
-    if the formula is unsatisfiable.
-    """
-    return tautology(Not(formula))
+        return formula.__class__(
+            formula.bound_variable,
+            subformulaapply(new_subform, sigma)
+        )
 
-def satisfiable(formula: Formula) -> bool:
-    """
-    Naive implementation that takes
-    a formula x and returns true if
-    the formula is satisfiable.
-    """
-    return not unsatisfiable(formula)
+    raise ValueError(f"Unexpected type: {type(formula)}.")
 
-# TODO
-def is_propositional_formula(formula: Formula) -> bool:
-    """
-    Returns whether or not a formula is
-    a statement in propositional logic.
-    TODO: Since only propositional logic is encoded,
-    this is for now true
-    """
-    return True
+def _fresh_var_in_formula(formula: Formula):
+    fresh_var = Variable("x")
+    while fresh_var in vars_from_formula(formula):
+        fresh_var = Variable(fresh_var.symbol + "'")
+    return fresh_var
