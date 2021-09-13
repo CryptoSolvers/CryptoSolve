@@ -19,7 +19,7 @@ import traceback
 
 # Save after checking x MOOs
 SAVE_EVERY: int = 1
-MOO_FILE = "saved_moo_experiments.pickle"
+MOO_FILE = "saved_moo_experiments_v3.pickle"
 
 last_mgen: Optional[MOOGenerator] = None
 mgen: Optional[MOOGenerator] = None
