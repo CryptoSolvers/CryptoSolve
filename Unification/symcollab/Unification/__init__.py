@@ -34,6 +34,13 @@ def unify(equations : Set[Equation]) -> Set[SubstituteTerm]:
     for equation in equations:
         theories |= _theories_in_term(equation.left_side)
         theories |= _theories_in_term(equation.right_side)
+
+    # If the equation is only filled with
+    # variables and constants than assume
+    # no theory.
+    if len(theories) == 0:
+        theories = {''}
+
     if len(theories) > 1:
         raise NotImplementedError("Combination Theories are currently not supported.")
     theory = next(iter(theories))
