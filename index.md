@@ -104,3 +104,4 @@ The Symcollab collaboration consist of the following people both past and presen
 # Papers:
 - [Formal Analysis of Symbolic Authenticity](https://doi.org/10.1007/978-3-030-86205-3_15)
 - [Algorithmic Problems in the Symbolic Approach to the Verification of Automatically Synthesized Cryptosystems](https://doi.org/10.1007/978-3-030-86205-3_14)
+- Moving the Bar on Computationally Sound Exclusive-Or
