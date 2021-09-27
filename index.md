@@ -75,3 +75,25 @@ This module contains unification over terms modulo several popular theories. Cur
 ### Theories
 
 Various data structures and their properties defined as rewrite rules are defined in this module. This module can be further extended in order to define an automated theorem prover for objects such as natural numbers, booleans, and lists.
+
+
+#Collaboration
+ 
+The CryptoSolve collaboration consist of the following people both past and present: 
+
+##Present:
+- Brandon Rozek (Rensselaer Polytechnic Institute)
+- Hai Lin (Clarkson University)
+- Wei Du (University at Albany–SUNY)
+- Catherine Meadows (Naval Research Laboratory)
+- Chris Lynch (Clarkson University)
+- Paliath Narendran (University at Albany–SUNY)
+- Veena Ravishankar (University of Mary Washington)
+- Meghan Cooke (University of Mary Washington)
+- Mikayla Stitts (University of Mary Washington)
+- Andrew Marshall (University of Mary Washington)
+
+##Past: 
+- Luis Rovira 
+- Raymond Kauffman 
+- Dalton Chichester
