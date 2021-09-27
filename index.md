@@ -76,10 +76,11 @@ This module contains unification over terms modulo several popular theories. Cur
 
 Various data structures and their properties defined as rewrite rules are defined in this module. This module can be further extended in order to define an automated theorem prover for objects such as natural numbers, booleans, and lists.
 
+***
 
 # Collaboration
  
-The CryptoSolve collaboration consist of the following people both past and present: 
+The Symcollab collaboration consist of the following people both past and present: 
 
 ## Present:
 - Brandon Rozek (Rensselaer Polytechnic Institute)
@@ -97,3 +98,9 @@ The CryptoSolve collaboration consist of the following people both past and pres
 - Luis Rovira 
 - Raymond Kauffman 
 - Dalton Chichester
+
+***
+
+# Papers:
+- [Formal Analysis of Symbolic Authenticity](https://doi.org/10.1007/978-3-030-86205-3_15)
+- [Algorithmic Problems in the Symbolic Approach to the Verification of Automatically Synthesized Cryptosystems](https://doi.org/10.1007/978-3-030-86205-3_14)
