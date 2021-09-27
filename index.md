@@ -92,6 +92,7 @@ The Symcollab collaboration consist of the following people both past and presen
 - Veena Ravishankar (University of Mary Washington)
 - Meghan Cooke (University of Mary Washington)
 - Mikayla Stitts (University of Mary Washington)
+- Serdar Erbatur (University of Texas at Dallas)
 - [Andrew Marshall](https://www.marshallandrew.net/#project) (University of Mary Washington)
 
 ## Past: 
