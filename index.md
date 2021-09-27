@@ -102,6 +102,13 @@ The Symcollab collaboration consist of the following people both past and presen
 ***
 
 # Papers:
+
+## Conference:
 - [Formal Analysis of Symbolic Authenticity](https://doi.org/10.1007/978-3-030-86205-3_15)
 - [Algorithmic Problems in the Symbolic Approach to the Verification of Automatically Synthesized Cryptosystems](https://doi.org/10.1007/978-3-030-86205-3_14)
 - Moving the Bar on Computationally Sound Exclusive-Or
+
+## Workshop:
+- [	Checking Symbolic Security of Cryptographic Modes of Operation](https://www.uoh.cl/unif-2021/assets/proceedings-UNIF2021.pdf)
+- [Formal Analysis of Symbolic Authenticity ](https://www.uoh.cl/unif-2021/assets/proceedings-UNIF2021.pdf)
+- [Algorithmic Problems in Synthesized Cryptosystems](http://www3.risc.jku.at/publications/download/risc_6129/proceedings-UNIF2020.pdf)
