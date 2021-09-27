@@ -93,7 +93,7 @@ The Symcollab collaboration consist of the following people both past and presen
 - Meghan Cooke (University of Mary Washington)
 - Mikayla Stitts (University of Mary Washington)
 - Serdar Erbatur (University of Texas at Dallas)
-- [Andrew Marshall](https://www.marshallandrew.net/#project) (University of Mary Washington)
+- [Andrew Marshall](https://www.marshallandrew.net) (University of Mary Washington)
 
 ## Past: 
 - Luis Rovira 
