@@ -22,7 +22,7 @@ class Relation:
 
     def __call__(self, *args):
         assert len(args) == self.arity
-        assert all(lambda x: isinstance(x, Term), args)
+        assert all((isinstance(x, (Constant, Variable, Function, FuncTerm)) for x in args))
         return Predicate(self, args)
 
     def __hash__(self):
