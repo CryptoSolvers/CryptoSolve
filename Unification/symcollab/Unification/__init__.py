@@ -1,15 +1,8 @@
 from typing import Set
 from symcollab.algebra import Constant, Equation, SubstituteTerm, Term, Variable
-from symcollab.algebra.callable_registry import CallableRegistry
-
-
-__all__ = ['Unification_Algorithms', 'unify']
-
-# TODO: Enforce arity of two once the following signature is implemented
-# Tuple[Set[Equation], Optional[Or[str, RewriteSystem]]] -> Set[SubstituteTerm]
-Unification_Algorithms = CallableRegistry()
-
 from .unif import unif as syntactic_unif
+
+__all__ = ['unify']
 
 def _theories_in_term(t: Term) -> Set[str]:
     """

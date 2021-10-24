@@ -19,7 +19,7 @@ from sympy.solvers.diophantine import diophantine # type: ignore
 from sympy import symbols # type: ignore
 from sympy.solvers.diophantine import diop_linear # type: ignore
 from sympy.parsing.sympy_parser import parse_expr # type: ignore
-from . import Unification_Algorithms
+from .registry import Unification_Algorithms
 
 
 #convert a set of term equations into a single

@@ -4,7 +4,7 @@ from symcollab.algebra import Variable, SubstituteTerm, FuncTerm
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.eac_unif import R1
 from symcollab.Unification.flat import flat
-from . import Unification_Algorithms
+from .registry import Unification_Algorithms
 
 #H_AC(R_1) unification 
 #Using the new hierarrchical method

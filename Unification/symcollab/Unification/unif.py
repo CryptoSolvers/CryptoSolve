@@ -3,7 +3,7 @@
 #!/usr/bin/env python3
 from symcollab.algebra import *
 from typing import Dict, Set
-from . import Unification_Algorithms
+from .registry import Unification_Algorithms
 
 # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 @Unification_Algorithms.register('')
