@@ -59,3 +59,17 @@ print("SECURE MOOS:")
 for moo, result in moo_tested.items():
     if isinstance(result, MOOCheckResult) and result.secure:
         print(moo)
+
+# Print MOOs that triggered a RecursionError
+print("")
+print("RECURSION ERROR MOOS:")
+for moo, result in moo_tested.items():
+    if isinstance(result, RecursionError):
+        print(moo)
+
+print("")
+print("MOOS THAT NEEDED MORE THAN 3 ITERATIONS TO SHOW COLLISION")
+for moo, result in moo_tested.items():
+    if isinstance(result, MOOCheckResult) and not result.secure:
+        if result.iterations_needed > 3:
+            print(moo)

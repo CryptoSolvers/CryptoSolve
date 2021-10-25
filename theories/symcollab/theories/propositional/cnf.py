@@ -4,9 +4,9 @@ conjunctive normal form and to check
 whether it is in conjunctive normal form
 """
 from typing import List, Optional, Tuple
-from ..predicate import And, atoms, Formula, \
-    Iff, Imp, Not, Or, Predicate, Proposition, \
-    Valuation, possible_valuations, prop_eval
+from ..predicate import And, Formula, Not, \
+    Or, Predicate, Proposition, Valuation
+from .core import atoms, possible_valuations, prop_eval
 from .literal import Clause, literals, negate
 from .simplify import prop_simplify
 from .nnf import nnf
@@ -68,10 +68,6 @@ def is_cnf(formula: Formula, or_found: bool = False) -> bool:
     if isinstance(formula, Not):
         return isinstance(formula.subformula, (bool, Predicate))
 
-    # Connectives Iff and Imp are not allowed
-    if isinstance(formula, (Iff, Imp)):
-        return False
-
     if isinstance(formula, And):
         # An And cannot be under an Or
         if or_found:
@@ -81,7 +77,8 @@ def is_cnf(formula: Formula, or_found: bool = False) -> bool:
     if isinstance(formula, Or):
         return is_cnf(formula[0], True) and is_cnf(formula[1], True)
 
-    raise ValueError(f"Unknown type: {formula.__class__.__name__}")
+    # Otherwise False (Iff, Imp, ForAll, Exists)
+    return False
 
 def cnf_clauses(formula: Formula, checked_cnf: bool = False) -> List[Clause]:
     """
@@ -97,7 +94,7 @@ def cnf_clauses(formula: Formula, checked_cnf: bool = False) -> List[Clause]:
     if isinstance(formula, Or):
         return [literals(formula[0]) + literals(formula[1])]
 
-    # Assume And
+    # Assume And since others will fail is_cnf check above
     x0 = formula[0]
     x1 = formula[1]
     return cnf_clauses(x0, True) + cnf_clauses(x1, True)
@@ -164,6 +161,8 @@ def _definitional_cnf_helper(formula: Formula, result: Optional[Formula] = None)
             Or(fprop, negate(x0))),
             Or(fprop, negate(x1))
         ))
+
+    raise ValueError(f"Unexpected type {type(formula)}")
 
 def definitional_cnf(formula: Formula) -> Formula:
     """

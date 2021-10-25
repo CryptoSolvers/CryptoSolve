@@ -60,6 +60,8 @@ def moo_mapper(generated_moo_term, block_label, session_label):
 def symbolic_check(moo_gen):
 	"""Check the symbolic security of a MOO"""
 	g = list(gamma(moo_gen, "p", "i", "q", "j"))
+	if len(g) == 0:
+		return False
 	for m in range(len(g)):
 		for m_prime in range(m+1, len(g)):
 			xor_term = xor(g[m], g[m_prime])

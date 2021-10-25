@@ -58,23 +58,24 @@ class SubstituteTerm:
         if variable.sort != term.sort:
             raise SortMismatch("Substitution must preserve sorts.")
 
-        # Check to see if what we're adding already exists in the substitution set
-        if len(self.subs) > 0:
-            v, t = zip(*self.subs)
-            if variable in v and term != t[v.index(variable)]:
-                raise ValueError("'%s' already exists in the substitution set" % (variable))
+        # Check to see if what we're adding already exists
+        # in the substitution set
+        for sub_var, sub_term in self.subs:
+            if sub_var == variable and term != sub_term:
+                raise ValueError(f"{variable} already exists in the substitution set")
+
         self.subs.add((variable, term))
 
     def remove(self, variable: Variable):
         """Removes a mapping from a variable"""
-        # The removal technique consists of creating a set that contains what you want to remove
+        # The removal technique consists of creating a set
+        # that contains what you want to remove
         # and then do set subtraction
-        if len(self.subs) > 0:
-            v, t = zip(*self.subs)
-            term = t[v.index(variable)]
-            x = set()
-            x.add((variable, term))
-            self.subs = self.subs - x
+        to_remove = {}
+        for sub_var, sub_term in self.subs:
+            if sub_var == variable:
+                to_remove = {(sub_var, sub_term)}
+        self.subs = self.subs - to_remove
 
     def replace(self, variable: Variable, term: Term):
         """Replaces a mapping from a variable with another term"""
@@ -83,7 +84,8 @@ class SubstituteTerm:
             isinstance(term, FuncTerm) or \
             isinstance(term, Variable)
         self.remove(variable)
-        # We don't have to call self.add as we already ensured that the item is removed
+        # We don't have to call self.add as we already
+        # ensured that the item is removed
         self.subs.add((variable, term))
 
     def domain(self) -> List[Variable]:
@@ -92,11 +94,7 @@ class SubstituteTerm:
 
         Warning: Do not pair this call with range as ordering is not guarenteed.
         """
-        if len(self.subs) > 0:
-            v, _ = zip(*self.subs)
-            return list(v)
-        else:
-            return list()
+        return [m[0] for m in self.subs]
 
     def range(self) -> List[Term]:
         """
@@ -104,11 +102,7 @@ class SubstituteTerm:
 
         Warning: Do not pair this call with domain as ordering is not guarenteed.
         """
-        if len(self.subs) > 0:
-            _, t = zip(*self.subs)
-            return list(t)
-        else:
-            return list()
+        return [m[1] for m in self.subs]
 
     def __len__(self):
         return len(self.subs)
@@ -160,58 +154,75 @@ class SubstituteTerm:
 
     # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
     def __mul__(self, theta):
+        """
+        Combine two substitutions
+        Source: Franz Baader and Wayne Snyder.
+        Unification Theory. Handbook of Automated Reasoning, 2001
+        """
         if not isinstance(theta, SubstituteTerm):
             raise ValueError(
                 "Expected a substitution to the right of *, \
                 perhaps you meant to apply substitution on a term? \
                 If so, swap the arguments."
             )
-        if len(self.subs) > 0:
-            v, t = zip(*self.subs)
-            # Apply theta to every term in its range
-            t = tuple(map(theta, t))
-            sigma1 = SubstituteTerm()
-            sigma1.subs = set(zip(v, t))
 
-            # Remove any binding x->t where x in Dom(sigma)
-            theta1 = deepcopy(theta)
-            theta_dom = theta1.domain()
-            for vt in v:
-                if vt in theta_dom:
-                    theta1.remove(vt)
+        # If our substitution is empty, then return theta
+        if len(self.subs) == 0:
+            return deepcopy(theta)
 
-            # Remove trival bindings
-            for vt, tt in zip(v, t):
-                if vt == tt:
-                    sigma1.remove(vt)
+        v, t = zip(*self.subs)
+        # Apply theta to every term in its range
+        t = tuple(map(theta, t))
+        sigma1 = SubstituteTerm()
+        sigma1.subs = set(zip(v, t))
 
-            # Union the two substitution sets
-            result = SubstituteTerm()
-            result.subs = sigma1.subs | theta1.subs
-            return result
-        else:
-            return theta
+        # Remove any binding x->t where x in Dom(sigma)
+        theta1 = deepcopy(theta)
+        theta_dom = theta1.domain()
+        for vt in v:
+            if vt in theta_dom:
+                theta1.remove(vt)
+
+        # Remove trival bindings
+        for vt, tt in zip(v, t):
+            if vt == tt:
+                sigma1.remove(vt)
+
+        # Union the two substitution sets
+        result = SubstituteTerm()
+        result.subs = sigma1.subs | theta1.subs
+        return result
 
     def __call__(self, term: Term) -> Term:
         """Apply substitution to term."""
         return self._applysub(term)
 
     def _termSubstituteHelper(self, term: Term) -> Term:
-        return_value = term
         # If there is nothing in the substitution set, return the same term
-        if len(self.subs) > 0:
-            sub_vars, sub_terms = zip(*self.subs)
-            # If the term matches something in the substitution set, return the mapping
-            if term in sub_vars:
-                return_value = sub_terms[sub_vars.index(term)]
-            # Otherwise, if the term is a function, recurse down
-            elif isinstance(term, FuncTerm):
-                arguments = list(term.arguments)
-                for i, t in enumerate(arguments):
-                    arguments[i] = self._termSubstituteHelper(t)
-                term.arguments = arguments
-                return_value = term
-        return return_value
+        if len(self.subs) == 0:
+            return term
+
+        # Recurse down if term is a FuncTerm
+        if isinstance(term, FuncTerm):
+            new_arguments = [
+                self._termSubstituteHelper(t)
+                for t in term.arguments
+            ]
+            term.arguments = new_arguments
+            return term
+
+            # Note: Can't do the below because it simplifies with xor
+            # which breaks some of the crypto procedures.
+            # return term.function(*new_arguments)
+
+        # If term is a variable in the substitution
+        # then return its substitute
+        if isinstance(term, Variable):
+            for sub_var, sub_term in self.subs:
+                if term == sub_var:
+                    return deepcopy(sub_term)
+
+        return term
 
     def _subSort(self, subs: Set) -> list:
         #creates an ordered list of formatted strings from the substitutions

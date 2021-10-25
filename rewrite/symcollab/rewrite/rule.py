@@ -5,9 +5,9 @@ some useful operations with them.
 """
 from typing import overload, List, Optional, Union, Dict
 from copy import deepcopy
-from symcollab.algebra import Variable, Constant, Term, Function, \
-    FuncTerm, get_vars, SortMismatch, SubstituteTerm
-from symcollab.Unification.unif import unif
+from symcollab.algebra import Constant, Equation, Function, \
+    FuncTerm, get_vars, SortMismatch, SubstituteTerm, Term, Variable
+from symcollab.Unification import unify
 
 __all__ = ['freeze', 'converse', 'RewriteRule', 'Position']
 
@@ -95,10 +95,9 @@ class RewriteRule:
     Takes a hypothesis and a conclusion and
     applies them to a term when given.
     """
-    def __init__(self, hypothesis: Term, conclusion: Term, unif_algo=unif):
+    def __init__(self, hypothesis: Term, conclusion: Term):
         self.hypothesis = hypothesis
         self.conclusion = conclusion
-        self.unif_algo = unif_algo
 
     def apply(self, term: Term, pos: Optional[Position] = None) \
     -> Optional[Union[Dict[Position, Term], Term]]:
@@ -152,7 +151,7 @@ class RewriteRule:
             overlaping_vars = _getOverlapVars(term, self.hypothesis, self.conclusion)
         # Perform matching and substitution
         frozen_term = freeze(term)
-        sigma = self.unif_algo(self.hypothesis, frozen_term)
+        sigma = unify({Equation(self.hypothesis, frozen_term)})
         return self.conclusion * sigma if sigma is not False else None
 
     def _apply_pos(self, term: Term, pos: Position) -> Optional[Term]:

@@ -15,7 +15,7 @@ from typing import Set
 from symcollab.algebra import *
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.flat import flat
-from . import Unification_Algorithms
+from .registry import Unification_Algorithms
 #from itertools import combinations
 
 @Unification_Algorithms.register("E_AC")

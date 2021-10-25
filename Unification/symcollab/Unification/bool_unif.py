@@ -3,7 +3,7 @@ import functools
 
 from copy import deepcopy
 from symcollab.xor.xorhelper import *
-from . import Unification_Algorithms
+from .registry import Unification_Algorithms
 
 class BFunction:
     def __init__(self, symbol : str, arity : int):

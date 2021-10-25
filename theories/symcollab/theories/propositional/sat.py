@@ -7,13 +7,13 @@ from functools import reduce
 from operator import itemgetter
 from typing import List, Set, Tuple
 from ..predicate import Predicate
-from .literal import Clause, Literal, negate, is_negative
+from .literal import Clause, negate, is_negative
 
 __all__ = ['davis_putnam', 'dpll']
 
-def _unit_propogation(x: List[Clause]) -> List[Clause]:
+def _unit_propagation(x: List[Clause]) -> List[Clause]:
     """
-    Applies unit propogation.
+    Applies unit propagation.
 
     If there is a clause with one literal p then
     (1) Remove clauses containing p
@@ -144,9 +144,9 @@ def davis_putnam(x: List[Clause]) -> bool:
     Davis-Putnam procedure for deciding
     satisfiability from CNF clauses.
 
-    This is called recursively with the
-    following rules applied from high to lowest precedance:
-    Unit Progation, Affirmative-Negative, Resolution.
+    This is called recursively and it applies
+    the first rule that matches: Unit Propagation,
+    Affirmative-Negative, Resolution.
     """
     # Base Cases
     if len(x) == 0:
@@ -154,8 +154,8 @@ def davis_putnam(x: List[Clause]) -> bool:
     if [] in x:
         return False
 
-    # (1) Unit Propogation
-    x_new = _unit_propogation(x)
+    # (1) Unit Propagation
+    x_new = _unit_propagation(x)
     if x_new != x:
         return davis_putnam(x_new)
 
@@ -173,9 +173,9 @@ def dpll(x: List[Clause]) -> bool:
     Davis-Putnam-Logemann-Loveland procedure for
     deciding satisfiability from CNF clauses.
 
-    This is called recursively with the
-    following rules applied from high to lowest precedance:
-    Unit Progation, Affirmative-Negative, Splitting.
+    This is called recursively and it applies
+    the first rule that matches: Unit Propagation,
+    Affirmative-Negative, Splitting.
     """
     # Base Cases
     if len(x) == 0:
@@ -183,8 +183,8 @@ def dpll(x: List[Clause]) -> bool:
     if [] in x:
         return False
 
-    # (1) Unit Propogation
-    x_new = _unit_propogation(x)
+    # (1) Unit Propagation
+    x_new = _unit_propagation(x)
     if x_new != x:
         return dpll(x_new)
 

@@ -1,6 +1,7 @@
 """
 Propositional Logic
 """
+from .core import *
 from .simplify import *
 from .nnf import *
 from .literal import *

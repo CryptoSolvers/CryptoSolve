@@ -76,7 +76,7 @@ class Sort:
 
 class Function:
     """
-    A symbolic representation of a function.
+    A symbolic representation of a uninstantiated function.
 
     This class provides a callable symbolic representation of a function
     that can be used to create instantiations of terms called FuncTerms.
@@ -96,6 +96,11 @@ class Function:
     range_sort : AnySort
         The sort to restrict the output to.
 
+    theory: str
+        The class of Equational Theory that this function falls under.
+        For example: AC, C, I, etc. By default "". This determines
+        the decision procedure called when calling unification.
+
     Examples
     --------
     >>> from symcollab.algebra import *
@@ -106,12 +111,13 @@ class Function:
     """
     def __init__(self, symbol: str, arity: int,
                  domain_sort: Union[Optional[Sort], List[Optional[Sort]]] = None,
-                 range_sort: Optional[Sort] = None):
+                 range_sort: Optional[Sort] = None, theory: str = ""):
         assert arity >= 0
         self.symbol = symbol
         self.domain_sort = domain_sort
         self.range_sort = range_sort
         self.arity = arity
+        self.theory = theory
 
         # If the domain sort is a list, make sure it has a one-to-one mapping with the arguments
         if isinstance(domain_sort, list):
@@ -142,7 +148,8 @@ class Function:
         return type(self) == type(x) \
             and self.symbol == x.symbol \
             and self.domain_sort == x.domain_sort \
-            and self.range_sort == x.range_sort
+            and self.range_sort == x.range_sort \
+            and self.theory == x.theory
 
 class Variable:
     """

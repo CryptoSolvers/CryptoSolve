@@ -4,9 +4,9 @@ disjunction normal form and to check
 whether it is in disjunction normal form
 """
 from typing import List
-from ..predicate import And, atoms, Formula, \
-    Iff, Imp, Not, Or, Predicate, \
-    satisfiable_valuations, Valuation
+from ..predicate import And, Formula, Not, \
+    Or, Predicate, Valuation
+from .core import atoms, satisfiable_valuations
 from .literal import Clause, literals
 from .simplify import prop_simplify
 
@@ -63,10 +63,6 @@ def is_dnf(formula: Formula, and_found: bool = False) -> bool:
     if isinstance(formula, Not):
         return isinstance(formula.subformula, (bool, Predicate))
 
-    # Connectives Iff and Imp are not allowed
-    if isinstance(formula, (Iff, Imp)):
-        return False
-
     if isinstance(formula, And):
         return is_dnf(formula[0], True) and is_dnf(formula[1], True)
 
@@ -76,7 +72,8 @@ def is_dnf(formula: Formula, and_found: bool = False) -> bool:
             return False
         return is_dnf(formula[0], False) and is_dnf(formula[1], False)
 
-    raise ValueError(f"Unknown type: {formula.__class__.__name__}")
+    # Otherwise False (Iff, Imp, ForAll, Exists)
+    return False
 
 def dnf_clauses(formula: Formula, checked_dnf: bool = False) -> List[Clause]:
     """
@@ -92,7 +89,7 @@ def dnf_clauses(formula: Formula, checked_dnf: bool = False) -> List[Clause]:
     if isinstance(formula, And):
         return [literals(formula[0]) + literals(formula[1])]
 
-    # Assume Or
+    # Assume Or since others will fail is_dnf check above
     subformula0 = formula[0]
     subformula1 = formula[1]
     return dnf_clauses(subformula0, True) + dnf_clauses(subformula1, True)

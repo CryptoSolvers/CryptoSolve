@@ -1,5 +1,7 @@
-"""Simplification rules for propositional logic"""
-from ..predicate import Not, Formula, And, Or, Iff, Imp, Predicate
+"""Simplification rules for propositional logic
+"""
+from ..predicate import And, Connective, Formula, \
+    Iff, Imp, Not, Or, Predicate
 
 __all__ = ['prop_simplify']
 
@@ -24,13 +26,13 @@ def _prop_simplify_and(subformula0: Formula, subformula1: Formula):
     """
     # And(x0, False) -> False
     # And(False, x1) -> False
-    if not subformula0 or not subformula1:
+    if subformula0 is False or subformula1 is False:
         return False
     # And(True, x1) -> x1
-    if subformula0:
+    if subformula0 is True:
         return subformula1
     # And(x0, True) -> x0
-    if subformula1:
+    if subformula1 is True:
         return subformula0
     # And(x, Not(x)) -> False
     if isinstance(subformula1, Not) \
@@ -53,13 +55,13 @@ def _prop_simplify_or(subformula0: Formula, subformula1: Formula):
     """
     # Or(True, x1) -> True
     # Or(x0, True) -> True
-    if subformula0 == True or subformula1 == True:
+    if subformula0 is True or subformula1 is True:
         return True
     # Or(False, x1) -> x1
-    if not subformula0:
+    if subformula0 is False:
         return subformula1
     # Or(x0, False) -> x0
-    if not subformula1:
+    if subformula1 is False:
         return subformula0
     # Or(x, Not(x)) -> True
     if isinstance(subformula1, Not) \
@@ -81,13 +83,13 @@ def _prop_simplify_imp(subformula0: Formula, subformula1: Formula):
     """
     # Imp(False, x1) -> True
     # Imp(x0, True) -> True
-    if not subformula0 or subformula1 == True:
+    if subformula0 is False or subformula1 is True:
         return True
     # Imp(True, x1) -> x1
-    if subformula0 == True:
+    if subformula0 is True:
         return subformula1
     # Imp(x0, False) -> Not(x0)
-    if not subformula1:
+    if subformula1 is False:
         return Not(subformula0)
     # Imp(x, x) -> True
     if subformula0 == subformula1:
@@ -100,16 +102,16 @@ def _prop_simplify_iff(subformula0: Formula, subformula1: Formula):
     propositional logic.
     """
     # Iff(True, x1) -> x1
-    if subformula0 == True:
+    if subformula0 is True:
         return subformula1
     # Iff(x0, True) -> x0
-    if subformula1 == True:
+    if subformula1 is True:
         return subformula0
     # Iff(False, x1) -> Not(x1)
-    if not subformula0:
+    if subformula0 is False:
         return Not(subformula1)
     # Iff(x0, False) -> Not(x0)
-    if not subformula1:
+    if subformula1 is False:
         return Not(subformula0)
     # Iff(x, x) -> True
     if subformula0 == subformula1:
@@ -129,6 +131,10 @@ def prop_simplify(formula: Formula) -> Formula:
     if isinstance(formula, Not):
         subformula = prop_simplify(formula.subformula)
         return _prop_simplify_not(subformula)
+
+    # Non-propositional ForAll, Exists, etc gets returned
+    if not isinstance(formula, Connective):
+        return formula
 
     # Conjunctive Cases
     subformula0 = prop_simplify(formula[0])

@@ -59,5 +59,6 @@ def literals(formula: Formula, checked_nnf: bool = False) -> List[Literal]:
         raise ValueError("Function 'literals' expects formula in NNF.")
     if isinstance(formula, (bool, Predicate, Not)):
         return [formula]
-    # Assume connective
+    # Assume connective since others will raise an error
+    # in is_nnf
     return literals(formula[0], True) + literals(formula[1], True)
