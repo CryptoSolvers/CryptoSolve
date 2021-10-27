@@ -73,16 +73,16 @@ i = 0
 while True:
     mgen = deepcopy(last_mgen)
     t = next(mgen)
-    print("Testing MOO", t, "... ")
+    print("Testing MOO", t, "... ",end="")
     tm = CustomMOO(t)
 
     try:
         if isinstance(t, XorTerm):
-            check_result = moo_check(tm.name, 'every', XOR_rooted_security, 5, True, True)
+            check_result = moo_check(tm.name, 'every', XOR_rooted_security, 3, True, True)
         else:
-            check_result = moo_check(tm.name, 'every', p_unif, 5, True, True)
+            check_result = moo_check(tm.name, 'every', p_unif, 3, True, True)
 
-        print(check_result)
+        print(f"Secure: {check_result.secure}, Invertible: {check_result.invert_result}")
         moo_tested[t] = check_result
 
     except Exception as e:
