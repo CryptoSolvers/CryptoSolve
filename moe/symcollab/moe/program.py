@@ -20,7 +20,7 @@ class MOOFrame:
     """
     message: Term
     substitutions: SubstituteTerm
-    
+
     def __str__(self):
         return str(self.substitutions)
 
@@ -46,7 +46,7 @@ class MOOProgram:
         self.iteration: int = 0
         # TODO: Maybe consider generating a uuid for the IV, so that
         # it is different across sessions?
-        self.nonces: List[Constant] = [Constant("IV")]
+        self.nonces: List[Constant] = [Constant("r")]
         self.plain_texts: List[Term] = list()
         self.cipher_texts: List[Term] = list()
         self.stopped = False

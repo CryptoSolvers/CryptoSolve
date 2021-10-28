@@ -33,7 +33,8 @@ class CustomMOO:
                         # If we request for a cipher block that doesn't exist yet
                         # due to the current session length
                         # then map the subterm to a different nounce
-                        sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
+                        #sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
+                        sigma.add(subterm, Constant(IV.symbol))
                     else:
                         sigma.add(subterm, P[-j])
             elif subterm.symbol[0] == "C":
@@ -42,7 +43,8 @@ class CustomMOO:
                     # If we request for a cipher block that doesn't exist yet
                     # due to the current session length
                     # then map the subterm to a different nounce
-                    sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
+                    #sigma.add(subterm, Constant(IV.symbol + f"_{j}"))
+                    sigma.add(subterm, Constant(IV.symbol))
                 else:
                     sigma.add(subterm, C[-j])
         return self.term * sigma
