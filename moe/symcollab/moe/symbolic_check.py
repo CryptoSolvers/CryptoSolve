@@ -74,50 +74,50 @@ def symbolic_check(moo_gen):
 def infer(s : Set[Equation], tm, tm_prime, moo_gen):
 	"""Apply the inference rules until no longer possible."""
 
-	print("Current set of equations: ", s)
+	#print("Current set of equations: ", s)
 	ret_value = False
 
 	s_new = elim_f(s)
 	if s != s_new:
-		print("Applied elim_f rule")
-		print("Infered set: ", s_new)
+		#print("Applied elim_f rule")
+		#print("Infered set: ", s_new)
 		return infer(s_new, tm, tm_prime, moo_gen)
 
 	s_new = elim_c(s)
 	if s != s_new:
-		print("Applied elim_c rule")
-		print("Infered set: ", s_new)
+		#print("Applied elim_c rule")
+		#print("Infered set: ", s_new)
 		return infer(s_new, tm, tm_prime,moo_gen)
 
 	s_new = occurs_check(s)
 	if s != s_new:
-		print("Applied occurs_check rule")
-		print("Infered set: ", s_new)
+		#print("Applied occurs_check rule")
+		#print("Infered set: ", s_new)
 		return infer(s_new, tm, tm_prime, moo_gen)
 
 	s_new = pick_f(s)
 	if s != s_new:
-		print("Applied pick_f rule")
-		print("Infered set: ", s_new)
+		#print("Applied pick_f rule")
+		#print("Infered set: ", s_new)
 		for s_eq in s_new:
 			ret_value = infer(s_eq, tm, tm_prime, moo_gen) or ret_value
 		return ret_value
 
 	s_new = pick_c(s, tm, tm_prime, moo_gen)
 	if s != s_new:
-		print("Applied pick_c rule")
-		print("Infered set: ", s_new)
+		#print("Applied pick_c rule")
+		#print("Infered set: ", s_new)
 		for s_eq in s_new:
 			ret_value = infer(s_eq, tm, tm_prime, moo_gen) or ret_value
 		return ret_value
 
 	s_new = pick_fail(s, moo_gen)
 	if s != s_new:
-		print("Applied pick_fail rule")
-		print("Infered set: ", s_new)
+		#print("Applied pick_fail rule")
+		#print("Infered set: ", s_new)
 		return infer(s_new, tm, tm_prime, moo_gen)
 
-	print("No rules apply!")
+	#print("No rules apply!")
 	if len(s) > 0:
 		return False
 	else:

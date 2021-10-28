@@ -264,8 +264,8 @@ def apply_cancel_rule(s):
         sub = BSubstitution([m1])
 
         (composable, new_b_sub) = sub.compose(b_sub)
-        if (not composable):
-            print("error in applying the cancel rule")
+        #if (not composable):
+        #    print("error in applying the cancel rule")
         new_attacker_term = Attacker_term(Zero_BTerm(), set_of_ints, new_b_sub)
         cancel_done.append(new_attacker_term)
         all_generated_terms.append(new_attacker_term)
@@ -298,8 +298,8 @@ def apply_cancel_rule(s):
                 new_term = sub.apply_to_term(first_raw_attacker_term)
                 new_term = new_term.simplify()
                 (composable, new_b_sub) = sub.compose(b_sub)
-                if (not composable):
-                    print("error in applying the cancel rule")
+                #if (not composable):
+                #    print("error in applying the cancel rule")
                 new_attacker_term = Attacker_term(new_term, set_of_ints, new_b_sub)
 
                 if (not (new_attacker_term in all_generated_terms)):
@@ -376,11 +376,11 @@ def apply_combine_rule(s):
                         new_term = sub.apply_to_term(new_term)
                         new_term = new_term.simplify()
                         (composable, new_b_sub) = sub.compose(b_sub1)
-                        if (not composable):
-                            print("error in applying the cancel rule")
+                        #if (not composable):
+                        #    print("error in applying the cancel rule")
                         (composable, new_b_sub) = new_b_sub.compose(b_sub2)
-                        if (not composable):
-                            print("error in applying the cancel rule")
+                        #if (not composable):
+                        #    print("error in applying the cancel rule")
                         new_attacker_term = Attacker_term(new_term, set_of_ints1 | set_of_ints2, new_b_sub)
 
                         if (not (new_attacker_term in all_generated_terms)):
