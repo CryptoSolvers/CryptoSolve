@@ -41,7 +41,7 @@ class ATerm(FuncTerm):
                 terms += [t]
         return terms
     def __eq__(self, x):
-        return isinstance(x, ATerm) and self.function == x.function and self.flatten() == x.flatten()
+        return type(self) == type(x) and self.function == x.function and self.flatten() == x.flatten()
     def __hash__(self):
         return FuncTerm.__hash__(self)
 
@@ -61,7 +61,7 @@ class CTerm(FuncTerm):
     def __init__(self, function: Function, args):
         super().__init__(function, args)
     def __eq__(self, x):
-        return isinstance(x, CTerm) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
+        return type(self) == type(x) and self.function == x.function and Counter(self.arguments) == Counter(x.arguments)
     def __hash__(self):
         return FuncTerm.__hash__(self)
 
@@ -85,7 +85,7 @@ class ACTerm(ATerm, CTerm):
     def __init__(self, function: Function, args):
         super().__init__(function, args)
     def __eq__(self, x):
-        return isinstance(x, ACTerm) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
+        return type(self) == type(x) and self.function == x.function and Counter(self.flatten()) == Counter(x.flatten())
     def __hash__(self):
         return FuncTerm.__hash__(self)
 

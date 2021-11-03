@@ -76,7 +76,7 @@ class Sort:
 
 class Function:
     """
-    A symbolic representation of a function.
+    A symbolic representation of a uninstantiated function.
 
     This class provides a callable symbolic representation of a function
     that can be used to create instantiations of terms called FuncTerms.
@@ -96,6 +96,11 @@ class Function:
     range_sort : AnySort
         The sort to restrict the output to.
 
+    theory: str
+        The class of Equational Theory that this function falls under.
+        For example: AC, C, I, etc. By default "". This determines
+        the decision procedure called when calling unification.
+
     Examples
     --------
     >>> from symcollab.algebra import *
@@ -106,12 +111,13 @@ class Function:
     """
     def __init__(self, symbol: str, arity: int,
                  domain_sort: Union[Optional[Sort], List[Optional[Sort]]] = None,
-                 range_sort: Optional[Sort] = None):
+                 range_sort: Optional[Sort] = None, theory: str = ""):
         assert arity >= 0
         self.symbol = symbol
         self.domain_sort = domain_sort
         self.range_sort = range_sort
         self.arity = arity
+        self.theory = theory
 
         # If the domain sort is a list, make sure it has a one-to-one mapping with the arguments
         if isinstance(domain_sort, list):
@@ -142,7 +148,8 @@ class Function:
         return type(self) == type(x) \
             and self.symbol == x.symbol \
             and self.domain_sort == x.domain_sort \
-            and self.range_sort == x.range_sort
+            and self.range_sort == x.range_sort \
+            and self.theory == x.theory
 
 class Variable:
     """
@@ -171,7 +178,7 @@ class Variable:
     def __eq__(self, x):
         return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
     def __deepcopy__(self, memo):
-        return Variable(self.symbol, self.sort)
+        return Variable(self.symbol, deepcopy(self.sort))
 
 class FuncTerm:
     """
@@ -195,7 +202,7 @@ class FuncTerm:
     def __init__(self, function: Function, args):
         assert len(args) == function.arity
         self.function = function
-        self._arguments = args
+        self._arguments = tuple(args)
     @property
     def sort(self):
         return self.function.range_sort
@@ -266,7 +273,7 @@ class Constant(FuncTerm):
     def symbol(self, s):
         self.function.symbol = s
     def __deepcopy__(self, memo):
-        return Constant(self.symbol, self.sort)
+        return Constant(self.symbol, deepcopy(self.sort))
 
 
 Term = Union[Variable, Constant, FuncTerm]
@@ -462,3 +469,13 @@ class Equation:
 
     def __repr__(self):
         return str(self.left_side) + " = " + str(self.right_side)
+
+    def __hash__(self):
+        return hash((self.left_side, self.right_side))
+
+    def __eq__(self, x):
+        if(type(self) != type(x)):
+            return False
+        set1 = {self.left_side, self.right_side}
+        set2 = {x.left_side, x.right_side}
+        return set1 == set2

@@ -1,5 +1,5 @@
 
 Term Library
 ============
-.. automodule:: algebra.term
+.. automodule:: symcollab.algebra.term
    :members:

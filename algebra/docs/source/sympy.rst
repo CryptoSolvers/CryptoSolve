@@ -1,4 +1,4 @@
 Sympy Integration
 =================
-.. automodule:: algebra.sympy
+.. automodule:: symcollab.algebra.sympy
    :members:

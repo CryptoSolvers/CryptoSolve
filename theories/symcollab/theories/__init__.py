@@ -1,1 +1,3 @@
-"""Module containing theories of nats, groups, rings, and fields."""
+"""Automated Reasoning Library"""
+from .predicate import *
+from .propositional import *

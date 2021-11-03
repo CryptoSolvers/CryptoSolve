@@ -1,4 +1,4 @@
 Term Substitution
 =================
-.. automodule:: algebra.substitute
+.. automodule:: symcollab.algebra.substitute
    :members:

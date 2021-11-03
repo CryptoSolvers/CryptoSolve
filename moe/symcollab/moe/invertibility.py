@@ -176,8 +176,8 @@ def InvertMOO(term: Term, plaintext: str, nonces: list, nonceone: Constant, know
     from symcollab.algebra import Constant, Variable
     from symcollab.moe.program import MOOProgram
     from symcollab.moe.check import moo_check
-    from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
-    from symcollab.Unification.p_unif import p_unif
+    from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
+    from symcollab.Unification.constrained.p_unif import p_unif
 
     result = moo_check('cipher_block_chaining', "every", p_unif, 2, True, True)
     print(result.invert_result)

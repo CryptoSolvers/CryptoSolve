@@ -6,7 +6,7 @@ block_cipher = None
 
 
 a = Analysis(['moo_client.py'],
-             pathex=['/home/raymondkauffman/Desktop/moe_code/moe/moe/gui'],
+             pathex=['/..'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -25,7 +25,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='Crypto-Solver',
+          name='CryptoSolve',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

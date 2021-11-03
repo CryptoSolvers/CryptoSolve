@@ -8,12 +8,14 @@ from symcollab.moe.custom import CustomMOO
 from symcollab.moe.program import MOOProgram
 from symcollab.moe.filtered_generator import FilteredMOOGenerator
 from symcollab.Unification.unif import unif
-from symcollab.Unification.p_syntactic import p_syntactic
+from symcollab.Unification.constrained.p_syntactic import p_syntactic
 from symcollab.Unification.ac_unif import ac_unify
-from symcollab.Unification.p_unif import p_unif
-from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.algebra import Variable
 from symcollab.algebra import Term
+from symcollab.algebra import SubstituteTerm
+from typing import List, Union
 import PySimpleGUI as sg
 import operator
 import sys
@@ -64,13 +66,15 @@ def make_window():
                     [sg.Text('Chaining Function:')],
                     [sg.Text('Schedule:')],
                     [sg.Text('Session Length Bound:')],
-                    [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Adversary knows IV?')],
+                    [sg.Text('Check for invertibility?')]]
 
     # right hand side input boxes
     t_right_column = [[sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
                     [sg.InputCombo((chaining_functions), size=box_size, default_value=chaining_functions[0])],
                     [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])],
                     [sg.InputText('10', size=box_size)],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
@@ -114,13 +118,15 @@ def make_window():
                     [sg.Text('Unification Algorithm:')],
                     [sg.Text('Schedule:')],
                     [sg.Text('Session Length Bound:')],
-                    [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Adversary knows IV?')],
+                    [sg.Text('Check for invertibility?')]]
 
     # right hand side input boxes
     c_right_column = [[sg.InputText(('f(xor(P[i],C[i-1]))'), size=box_size)],
                     [sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
                     [sg.InputCombo((schedules), size=box_size, default_value=schedules[0])],
                     [sg.InputText(('10'), size=box_size)],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
 
     # overall layout of the tab with both input titles and boxes, execute, and output box
@@ -143,10 +149,11 @@ def make_window():
                     [sg.Text('Session Length Bound:')],
                     [sg.Text('Encryption F-Bound:')],
                     [sg.Text('Based on number of MOO to Generate:')],
-                    [sg.Text('Chaining Required:', tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
+                    [sg.Text('Chaining Required:')],
                     [sg.Text('IV Required:')],
                     [sg.Text('Test Each MOO for Security:')],
-                    [sg.Text('Adversary knows IV?')]]
+                    [sg.Text('Adversary knows IV?')],
+                    [sg.Text('Check for invertibility?')]]
 
     # right hand side input boxes
     r_right_column = [[sg.InputCombo((unification_algorithms), size=box_size, default_value=unification_algorithms[0])],
@@ -155,6 +162,7 @@ def make_window():
                     [sg.InputText('6', size=box_size)],
                     [sg.InputText('4', size=box_size)],            
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No', tooltip='Chaining required disabled: False no matter what while issue is being worked on')],
+                    [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')],
                     [sg.InputCombo(('Yes', 'No'), size=box_size, default_value='No')]]
@@ -204,7 +212,7 @@ def make_window():
         selected_title_color='white',
         enable_events=True,)]]
 
-    return sg.Window('Crypto-Solver', layout, no_titlebar=False, resizable=True)
+    return sg.Window('CryptoSolve', layout, no_titlebar=False, resizable=True)
 
 # where the window is created and runs
 # contains all of the events that occur when a user does something in the gui window
@@ -225,7 +233,7 @@ def Launcher():
             break
         #print(event, values)
 
-        start, stop = 1, 5
+        start, stop = 1, 6
         result = []
         popup = True
         goodInput = True
@@ -241,7 +249,7 @@ def Launcher():
         # all tool tab events
         if event == 'Execute!':
             # check all input
-            start, stop = 1, 5
+            start, stop = 1, 6
             function = 'tool'
             for i in range(start, stop+1):
                 result.append(values[i])
@@ -252,7 +260,7 @@ def Launcher():
             if event == 'Next>>':
                 sim_next = True
             # check all input
-            start, stop = 6, 7
+            start, stop = 7, 8
             function = 'simulation'
             for i in range(start, stop):
                 result.append(values[i])
@@ -261,7 +269,7 @@ def Launcher():
         # all custom tab events
         if event == 'Execute!1':
             # check all input
-            start, stop = 8, 12
+            start, stop = 9, 14
             function = 'custom'
             for i in range(start, stop+1):
                 result.append(values[i])
@@ -269,7 +277,7 @@ def Launcher():
         # all random tab events
         if event == 'Execute!2':
             #check all input
-            start, stop = 13, 21
+            start, stop = 15, 24
             function = 'random'
             for i in range(start, stop+1):
                 result.append(values[i])
@@ -297,11 +305,10 @@ def Launcher():
                 sched = scd_dict[result[2]]
                 length_bound = restrict_to_range(int(result[3]), 0, 100)
                 knows_iv = yn_tf(result[4])
+                invert_check = yn_tf(result[5])
                 # check for security and catch exceptions
                 try:
-                    print("test1\n")
-                    result = moo_check(chaining, sched, unif, length_bound, knows_iv)
-                    print("test2\n")
+                    result = moo_check(chaining, sched, unif, length_bound, knows_iv, invert_check)
                 except ValueError as v_err:
                     message = 'ValueError: ' + str(v_err)
                     sg.Popup(message, title='VALUE ERROR')
@@ -341,8 +348,9 @@ def Launcher():
                 sched = scd_dict[result[2]]
                 length_bound = restrict_to_range(int(result[3]), 0, 100)
                 knows_iv = yn_tf(result[4])
+                invert_check = yn_tf(result[5])
                 try:
-                    result = moo_check(chaining, sched, unif, length_bound, knows_iv)
+                    result = moo_check(chaining, sched, unif, length_bound, knows_iv, invert_check)
                 except ValueError as v_err:
                     message = 'ValueError: ' + str(v_err)
                     sg.Popup(message, title='VALUE ERROR')
@@ -361,46 +369,25 @@ def Launcher():
                 length_bound = restrict_to_range(int(result[2]), 0, 100)
                 f_bound = int(result[3])
                 moo_bound = restrict_to_range(int(result[4]), 1, 100)
-                c_req = False#yn_tf(result[5])
+                c_req = yn_tf(result[5])
                 iv_req = yn_tf(result[6])
                 sec_req = yn_tf(result[7])
                 knows_iv = yn_tf(result[8])
-
+                invert_check = yn_tf(result[9])
                 # generate random moos
                 filtered_gen = FilteredMOOGenerator(1, f_bound, iv_req, c_req)
                 moo_list = (next(filtered_gen) for i in range(moo_bound))
-
+                response = ""
                 # Check security of the modes of operation
                 moo_safe_list: List[Term] = list()
-                moo_unsafe_list: List[Term] = list()
                 for random_moo_term in moo_list:
-                    print("Considering...", random_moo_term)
+                    response += str(random_moo_term) + "\n"
                     cm = CustomMOO(random_moo_term)
-                    moo_result = moo_check(cm.name, sched, unif, length_bound, knows_iv)
+                    moo_result = moo_check(cm.name, sched, unif, length_bound, knows_iv, invert_check)
                     if moo_result.secure:
                         moo_safe_list.append(random_moo_term)
-                    elif not moo_result.secure:
-                        moo_unsafe_list.append(random_moo_term)
 
-                unsafe_moos = ""
-                if len(moo_safe_list) == 0:
-                    response = "No safe MOOs found. The following MOO(s) were tested: \n"
-                    for term in moo_list:
-                        response += str(term) + "\n"
-                else:
-                    response = "Safe MOO(s) found. The following MOO(s) pass the security test: \n"
-                    print("Safe moos: \n")
-                    for term in moo_safe_list:
-                        response += str(term) + "\n"
-                        print(str(term) + "\n")
-                    if len(moo_unsafe_list) > 0:
-                        print("Unsafe moos: \n")
-                        for unsafe_term in moo_unsafe_list:
-                            unsafe_moos += str(unsafe_term) + "\n"
-                            print(str(unsafe_term) + "\n")
                 fileinfo += "Random output:\n" + response + "\n"
-                if len(moo_unsafe_list) > 0:
-                    fileinfo += "Unsafe moos: \n" + unsafe_moos + "\n"
                 window['-O4-'].update(response)
 
         # menu button events create popups
@@ -445,10 +432,28 @@ def get_response(result) -> str:
         else:
             response += "NO UNIFIERS FOUND"
     else:
-        response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) "
-        for i in result.collisions:
-            response += str(i) + " "
+        response = "MOO IS INSECURE. COLLISIONS WITH SUBSTITUTION(S) " + \
+            format_collisions(result.collisions)
+    if result.invert_result:
+        response += ", MOO is Invertible"
+    else:
+        response += ", MOO may not be Invertible"
     return response
+
+def format_collisions(subs: Union[SubstituteTerm, List[SubstituteTerm]]):
+    text = ""
+    if isinstance(subs, SubstituteTerm):
+        term_str = str(subs)
+        for line in term_str.split('\n'):
+            text += line + '\n'
+        text += '\n'
+        return text
+    for term in subs:
+        term_str = str(term)
+        for line in term_str.split('\n'):
+            text += line + '\n'
+        text += '\n'
+    return text
 
 # tuple addition
 def add_t(t1: tuple, t2: tuple) -> tuple:

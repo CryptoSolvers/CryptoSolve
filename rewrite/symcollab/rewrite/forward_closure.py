@@ -6,7 +6,7 @@ the RewriteSystem module.
 """
 from copy import deepcopy
 from typing import List, Optional
-from symcollab.algebra import Constant, Variable, Term
+from symcollab.algebra import Constant, Variable, Term, Equation
 from symcollab.Unification.unif import unif
 from .rule import RewriteRule
 from .system import RewriteSystem, normal
@@ -67,7 +67,7 @@ def overlap(rule1, rule2, rs, position):
 
     right = get_sub_term(rule1_copy.conclusion, position)
     left = rule2_copy.hypothesis
-    unifiers = unif(left, right)
+    unifiers = unif({Equation(left, right)})
     print("Left", left)
     print("Right", right)
     print(unifiers)
@@ -91,8 +91,8 @@ def check_redundancy(rule: RewriteRule, redundancy_rules: List[RewriteRule]):
     Checks redundancy of a rule against a set of redundancy rules.
     """
     for redundancy_rule in redundancy_rules:
-        hypothesis_unifiers = unif(redundancy_rule.hypothesis, rule.hypothesis)
-        conclusion_unifiers = unif(redundancy_rule.conclusion, rule.conclusion)
+        hypothesis_unifiers = unif({Equation(redundancy_rule.hypothesis, rule.hypothesis)})
+        conclusion_unifiers = unif({Equation(redundancy_rule.conclusion, rule.conclusion)})
 
         if hypothesis_unifiers is not False and conclusion_unifiers is not False:
             # If all substitutions in conclusion_unifiers present in hypothesis unifiers, return True
@@ -100,7 +100,7 @@ def check_redundancy(rule: RewriteRule, redundancy_rules: List[RewriteRule]):
                 return True
 
         for position in fpos(rule.hypothesis)[1:]:
-            unifiers = unif(redundancy_rule.hypothesis, get_sub_term(rule.hypothesis, position))
+            unifiers = unif({Equation(redundancy_rule.hypothesis, get_sub_term(rule.hypothesis, position))})
             if unifiers is not False:
                 return True
     return False
@@ -120,7 +120,7 @@ def forward_closure(rs: RewriteSystem, bound: int = 1) -> Optional[RewriteSystem
 
     for _ in range(bound):
         # Start FOV
-        new_rules = RewriteSystem(set())
+        new_rules = RewriteSystem()
         for rule, initial_rule in zip(current_new_rules, initial_rules):
             for position in fpos(rule.conclusion):
                 ov = overlap(rule, initial_rule, rs, position)

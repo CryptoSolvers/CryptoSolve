@@ -11,6 +11,7 @@ pip uninstall symcollab-theories
 pip uninstall symcollab-unification
 pip uninstall symcollab-rewrite
 pip uninstall symcollab-moe
+pip uninstall symcollab
 
 # Then setup the packages to mirror the local repo
 setup_package algebra

@@ -27,17 +27,12 @@ class Disequations:
 
 
 
-############################3
-class Zero(Constant):
-    def __init__(self):
-        super(Zero, self).__init__("0")
-        #self.arguments = []
-    def __repr__(self):
-        return "0"
-    def __hash__(self):
-        return hash("0")
-    def __eq__(self, x):
-        return isinstance(x, Zero)
+# ############################3
+def Zero():
+    return Constant("0")
+
+def is_zero(term):
+    return isinstance(term, Constant) and term == Zero()
 ###################################
 
 #########################################

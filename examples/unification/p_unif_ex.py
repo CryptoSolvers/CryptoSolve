@@ -2,7 +2,7 @@
 from symcollab.algebra import Constant, Function, Variable, Equation
 from symcollab.xor.xorhelper import *
 from symcollab.xor.structure import *
-from symcollab.Unification.p_unif import p_unif
+from symcollab.Unification.constrained.p_unif import p_unif
 from symcollab.xor import *
 
 f = Function("f", 1)

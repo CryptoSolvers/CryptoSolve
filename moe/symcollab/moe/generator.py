@@ -14,9 +14,9 @@ __all__ = ['MOOGenerator']
 class MOOGenerator():
 	"""
 	Only generates modes of operations that satisfy these parameters:
-	
+
 	max_history: int
-		The mximum number of past cipher blocks to consider for 
+		The mximum number of past cipher blocks to consider for
 		constructing a mode of operation.
 	max_f_depth: int
 		The maximum amount of nested encryption applications.
@@ -27,14 +27,20 @@ class MOOGenerator():
 
 		self.f = Function("f", 1)
 		self.r = Constant("r") # Only one nonce currently
-		self.P = lambda x: Variable(f"P[i-{x}]") if x > 0 else Variable("P[i]")
-		self.C = lambda x: Variable(f"C[i-{x}]")
-		self.tree: List[List[Term]] = [[self.f(self.P(0)), xor(self.r, self.P(0))]]
+		self.tree: List[List[Term]] = [[self.f(MOOGenerator._P(0)), xor(self.r, MOOGenerator._P(0))]]
 		self.branch_iter: Iterator[Term] = iter(self.tree[0]) # Where we are at the branch
-	
-	def __iter(self):
+
+	def __iter__(self):
 		return self
-	
+
+	@staticmethod
+	def _P(j: int) -> Term:
+		return Variable(f"P[i-{j}]") if j > 0 else Variable("P[i]")
+
+	@staticmethod
+	def _C(j: int) -> Term:
+		return Variable(f"C[i-{j}]") if j > 0 else Variable("C[i]")
+
 	# This function will only show for what is currently computedbut it is helpful
 	# for preventing repeats of the same calculations
 	def __contains__(self, x):
@@ -51,21 +57,21 @@ class MOOGenerator():
 			if(_check_f_depth(m) < self.max_f_depth):
 				temp.append(self.f(m))
 			temp.append(xor(m, self.r))
-			temp.append(xor(m, self.P(0)))
+			temp.append(xor(m, MOOGenerator._P(0)))
 			# Iterate through previous blocks
 			for i in range(min(len(self.tree), self.max_history)):
-				temp.append(xor(m, self.P(i + 1)))
-				temp.append(xor(m, self.C(i + 1)))
+				temp.append(xor(m, MOOGenerator._P(i + 1)))
+				temp.append(xor(m, MOOGenerator._C(i + 1)))
 			# Filter out terms that are already generated or
 			# have a depth of less than one
-			temp = filter(lambda x: 
+			temp = filter(lambda x:
 						  x not in self and \
 						  not isinstance(x, Variable) and \
 						  not isinstance(x, Constant),
 						  temp)
 			branch.extend(temp)
 		return branch
-	
+
 	def __next__(self):
 		"""Returns next mode of operation term."""
 		try:

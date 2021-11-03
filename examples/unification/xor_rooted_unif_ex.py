@@ -1,5 +1,5 @@
 from symcollab.algebra import Constant, Variable, Function
-from symcollab.Unification.xor_rooted_unif import *
+from symcollab.Unification.constrained.xor_rooted_unif import *
 
 
 

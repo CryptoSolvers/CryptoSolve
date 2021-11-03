@@ -30,7 +30,7 @@ class Lemma:
         self.conclusion = conclusion if conclusion is not None else Boolean.trueb
         self.unproven_subgoals: List['Lemma'] = list()
         self.proven_subgoals: List['Lemma'] = list()
-        self.hypotheses = RewriteSystem(set())
+        self.hypotheses = RewriteSystem()
         self._auto_load_systems()
 
     def add_hypotheses(self, r: Union[RewriteRule, RewriteSystem, Type[TheorySystem]]):
@@ -150,7 +150,7 @@ class Lemma:
 
 def simplify(x: Term, bound: int = -1):
     """Load in theory systems needed to normalize a term."""
-    hypotheses = RewriteSystem({})
+    hypotheses = RewriteSystem()
     sorts = set((v.sort for v in get_vars_or_constants(x, True)))
     for sort in sorts:
         tsystem: Optional[TheorySystem] = system_from_sort(sort)

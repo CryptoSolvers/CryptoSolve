@@ -1,7 +1,7 @@
 """
 Contains various schedules for MOO Programs
 """
-from .callable_registry import CallableRegistry
+from symcollab.algebra.callable_registry import CallableRegistry
 
 __all__ = ['MOO_Schedule']
 

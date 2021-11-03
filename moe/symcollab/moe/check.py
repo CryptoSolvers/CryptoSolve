@@ -4,14 +4,15 @@ Module to check security of modes of operations.
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
-from symcollab.algebra import SubstituteTerm, Term, Variable
-from symcollab.Unification.p_unif import p_unif
+from symcollab.algebra import Constant, Function, SubstituteTerm, Term, Variable
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.xor.structure import Zero
 from .program import MOOProgram
 from .collisions import find_collision
 from .syntactic_check import moo_depth_random_check
 from .invertibility import InvertMOO
-
+from .symbolic_check import symbolic_check
 
 __all__ = ['moo_check']
 
@@ -44,35 +45,54 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     result = None
     invertible = False
     # Start interactions
-    
+
+    # Custom case seems to fail, but it may be a parse error
+    # xor(f(C[i-1]),xor(f(f(C[i-1])),P[i])) does not parse, but it is correct.
+
+    def symbolic_moo_gen(session_label, block_label):
+        c = Function("C", 3)
+        p = Constant(session_label)
+        i = Constant(block_label)
+        a = Constant("1")
+        pList = [Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}"),Variable(f"x{session_label}{block_label}")]
+        cList = [c(p, i, a),c(p, i, a),c(p, i, a)]
+        return program.chaining_function(3, [0], pList, cList)
+
+    symbolic_check_secure = symbolic_check(symbolic_moo_gen)
+    #print("Result :", symbolic_check_secure)
+
     for i in range(1, length_bound + 1):
         plaintext = Variable(f"x_{i}")
         constraints[plaintext] = deepcopy(known_terms)
-        known_terms.append(plaintext)
+        if unif_algo != XOR_rooted_security:
+            known_terms.append(plaintext)
 
         result = program.rcv_block(plaintext)
         if result is not None:
             ciphertext = unravel(result.message, result.substitutions)
-            
+
             #check for invertibility
             if invert_check and i == 1:
                 invertible = InvertMOO(ciphertext, f"x_{i}", program.nonces, program.nonces[0], knows_iv)
 
             # Check for syntactic security
-            if len(ciphertexts_received) > 1:
-                last_ciphertext = ciphertexts_received[-1]
-                if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
-                    return MOOCheckResult(True, None, invertible)
+            #if len(ciphertexts_received) > 1:
+            #    last_ciphertext = ciphertexts_received[-1]
+            #    if moo_depth_random_check(last_ciphertext, ciphertext, constraints):
+            #        return MOOCheckResult(True, None, invertible, i)
+            if symbolic_check_secure:
+                return MOOCheckResult(True, None, invertible)
 
             # Check for collisions
+            new_constraints = deepcopy(constraints)
             collisions = search_for_collision(
                 ciphertext,
                 ciphertexts_received,
-                constraints,
+                new_constraints,
                 unif_algo
             )
             if any_unifiers(collisions):
-                return MOOCheckResult(False, collisions, invertible)
+                return MOOCheckResult(False, collisions, invertible, i)
 
             known_terms.append(ciphertext)
             ciphertexts_received.append(ciphertext)
@@ -86,11 +106,11 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
         ciphertext = unravel(last_result.message, last_result.substitutions)
         collisions = search_for_collision(ciphertext, ciphertexts_received, constraints, unif_algo)
         if any_unifiers(collisions):
-            return MOOCheckResult(False, collisions, invertible)
+            return MOOCheckResult(False, collisions, invertible, length_bound + 1)
 
     # If we got this far then no unifiers were found
     print("No unifiers found.")
-    return MOOCheckResult(False, None, invertible)
+    return MOOCheckResult(False, None, invertible, -1)
 
 
 def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
@@ -100,6 +120,12 @@ def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
     Search through the known ciphertext history and see if there are any collisions
     between the current ciphertext and a past one.
     """
+    if unif_algo == XOR_rooted_security:
+        terms = deepcopy(previous_ciphertexts)
+        terms.append(ciphertext)
+        unifiers = XOR_rooted_security(terms, constraints).solve()
+        return unifiers
+
     collisions = None
     for known_ciphertext in previous_ciphertexts:
         collisions = find_collision(known_ciphertext, ciphertext, constraints, unif_algo)
@@ -139,10 +165,13 @@ class MOOCheckResult:
     collisions
       Result of the unification algorithm attempting to find a
       substitution that causes two ciphertexts to collapse to zero.
+    invert_result
+      Whether or not the MOO is invertible
     """
     syntactic_result: bool
     collisions: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]
     invert_result: bool
+    iterations_needed: int
 
     @property
     def secure(self) -> bool:

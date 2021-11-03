@@ -11,13 +11,15 @@
 
 #!/usr/bin/env python3
 from copy import deepcopy
+from typing import Set
 from symcollab.algebra import *
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.flat import flat
+from .registry import Unification_Algorithms
 #from itertools import combinations
 
-
-def eac_unif(U: set):
+@Unification_Algorithms.register("E_AC")
+def eac_unif(U: Set[Equation]):
 	
 	unif_problems = dict()
 	U2 = set()
@@ -69,7 +71,7 @@ def eac_unif(U: set):
 	print("EAC Unification is complete")
 	return U4
 	
-def R1(U2: set):
+def R1(U2: Set[Equation]):
 	
 	var_count = [0]
 	UP=list()
@@ -215,7 +217,7 @@ def rule_c4(UP: list, var_count):
 	
 	return(UP)
 	
-def rule_a(U2: set):
+def rule_a(U2: Set[Equation]):
 	#Rule (a)
 	Uremove = set()
 	for e in list(U2):
@@ -232,7 +234,7 @@ def rule_a(U2: set):
 			Uremove.add(e)
 	return U2
 					
-def rule_b_c(U2: set):
+def rule_b_c(U2: Set[Equation]):
 	#Rule (b) and (c)
 	#exp terms with the same base or the same exp
 	Uremove = set()
@@ -260,7 +262,7 @@ def rule_b_c(U2: set):
 	return U2
 	
 	
-def rule_d(U2: set):
+def rule_d(U2: Set[Equation]):
 	#Rule (d)
 	#two g-terms
 	Uremove=set()
@@ -283,7 +285,7 @@ def rule_d(U2: set):
 	
 	
 	
-def rule_e(U2: set, var_count):
+def rule_e(U2: Set[Equation], var_count):
 	#Rule (e) 
 	# exp and a g term
 	Uremove=set()
@@ -316,7 +318,7 @@ def rule_e(U2: set, var_count):
 						U2.remove(e2)
 	return U2
 	
-def rule_i(U2: set, var_count):
+def rule_i(U2: Set[Equation], var_count):
 	#Rule (i), fourth of 4 exp = exp rules
 	Uremove=set()
 	U3=Utemp=set()
@@ -348,7 +350,7 @@ def rule_i(U2: set, var_count):
 	U2 = U2.union(Utemp)
 	return U2
 	
-def rule_f(U2: set, var_count):
+def rule_f(U2: Set[Equation], var_count):
 	#Rule (f), first of 4 exp = exp rules
 	Uremove=set()
 	U3=Utemp=set()
@@ -381,7 +383,7 @@ def rule_f(U2: set, var_count):
 	U2 = U2.union(Utemp)
 	return U2
 	
-def rule_h(U2: set, var_count):
+def rule_h(U2: Set[Equation], var_count):
 	#Rule (h), third of 4 exp = exp rules
 	Uremove=set()
 	U3=Utemp=set()
@@ -433,7 +435,7 @@ def rule_h(U2: set, var_count):
 	U2 = U2.union(Utemp)
 	return U2
 	
-def rule_g(U2: set):
+def rule_g(U2: Set[Equation]):
 	#Rule (g), second of 4 exp = exp rules
 	Utemp=set()
 	Utemp = U2
@@ -455,7 +457,7 @@ def rule_g(U2: set):
 
 #Failure rules
 
-def fail_rules(U2: set):
+def fail_rules(U2: Set[Equation]):
 	test = False
 	for e in list(U2):
 		if isinstance(e.right_side, FuncTerm) and str(e.right_side.function) == "f":
@@ -464,7 +466,7 @@ def fail_rules(U2: set):
 					test = True
 	return(test)
 
-def setpartitions(S: set):
+def setpartitions(S: Set[Equation]):
 	n = len(S)
 	C = list()
 	U = list()

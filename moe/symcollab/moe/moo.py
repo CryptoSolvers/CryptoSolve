@@ -3,8 +3,8 @@ This module contains Modes of Operations
 that can be used by the MOO-Program.
 """
 from symcollab.algebra import Function
+from symcollab.algebra.callable_registry import CallableRegistry
 from symcollab.xor import xor
-from .callable_registry import CallableRegistry
 
 __all__ = ['MOO']
 

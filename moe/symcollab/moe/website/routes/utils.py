@@ -7,10 +7,10 @@ from typing import List, Union
 from flask import render_template, Markup
 from symcollab.algebra import SubstituteTerm
 from symcollab.Unification.unif import unif
-from symcollab.Unification.p_syntactic import p_syntactic
+from symcollab.Unification.constrained.p_syntactic import p_syntactic
 from symcollab.Unification.ac_unif import ac_unify
-from symcollab.Unification.p_unif import p_unif
-from symcollab.Unification.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained.p_unif import p_unif
+from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 
 navigation = [
     dict(href='/', caption='Tool'),
@@ -70,4 +70,4 @@ def valid_moo_unif_pair(moo_string: str, unif_choice) -> bool:
     return moo_string in supported_chaining
 
 
-render_moo_template = partial(render_template, title="MOO Tool", navigation=navigation)
+render_moo_template = partial(render_template, title="CryptoSolve", navigation=navigation)

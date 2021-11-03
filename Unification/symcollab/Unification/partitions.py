@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from copy import deepcopy
+from typing import Set
 
 
-def setpartitions(S: set):
+def setpartitions(S: Set[Equation]):
 	n = len(S)
 	C = list()
 	U = list()

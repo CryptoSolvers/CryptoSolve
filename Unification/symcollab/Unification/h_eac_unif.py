@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+from typing import Set
 from symcollab.algebra import Variable, SubstituteTerm, FuncTerm
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.eac_unif import R1
 from symcollab.Unification.flat import flat
+from .registry import Unification_Algorithms
 
 #H_AC(R_1) unification 
 #Using the new hierarrchical method
@@ -17,8 +19,8 @@ from symcollab.Unification.flat import flat
 # \Sigma_1 = {exp, g}                       #
 #############################################
 
-
-def h_eac(U: set):
+@Unification_Algorithms.register('H_AC(R_1)')
+def h_eac(U: Set[Equation]):
 	#H_E rules
 	P = list()
 	P.append(U)
@@ -34,7 +36,7 @@ def h_eac(U: set):
 	print(P)
 		
 	
-def coalesce(U2: set):
+def coalesce(U2: Set[Equation]):
 	#Rule (a)
 	Uremove = set()
 	for e in list(U2):
@@ -51,12 +53,12 @@ def coalesce(U2: set):
 			Uremove.add(e)
 	return U2
 	
-def split_flatten(U2: set):
+def split_flatten(U2: Set[Equation]):
 	U2 = flat(U2)
 	return(U2)
 
 
-def solve(U2: set):
+def solve(U2: Set[Equation]):
 	#collect the \Sigma_0 terms
 	f_terms = set()
 	for e in U2:
