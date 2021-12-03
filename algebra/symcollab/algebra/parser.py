@@ -137,12 +137,17 @@ class Parser:
         args: List[str] = []
         parenthesis = False
         start_i = 0
+        counter = 0
         for i, c in enumerate(x):
             # If we saw an opening parenthesis,
             # we need to ignore input until the end parenthesis is matched.
             if parenthesis:
                 if c == ")":
-                    parenthesis = False
+                    counter = counter-1
+                    if counter == 0:
+                        parenthesis = False
+                elif c == "(":
+                    counter = counter+1
                 else:
                     continue
             else:
@@ -151,6 +156,7 @@ class Parser:
                     start_i = i + 1
                 elif c == "(":
                     parenthesis = True
+                    counter = counter + 1
         if parenthesis:
             raise ValueError("Parenthesis Mismatch")
         # Add last argument
