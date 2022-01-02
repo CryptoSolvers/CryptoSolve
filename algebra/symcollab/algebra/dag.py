@@ -6,6 +6,7 @@ characteristics than the recursive definition.
 """
 from typing import Dict, Tuple, Union
 from copy import deepcopy
+from networkx.drawing.nx_pydot import graphviz_layout
 import matplotlib.pyplot as plt # type: ignore
 import networkx as nx # type: ignore
 from .term import Term, FuncTerm, Function, Variable
@@ -74,7 +75,12 @@ class TermDAG:
     def show(self):
         """Plot the directed acyclic graph of the TermDAG"""
         fig = plt.figure()
-        pos = nx.spring_layout(self.dag)
+        # To see the layout rooted appropriately, you need to have
+        # graphviz installed on your system
+        try:
+            pos = graphviz_layout(self.dag, prog="dot")
+        except FileNotFoundError:
+            pos = nx.spring_layout(self.dag)
         # The first node will be colored differently to signify the start of the DAG
         nx.draw(self.dag, pos,
                 font_weight='bold',
