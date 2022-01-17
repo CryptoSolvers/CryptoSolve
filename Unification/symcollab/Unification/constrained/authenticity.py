@@ -88,6 +88,7 @@ def containsT(lst):
 
 def pickC(lst):
     #Given a list of terms containing C, returns a pair containing C and the other terms
+    #
     for t in lst:
         if(isC(t)):
             tm = t
@@ -147,8 +148,17 @@ def decompose(state):
 
 def elim_c(state):
     #Try applying the "elim_c" rule
+
+    #This rule applied if an equation is of the form: s_1 xor ... xor s_m = t_1 xor ... xor t_n,
+    #where no s_i or t_j is d-rooted or e-rooted, and some s_i is a indexed variable C.
+    #C1 xor C2 = c1 xor c2; id (applicable)
+    #C1 xor e(Tk, C2) = c1 xor e(tk, c2); id (not applicable)
+
     #If successful, returns "True" and the new state
     #Otherwise, returns "False" and the original state
+
+    #Example: C1 xor C2 = c1 xor c2; id ==> True, ; {C1 |-> c1 xor c2 xor C2}
+    #Example: C1 xor e(T, C2) = c1 xor e(T, c2); id ==> False, C1 xor e(T, C2) = c1 xor e(T, c2); id
     eqs = state.equations
     subst = state.substitution
 
@@ -178,14 +188,27 @@ def elim_c(state):
 
 def elim_tk(state):
     #Try applying the "elim_tk" rule
+
+    #This rule applied if an equation is of the form: s_1 xor ... xor s_m = t_1 xor ... xor t_n,
+    #where no s_i or t_j is d-rooted or e-rooted, and some s_i is a indexed variable Tk.
+    #Tk = tk; id (applicable)
+    #Tk xor e(Tk, C1) = tk xor e(tk, c1); id (not applicable)
+
     #If successful, returns "True" and the new state
     #Otherwise, returns "False" and the original state
-    return state
+
+    #Example: Tk = tk; id ==> true, ; {Tk |-> tk}
+    #Example: Tk xor e(Tk, C1) = tk xor e(tk, c1); id ==> false, Tk xor e(Tk, C1) = tk xor e(tk, c1); id
+    return (False, state)
 
 def split(state):
     #Try applying the "split" rule
+    #This rule applied if an equation is of the form: s_1 xor e(...) = t_1 xor e(...)
+    #or s_1 xor d(...) = t_1 xor d(...)
     #If successful, returns "True" and the new state
     #Otherwise, returns "False" and the original state
+    #Example: s_1 xor e(...) = t_1 xor e(...); id ==> s_1 = t_1, e(...) xor e(...); id
+    #Example: s_1 = t_1; id (not applicable)
     return (False, state)
 
 def apply_rules(state):
