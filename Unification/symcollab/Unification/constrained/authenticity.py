@@ -12,16 +12,23 @@ class IndexedVariable(Variable):
 		s = self.symbol
 		newSymbol = s[0].lower() + s[1:]
 		return Constant(newSymbol)
+	def __deepcopy__(self, memo):
+        	return IndexedVariable(self.symbol, deepcopy(self.sort))
 
 def convertToConstantTerm(t):
 	if (isinstance(t, IndexedVariable)):
         	return t.convertToConstant()
+	if (isinstance(t, Constant) or isinstance(t, Variable)):
+		return t
 	if (isinstance(t, FuncTerm) and t.function.symbol == "xor"):
         	new_arguments = list(map(convertToConstantTerm, t.arguments))
         	return xor(*new_arguments)
 	if (isinstance(t, FuncTerm) and t.function.symbol != "xor"):
 		new_arguments = list(map(convertToConstantTerm, t.arguments))
 		return FuncTerm(t.function, new_arguments)
+	else:
+		print("error in convertToConstantTerm")
+		return None
 
 
 class Unification_state():
@@ -88,7 +95,6 @@ def containsT(lst):
 
 def pickC(lst):
     #Given a list of terms containing C, returns a pair containing C and the other terms
-    #
     for t in lst:
         if(isC(t)):
             tm = t
@@ -199,7 +205,9 @@ def elim_tk(state):
 
     #Example: Tk = tk; id ==> true, ; {Tk |-> tk}
     #Example: Tk xor e(Tk, C1) = tk xor e(tk, c1); id ==> false, Tk xor e(Tk, C1) = tk xor e(tk, c1); id
-    return (False, state)
+
+
+    return (True, state)
 
 def split(state):
     #Try applying the "split" rule
@@ -251,8 +259,30 @@ def summands(t):
     else:
         return [t]
 
+def trivial_subst(sub):
+    #checks if a substitution is a trivial substitution: e.g. {T |-> t, C1 |-> c1}
+    dom = sub.domain()
+    result = True
 
-# Setting up terms
+    for var in dom:
+        if(var * sub == convertToConstantTerm(var)):
+            result = False
+
+    return result
+
+def check_security(tag):
+    lhs = tag
+    rhs = convertToConstantTerm(lhs)
+    eq = Equation(lhs, rhs)
+    subst = SubstituteTerm()
+    state = Unification_state([eq], subst)
+    subst = apply_rules(state)
+    if(trivial_subst(subst)):
+        return True
+    else:
+        return False
+
+
 e = Function("e", 2)
 d = Function("d", 2)
 n = Function("n", 1)
@@ -260,17 +290,12 @@ C1 = IndexedVariable("C1")
 C2 = IndexedVariable("C2")
 T = IndexedVariable("T")
 
-lhs = e(n(n(T)), xor(C1, C2))
-rhs = convertToConstantTerm(lhs)
-eq = Equation(lhs, rhs)
-subst = SubstituteTerm()
-state = Unification_state([eq], subst)
-state.print()
-subst = apply_rules(state)
-print(subst)
+tag = e(n(n(T)), xor(C1, C2))
+secure = check_security(tag)
+if(secure):
+    print("secure")
+else:
+    print("insecure")
 
-#t = xor(C1, C2, T)
-#lst = summands(t)
-#(fst, snd) = pickC(lst)
-#print(fst)
-#print(snd)
+
+
