@@ -145,7 +145,7 @@ def decompose(state):
         flag = True
         new_eqs += [Equation(lhs._arguments[0], rhs._arguments[0])]
         new_eqs += [Equation(lhs._arguments[1], rhs._arguments[1])]
-
+        
     if(topSymbol(lhs, 'n') and topSymbol(rhs, 'n')):
         flag = True
         new_eqs += [Equation(lhs._arguments[0], rhs._arguments[0])]
@@ -205,9 +205,32 @@ def elim_tk(state):
 
     #Example: Tk = tk; id ==> true, ; {Tk |-> tk}
     #Example: Tk xor e(Tk, C1) = tk xor e(tk, c1); id ==> false, Tk xor e(Tk, C1) = tk xor e(tk, c1); id
+    eqs = state.equations
+    subst = state.substitution
 
+    first = eqs[0]
+    remaining_eqs = eqs[1:]
 
-    return (True, state)
+    lhs = first.left_side
+    rhs = first.right_side
+    lhs_summands = summands(lhs)
+    rhs_summands = summands(rhs)
+    applicable = (not containsDorE(lhs_summands)) and containsT(lhs_summands)
+    new_subst = SubstituteTerm()
+    remaining_terms = []
+    results = []
+
+    if(applicable):
+        (var, remaining_terms) = pickT(lhs_summands)
+        remaining_terms += rhs_summands
+        if(len(remaining_terms) == 1):
+            new_subst.add(var, remaining_terms[0])
+        else:
+            new_subst.add(var, xor(*remaining_terms))
+        for t in remaining_eqs:
+            results.append(Equation(t.left_side * new_subst, t.right_side * new_subst))
+
+    return (applicable, Unification_state(results, subst * new_subst))
 
 def split(state):
     #Try applying the "split" rule
@@ -258,7 +281,7 @@ def summands(t):
         return summands(first) + summands(second)
     else:
         return [t]
-
+    
 def trivial_subst(sub):
     #checks if a substitution is a trivial substitution: e.g. {T |-> t, C1 |-> c1}
     dom = sub.domain()
