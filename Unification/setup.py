@@ -12,6 +12,7 @@ setup(name="symcollab-unification",
         "mypy~=0.740",
         "mypy-extensions~=0.4.0",
         "scipy~=1.5.4",
-        "sympy==1.4"
+        "sympy==1.4",
+        "z3-solver"
     ],
 )
