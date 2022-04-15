@@ -136,6 +136,9 @@ def decompose(state):
     flag = False
     new_eqs = []
 
+    if(isinstance(lhs, Constant) and isinstance(rhs, Constant) and lhs == rhs):
+        return (True, Unification_state(remaining, subst))
+
     if(topSymbol(lhs, 'e') and topSymbol(rhs, 'e')):
         flag = True
         new_eqs += [Equation(lhs._arguments[0], rhs._arguments[0])]
@@ -232,6 +235,41 @@ def elim_tk(state):
 
     return (applicable, Unification_state(results, subst * new_subst))
 
+def split_terms(terms):
+    #Split a list of terms
+    #Example: [e(a, b), t1, t2] => (e(a, b), [t1, t2])
+
+    for t in terms:
+        if(topSymbol(t, 'e') or topSymbol(t, 'd')):
+            print("debugging:")
+            print(t)
+            terms.remove(t)
+            for tm in terms:
+                print(tm)
+            return (t, terms)
+
+def split_terms_wrt_term(terms, t1):
+    #Split a list of terms
+    #Example: [e(a, b), t1, t2], e(a, b') => (e(a, b), [t1, t2])
+
+    def same_top_symbol(t1, t2):
+        fst = topSymbol(t1, 'e') and topSymbol(t2, 'e')
+        snd = topSymbol(t1, 'd') and topSymbol(t2, 'd')
+        return fst or snd
+    def same_first_argument(t1, t2):
+        t1_arg = t1._arguments[0]
+        t2_arg = t2._arguments[0]
+        return convertToConstantTerm(t1_arg) == t2_arg
+
+    for t2 in terms:
+        if same_top_symbol(t1, t2) and same_first_argument(t1, t2):
+            print("Debug:")
+            print(t2)
+            terms.remove(t2)
+            for tm in terms:
+                print(tm)
+            return (t2, terms)
+
 def split(state):
     #Try applying the "split" rule
     #This rule applied if an equation is of the form: s_1 xor e(...) = t_1 xor e(...)
@@ -240,34 +278,68 @@ def split(state):
     #Otherwise, returns "False" and the original state
     #Example: s_1 xor e(...) = t_1 xor e(...); id ==> s_1 = t_1, e(...) xor e(...); id
     #Example: s_1 = t_1; id (not applicable)
-    return (False, state)
+    eqs = state.equations
+    subst = state.substitution
+
+    first = eqs[0]
+    remaining_eqs = eqs[1:]
+
+    lhs = first.left_side
+    rhs = first.right_side
+    lhs_summands = summands(lhs)
+    rhs_summands = summands(rhs)
+    applicable = containsDorE(lhs_summands)
+
+    if(applicable):
+        (e_term1, others1) = split_terms(lhs_summands)
+        (e_term2, others2) = split_terms_wrt_term(rhs_summands, e_term1)
+
+        eq1 = Equation(e_term1, e_term2)
+        if(len(others1) == 1):
+            eq2 = Equation(*others1, *others2)
+        else:
+            eq2 = Equation(xor(*others1), xor(*others2))
+        
+
+        remaining_eqs.append(eq1)
+        remaining_eqs.append(eq2)
+
+        return (applicable, Unification_state(remaining_eqs, subst))
+    else:
+        return (applicable, state)
 
 def apply_rules(state):
     while(not state.is_empty()):
-        print("new state:")
-        state.print()
         (successful, new_state) = decompose(state)
         if(successful):
             print("decompose rule applied.")
             state = new_state
+            print("new state:")
+            state.print()
             continue
 
         (successful, new_state) = elim_c(state)
         if(successful):
             print("elim_c rule applied.")
             state = new_state
+            print("new state:")
+            state.print()
             continue
 
         (successful, new_state) = elim_tk(state)
         if(successful):
             print("elim_tk rule applied.")
             state = new_state
+            print("new state:")
+            state.print()
             continue
 
         (successful, new_state) = split(state)
         if(successful):
             print("split rule applied.")
             state = new_state
+            print("new state:")
+            state.print()
             continue
 
     return state.get_result()
@@ -288,7 +360,7 @@ def trivial_subst(sub):
     result = True
 
     for var in dom:
-        if(var * sub == convertToConstantTerm(var)):
+        if(var * sub != convertToConstantTerm(var)):
             result = False
 
     return result
@@ -301,9 +373,9 @@ def check_security(tag):
     state = Unification_state([eq], subst)
     subst = apply_rules(state)
     if(trivial_subst(subst)):
-        return True
+        print("secure")
     else:
-        return False
+        print("insecure")
 
 
 e = Function("e", 2)
@@ -313,12 +385,13 @@ C1 = IndexedVariable("C1")
 C2 = IndexedVariable("C2")
 T = IndexedVariable("T")
 
-tag = e(n(n(T)), xor(C1, C2))
-secure = check_security(tag)
-if(secure):
-    print("secure")
-else:
-    print("insecure")
+def check1():
+    tag = e(n(n(T)), xor(C1, d(T, C2)))
+    check_security(tag)
 
+def check2():
+    tag = e(n(n(T)), xor(C1, C2))
+    check_security(tag)
 
+check1()
 
