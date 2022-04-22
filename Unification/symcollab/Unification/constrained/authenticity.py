@@ -366,6 +366,9 @@ def trivial_subst(sub):
     return result
 
 def check_security(tag):
+    if not check_syntax(tag):
+        print(f"{tag} is not a valid tag.")
+        return None
     lhs = tag
     rhs = convertToConstantTerm(lhs)
     eq = Equation(lhs, rhs)
@@ -377,21 +380,43 @@ def check_security(tag):
     else:
         print("insecure")
 
+def check_syntax(t):
+    dict = {}
+    return (topSymbol(t, 'e') or topSymbol(t, 'd')) and valid_term(t, dict)
 
-e = Function("e", 2)
-d = Function("d", 2)
-n = Function("n", 1)
-C1 = IndexedVariable("C1")
-C2 = IndexedVariable("C2")
-T = IndexedVariable("T")
+def valid_variable(x):
+    if isinstance(x, IndexedVariable):
+        return x.symbol[0] == 'C'
+    else:
+        return False
 
-def check1():
-    tag = e(n(n(T)), xor(C1, d(T, C2)))
-    check_security(tag)
+def valid_tweak(t):
+    if isinstance(t, IndexedVariable):
+        return t.symbol[0] == 'T'
+    elif isinstance(t, FuncTerm):
+        return t.function.symbol == 'n' and valid_tweak(t.arguments[0])
+    else:
+        return False
 
-def check2():
-    tag = e(n(n(T)), xor(C1, C2))
-    check_security(tag)
+def valid_term(t, dict):
+    if valid_variable(t) or valid_tweak(t):
+        return True
+    if isinstance(t, FuncTerm):
+        if t.function.symbol == 'e' or t.function.symbol == 'd':
+            first_arg = t.arguments[0]
+            second_arg = t.arguments[1]
+            if first_arg in dict and dict[first_arg] != second_arg:
+                return False
+            else:
+                dict[first_arg] = second_arg
+                return valid_tweak(first_arg) and valid_term(second_arg, dict)
+    if isinstance(t, FuncTerm) and t.function.symbol == "xor":
+        for arg in t.arguments:
+            if valid_tweak(arg) or not valid_term(arg, dict):
+                return False
+        return True
+    else:
+        return False
 
-check1()
+
 
