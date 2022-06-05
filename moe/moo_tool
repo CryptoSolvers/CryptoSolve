@@ -1,8 +1,10 @@
-#!/usr/bin/env -S python3 -i
+#!/usr/bin/env python3 -i
 from symcollab.moe import *
 from symcollab.Unification.constrained.p_unif import p_unif
 from symcollab.Unification.constrained.p_syntactic import p_syntactic
 from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
+from symcollab.Unification.constrained import *
+from symcollab.moe.check_authenticity import *
 
 ##
 ### Welcome Message
@@ -17,10 +19,16 @@ print("schedule: (str) 'every' or 'end'")
 print("length_bound: (int) the bound on the length of interactions between advesary and oracle")
 print("[optional] knows_iv: (bool) whether or not the advesary knows the initialization vector\n")
 
-print("Ex: moo_check(moo_name = 'cipher_block_chaining', schedule_name = 'every', unif_algo = p_syntactic, length_bound = 10, knows_iv = True)\n")
+print("Ex: moo_check(moo_name = 'cipher_block_chaining', schedule_name = 'every', unif_algo = p_unif, length_bound = 2, knows_iv = True)\n")
+
+print("Ex: moo_check(moo_name = 'output_feedback', schedule_name = 'every', unif_algo = XOR_rooted_security, length_bound = 10, knows_iv = True)\n")
 
 print("For help, type help(argument_name) where argument_name is a string")
-print("Ex: help('unif_algo')")
+print("Ex: help('unif_algo')\n")
+
+print("You can use the check_authenticity function for checking if authenticity is satisfied for a particular scheme.\n")
+
+print("Ex: check_authenticity('AE-Scheme1'), where 'AE-Scheme1' is predefined to be e(n(n(T)), d(n(T), xor(d(T, C1), C2)))\n")
 
 ##
 ### Help Function
