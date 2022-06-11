@@ -148,7 +148,7 @@ def decompose(state):
         flag = True
         new_eqs += [Equation(lhs._arguments[0], rhs._arguments[0])]
         new_eqs += [Equation(lhs._arguments[1], rhs._arguments[1])]
-        
+
     if(topSymbol(lhs, 'n') and topSymbol(rhs, 'n')):
         flag = True
         new_eqs += [Equation(lhs._arguments[0], rhs._arguments[0])]
@@ -299,7 +299,7 @@ def split(state):
             eq2 = Equation(*others1, *others2)
         else:
             eq2 = Equation(xor(*others1), xor(*others2))
-        
+
 
         remaining_eqs.append(eq1)
         remaining_eqs.append(eq2)
@@ -353,7 +353,7 @@ def summands(t):
         return summands(first) + summands(second)
     else:
         return [t]
-    
+
 def trivial_subst(sub):
     #checks if a substitution is a trivial substitution: e.g. {T |-> t, C1 |-> c1}
     dom = sub.domain()
@@ -376,9 +376,9 @@ def check_security(tag):
     state = Unification_state([eq], subst)
     subst = apply_rules(state)
     if(trivial_subst(subst)):
-        print("secure")
+        print("The authenticity property is satisfied.")
     else:
-        print("insecure")
+        print("The authenticity property is violated.")
 
 def check_syntax(t):
     dict = {}
