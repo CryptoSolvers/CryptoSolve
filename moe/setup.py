@@ -26,9 +26,7 @@ setup(name="symcollab-moe",
         "symcollab-unification",
         "symcollab-xor",
         # Outside dependencies
-        "Flask>=1.1.1",
-        "mypy>=0.740",
-        "mypy-extensions>=0.4.0",
+        "Flask~=2.2.2"
     ],
     data_files = data_files,
     include_package_data = True

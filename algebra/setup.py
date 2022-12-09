@@ -10,12 +10,10 @@ setup(name="symcollab-algebra",
     long_description_content_type="text/markdown",
     url="https://github.com/symcollab/cryptosolve",
     install_requires = [
-        "matplotlib~=3.1.1",
-        "mypy~=0.740",
-        "mypy-extensions~=0.4.0",
-        "networkx~=2.3",
-        "numpy~=1.17.0",
-        "sympy==1.4",
+        "matplotlib~=3.6.2",
+        "networkx~=2.8.8",
+        "numpy~=1.23.5",
+        "sympy==1.11.1",
         "pydot~=1.4.2"
     ]
 )
