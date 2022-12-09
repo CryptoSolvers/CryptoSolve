@@ -23,6 +23,8 @@ def unify(equations : Set[Equation]) -> Set[SubstituteTerm]:
     It detects the theory the terms are under and
     calls the appropriate decision procedure.
     """
+    return syntactic_unif(equations)
+    # TODO: Re-evaluate the code below
     theories : Set[str] = set()
     for equation in equations:
         theories |= _theories_in_term(equation.left_side)
