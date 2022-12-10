@@ -140,7 +140,8 @@ def eliminate(
     If the variable x doesn't occur in t, then
     G∪{x=t};S ⇒ G{x↦t};S{x↦t}∪{x↦t}
 
-    Returns None if the rule cannot be matched.
+    Returns original equations and sigma
+    if the rule cannot be matched.
     """
     matched_equation: Optional[Equation] = None
 
@@ -169,31 +170,3 @@ def eliminate(
     sigma = sigma * new_sub
 
     return new_equations, sigma
-
-
-
-
-
-################################################################
-# Decision Procedures
-
-def syntactic_unify(equations: Set[Equation]) -> Set[SubstituteTerm]:
-    """
-    Perform syntactic unification on a set of equations
-    and return a unifier as a set of
-    """
-    sigma = SubstituteTerm()
-    while len(equations) > 0:
-        if occurs_check(equations):
-            return set()
-        if function_clash(equations):
-            return set()
-        equations, sigma = eliminate(equations, sigma)
-        equations = orient(equations)
-        equations = decompose(equations)
-    return {sigma}
-
-
-
-
-
