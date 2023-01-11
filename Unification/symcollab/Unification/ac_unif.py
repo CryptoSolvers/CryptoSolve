@@ -15,9 +15,11 @@ from copy import deepcopy
 from typing import Set
 
 import numpy as np # type: ignore
-from z3 import Int, Solver
 
-from symcollab.algebra import Equation, FuncTerm, get_vars, Variable
+from sympy.solvers.diophantine.diophantine import diop_linear
+from sympy import symbols
+
+from symcollab.algebra import Equation, FuncTerm, get_vars, Variable, SubstituteTerm
 from symcollab.Unification.common import *
 
 
@@ -177,46 +179,87 @@ def convert_eq(U: Set[Equation]):
             # Update the variable count based on the
             # presense of the variable in the left and right side.
             num = LS.count(x) - RS.count(x)
-            if first:
-                var_count[x] += num
-            else:
-                var_count[x] -= num
-        first=False
+            # [NEW]
+            var_count[x] += num
+            # Removing for now, not sure if this is important
+            # if first:
+            #     var_count[x] += num
+            # else:
+            #     var_count[x] -= num
+        # first=False
     
     # Create the equation with variable coeficients
-    # being the counts above    
-    z3_solver = Solver()
-    z3_variables = []
-    z3_expression = 0
+    # being the counts above
+    sympy_expression = 0
+    sympy_variables = []
     for x, count in var_count.items():
         # Construct Z3 variable
-        z3_var = Int(x.symbol + "_0")
+        sympy_var = symbols(x.symbol + "_0", integer=True, positive=True)
 
-        # Store variables to grab solution for later
-        z3_variables.append(z3_var)
-
-        # Add strictly positive constraint
-        z3_solver.add(z3_var > 0)
+        # Store variables to associate ordering with basis vector
+        sympy_variables.append(sympy_var)
 
         # Construct part of expression
-        z3_expression += count * z3_var
+        sympy_expression += count * sympy_var
     
-    # Add completed diophantine equation as constraint
-    z3_solver.add(z3_expression == 0)
+    print("Diophantine Equation:", sympy_expression)
+    basis_vector = diop_linear(sympy_expression)
 
-    # Solve the system
-    z3_solver.check()
+    ####### TODO: Generate table until each column is at least a 1
+    # Grab unique free symbols
+    free_symbols = list({ x.free_symbols for x in basis_vector })
+    currentInstantiation = Counter({x : 0 for x in free_symbols})
 
-    # Grab solutions from solver
-    z3_model = z3_solver.model()
-    z3_solutions = dict()
-    for z3_var in z3_variables:
-        z3_solutions[z3_var] = z3_model.eval(z3_var)
 
-    # Print out resulting solutions
-    print(z3_solutions)
+    basis_table = []
+    incrementVariableIndex = 1 % len(free_symbols)
+    finish_generating = False
+    while not finish_generating:
+        # Increment free variables until the basis is valid
+        # Valid is defined as every entry being non-negative.
+        # Note: This skips the all-zero instantance on purpose
+        valid = False
+        while not valid:
+            currentInstantiation[free_symbols[incrementVariableIndex]] += 1
+            incrementVariableIndex = (incrementVariableIndex + 1) % len(free_symbols)
+            row = list(basis_vector)
+            for entry in row:
+                for var_name, count in currentInstantiation:
+                    entry = entry.sub(var_name, count)
+                    # TODO: Double check to see if the expression simplifies to an integer
+            # Check validity
+            valid = all((entry >= 0 for entry in row))
+            
+        # Add row to the table
+        basis_table.append(row)
 
-    return set() # Temporary
+        # Check to see if table is finished
+        # A table is finished if the sum of every column is greater than 0
+        finish_generating = True
+        for column in range(len(free_symbols)):
+            column_sum = 0
+            for row in basis_table:
+                column_sum += row[column]
+            if column_sum == 0:
+                finish_generating = False
+    
+    sigma = SubstituteTerm()
+    for column in range(len(free_symbols)):
+        ac_symbol = NotImplemented # TODO
+        term = None
+        for row in basis_table:
+            row_var = Variable("TODO") # TODO: Need fresh variable
+            if column[row] > 0:
+                for i in range(column[row]):
+                    if term is None: # z_2
+                        term = row_var
+                    else: # z_2 + z_4
+                        term = ac_symbol(term, row_var)
+        sigma.add(free_symbols[column], term)
+
+    # Currently returning one posisble unifier but we can keep generating
+    # using the basis vector
+    return {sigma} 
 
 
 #Assumes currently that we have a single AC-symbol
