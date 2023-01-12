@@ -13,7 +13,7 @@ To-Do:
 from collections import Counter
 from copy import deepcopy
 from itertools import product
-from typing import Set
+from typing import Set, Optional
 
 import functools
 
@@ -22,7 +22,7 @@ import numpy as np # type: ignore
 from sympy.solvers.diophantine.diophantine import diop_linear
 from sympy import symbols
 
-from symcollab.algebra import Equation, FuncTerm, get_vars, Variable, SubstituteTerm
+from symcollab.algebra import Equation, FuncTerm, get_vars, Variable, SubstituteTerm, Constant, Term, Function
 from symcollab.Unification.common import *
 
 
@@ -34,11 +34,11 @@ def within_equation(t: Term, e: Equation):
     """
     for e_part in [e.left_side, e.right_side]:
         # Split check based on Constant/Variable and FuncTerms
-        if isinstance(e2_part, (Constant, Variable)):
-            if lhs == e2_part:
+        if isinstance(e_part, (Constant, Variable)):
+            if t == e_part:
                 return True
-        if isinstance(e2_part, FuncTerm):
-            if lhs in e2_part:
+        if isinstance(e_part, FuncTerm):
+            if t in e_part:
                 return True
     return False
 
@@ -193,7 +193,7 @@ def infinite_sequences(vector_len):
         last_result = next_result
 
 
-def convert_eq(U: Set[Equation]):
+def convert_eq(U: Set[Equation], ac_symbol: Function):
     """
     Convert a set of term equations into a single
     linear homogeneous diophantine equation
@@ -216,13 +216,13 @@ def convert_eq(U: Set[Equation]):
     # Create the equation with variable coeficients
     # being the counts above
     sympy_expression = 0
-    sympy_variables = []
+    variables = []
     for x, count in var_count.items():
         # Construct Z3 variable
         sympy_var = symbols(x.symbol + "_0", integer=True, positive=True)
 
         # Store variables to associate ordering with basis vector
-        sympy_variables.append(sympy_var)
+        variables.append(x)
 
         # Construct part of expression
         sympy_expression += count * sympy_var
@@ -244,38 +244,48 @@ def convert_eq(U: Set[Equation]):
         valid = False
         while not valid:
             vector = []
+            inst = next(possible_instantiations)
             for entry in basis_vector:
-                for var_name, count in zip(free_symbols, next(possible_instantiations)):
-                    entry = entry.sub(var_name, count)
+                for var_name, count in zip(free_symbols, inst):
+                    entry = entry.subs(var_name, count)
                 vector.append(int(entry)) # TODO: Can throw an exception?
             # Check validity
             valid = all((entry >= 0 for entry in vector))
 
         # Add row to the table
-        basis_table.append(row)
+        basis_table.append(vector)
 
         # Check to see if table is finished
         # A table is finished if the sum of every column is greater than 0
         finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
 
-    # TODO: Left off here
     sigma = SubstituteTerm()
-    for column in range(len(free_symbols)):
-        ac_symbol = NotImplemented # TODO
+    for column in range(len(variables)):
         term = None
-        for row in basis_table:
-            row_var = Variable("TODO") # TODO: Need fresh variable
-            if column[row] > 0:
-                for i in range(column[row]):
-                    if term is None: # z_2
+        for i, row in enumerate(basis_table):
+            row_var = Variable("z_" + str(i)) # TODO: Make sure z_ isnt taken...
+            if row[column] > 0:
+                for _ in range(row[column]):
+                    if term is None:
                         term = row_var
                     else: # z_2 + z_4
                         term = ac_symbol(term, row_var)
-        sigma.add(free_symbols[column], term)
+        sigma.add(variables[column], term)
 
     # Currently returning one posisble unifier but we can keep generating
     # using the basis vector
     return {sigma}
+
+def get_functions(t: Term) -> Set[Function]:
+    """Return all function signatures found in a term once each"""
+    if isinstance(t, (Constant, Variable)):
+        return set()
+    
+    signatures = {t.function}
+    for ti in t.arguments:
+        signatures = signatures.union(get_functions(ti))
+    
+    return signatures
 
 
 #Assumes currently that we have a single AC-symbol
@@ -286,6 +296,14 @@ def ac_unify(U: Set[Equation]):
     if len(U) == 0:
         return False # TODO: return set()
 
+    sigs = set()
+    for u in U:
+        sigs = sigs.union(get_functions(u.left_side))
+        sigs = sigs.union(get_functions(u.right_side))
+    if len(sigs) > 1:
+        raise Exception('Can only handle one AC symbol')
+    ac_symbol = next(iter(sigs))
+
     U = delete_trivial(U)
 
     if occurs_check(U):
@@ -295,6 +313,6 @@ def ac_unify(U: Set[Equation]):
         return False # TODO: return set()
 
     # Send the problem to the diophantine solver
-    delta=convert_eq(U)
+    delta=convert_eq(U, ac_symbol)
 
     return set(delta)
