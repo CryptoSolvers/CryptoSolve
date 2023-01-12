@@ -12,7 +12,10 @@ To-Do:
 """
 from collections import Counter
 from copy import deepcopy
+from itertools import product
 from typing import Set
+
+import functools
 
 import numpy as np # type: ignore
 
@@ -76,10 +79,10 @@ def variable_replacement(equations, orignal_equations):
         # Either y occurs in the OG problem or x does not occur in the OG problem
         og_problem_check = \
             within_equations(rhs, orignal_equations) or not within_equations(lhs, orignal_equations)
-        
+
         if not og_problem_check:
             continue
-        
+
         # Make sure that both the left hand side
         # and right hand side of the equation exist
         # in any of the other equations.
@@ -91,11 +94,11 @@ def variable_replacement(equations, orignal_equations):
         if loccurs and roccurs:
             matched_equation = equation
             break
-    
+
     # If no equations are found return early
     if matched_equation is None:
         return equations
-    
+
 
     # Create the new substitution
     new_sub = SubstituteTerm()
@@ -108,10 +111,10 @@ def variable_replacement(equations, orignal_equations):
             equation.left_side * new_sub,
             equation.right_side * new_sub
         ))
-    
+
     # Add the matched equation to the result
     new_equations.add(matched_equation)
-    
+
     return new_equations
 
 
@@ -142,23 +145,52 @@ def remove_rule(equations, original_equations):
         if isinstance(rhs, FuncTerm) and lhs in rhs:
             continue
 
-        # Check x \not\in V(P^0)            
+        # Check x \not\in V(P^0)
         if within_equations(lhs, original_equations):
             continue
-        
+
         # Check x \not\in V(P)
         if within_equation(lhs, equations - {equation}):
             continue
-        
+
         matched_equation = equation
         break
 
     if matched_equation is None:
         return equations
-    
+
     return equations - {matched_equation}
 
 
+def infinite_sequences(vector_len):
+    """
+    Generate positive instantiations of a vector of a specfied length.
+
+    Ex: infinite_sequences(3)
+    [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0]. [1, 0, 1], [1, 1, 0], [1, 1, 1], ...
+    """
+    first_elem = [0 for _ in range(vector_len)]
+    yield first_elem
+    result = [first_elem]
+
+    # All the possible ways to increment a vector
+    # Skip first one since it's [0, 0, 0]
+    incr_vectors = list(product(*(range(2) for _ in range(vector_len))))[1:]
+
+    last_result = result
+
+    while True:
+        next_result = []
+        for last_inst, incr_vector in product(last_result, incr_vectors):
+            # Sum both vectors
+            possible_vector = list(map(sum, zip(last_inst, incr_vector)))
+
+            if possible_vector not in result:
+                yield possible_vector
+                next_result.append(possible_vector)
+
+        result.extend(next_result)
+        last_result = next_result
 
 
 def convert_eq(U: Set[Equation]):
@@ -179,15 +211,8 @@ def convert_eq(U: Set[Equation]):
             # Update the variable count based on the
             # presense of the variable in the left and right side.
             num = LS.count(x) - RS.count(x)
-            # [NEW]
             var_count[x] += num
-            # Removing for now, not sure if this is important
-            # if first:
-            #     var_count[x] += num
-            # else:
-            #     var_count[x] -= num
-        # first=False
-    
+
     # Create the equation with variable coeficients
     # being the counts above
     sympy_expression = 0
@@ -201,48 +226,39 @@ def convert_eq(U: Set[Equation]):
 
         # Construct part of expression
         sympy_expression += count * sympy_var
-    
+
     print("Diophantine Equation:", sympy_expression)
     basis_vector = diop_linear(sympy_expression)
 
-    ####### TODO: Generate table until each column is at least a 1
+    ####### Generate table until each column is at least a 1
     # Grab unique free symbols
-    free_symbols = list({ x.free_symbols for x in basis_vector })
-    currentInstantiation = Counter({x : 0 for x in free_symbols})
-
+    free_symbols = list(functools.reduce(lambda c, n: c.union(n), (x.free_symbols for x in basis_vector)))
+    possible_instantiations = infinite_sequences(len(free_symbols))
+    next(possible_instantiations) # Throw away all zero instantation
 
     basis_table = []
-    incrementVariableIndex = 1 % len(free_symbols)
     finish_generating = False
     while not finish_generating:
-        # Increment free variables until the basis is valid
-        # Valid is defined as every entry being non-negative.
-        # Note: This skips the all-zero instantance on purpose
+        # Instantiate free variables until a valid vector is found
+        # Valid is defined as every entry being non-negative with respect to the basis vector.
         valid = False
         while not valid:
-            currentInstantiation[free_symbols[incrementVariableIndex]] += 1
-            incrementVariableIndex = (incrementVariableIndex + 1) % len(free_symbols)
-            row = list(basis_vector)
-            for entry in row:
-                for var_name, count in currentInstantiation:
+            vector = []
+            for entry in basis_vector:
+                for var_name, count in zip(free_symbols, next(possible_instantiations)):
                     entry = entry.sub(var_name, count)
-                    # TODO: Double check to see if the expression simplifies to an integer
+                vector.append(int(entry)) # TODO: Can throw an exception?
             # Check validity
-            valid = all((entry >= 0 for entry in row))
-            
+            valid = all((entry >= 0 for entry in vector))
+
         # Add row to the table
         basis_table.append(row)
 
         # Check to see if table is finished
         # A table is finished if the sum of every column is greater than 0
-        finish_generating = True
-        for column in range(len(free_symbols)):
-            column_sum = 0
-            for row in basis_table:
-                column_sum += row[column]
-            if column_sum == 0:
-                finish_generating = False
-    
+        finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
+
+    # TODO: Left off here
     sigma = SubstituteTerm()
     for column in range(len(free_symbols)):
         ac_symbol = NotImplemented # TODO
@@ -259,7 +275,7 @@ def convert_eq(U: Set[Equation]):
 
     # Currently returning one posisble unifier but we can keep generating
     # using the basis vector
-    return {sigma} 
+    return {sigma}
 
 
 #Assumes currently that we have a single AC-symbol
@@ -274,9 +290,9 @@ def ac_unify(U: Set[Equation]):
 
     if occurs_check(U):
         return False # TODO: return set()
-    
+
     if function_clash(U):
-        return False # TODO: return set() 
+        return False # TODO: return set()
 
     # Send the problem to the diophantine solver
     delta=convert_eq(U)
