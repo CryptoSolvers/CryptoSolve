@@ -20,6 +20,7 @@ import functools
 import numpy as np # type: ignore
 
 from sympy.solvers.diophantine.diophantine import diop_linear
+from sympy.core.sorting import default_sort_key
 from sympy import symbols
 
 from symcollab.algebra import Equation, FuncTerm, get_vars, Variable, SubstituteTerm, Constant, Term, Function
@@ -216,18 +217,21 @@ def convert_eq(U: Set[Equation], ac_symbol: Function):
     # Create the equation with variable coeficients
     # being the counts above
     sympy_expression = 0
-    variables = []
+    var_map: Dict[sympy.core.Symbol, Variable] = dict()
     for x, count in var_count.items():
         # Construct Z3 variable
         sympy_var = symbols(x.symbol + "_0", integer=True, positive=True)
-
-        # Store variables to associate ordering with basis vector
-        variables.append(x)
+        var_map[sympy_var] = x
 
         # Construct part of expression
         sympy_expression += count * sympy_var
 
-    print("Diophantine Equation:", sympy_expression)
+
+    # Determine the ordering of the diophantine solver output
+    sympy_ordering = list(sympy_expression.expand(force=True).free_symbols)
+    sympy_ordering.sort(key=default_sort_key)
+
+    # Solve diophantine equation
     basis_vector = diop_linear(sympy_expression)
 
     ####### Generate table until each column is at least a 1
@@ -260,17 +264,18 @@ def convert_eq(U: Set[Equation], ac_symbol: Function):
         finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
 
     sigma = SubstituteTerm()
-    for column in range(len(variables)):
+    for column, sympy_var in enumerate(sympy_ordering):
         term = None
         for i, row in enumerate(basis_table):
             row_var = Variable("z_" + str(i)) # TODO: Make sure z_ isnt taken...
             if row[column] > 0:
+                # print(f"Add {row[column]} instances of {row_var} to {variables[column]}")
                 for _ in range(row[column]):
                     if term is None:
                         term = row_var
                     else: # z_2 + z_4
                         term = ac_symbol(term, row_var)
-        sigma.add(variables[column], term)
+        sigma.add(var_map[sympy_var], term)
 
     # Currently returning one posisble unifier but we can keep generating
     # using the basis vector
