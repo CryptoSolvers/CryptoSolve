@@ -9,158 +9,24 @@ To-Do:
 -- Add free function symbols
 -- Allow more than one AC symbol
 -- Test the solver and AC solutions
+-- Fix variable generation in algorithm
 """
 from collections import Counter
-from copy import deepcopy
 from itertools import product
-from typing import Set, Optional
+from typing import Set, Dict
 
 import functools
-
-import numpy as np # type: ignore
 
 from sympy.solvers.diophantine.diophantine import diop_linear
 from sympy.core.sorting import default_sort_key
 from sympy import symbols
+import sympy
 
-from symcollab.algebra import Equation, FuncTerm, get_vars, Variable, SubstituteTerm, Constant, Term, Function
-from symcollab.Unification.common import *
-
-
-def within_equation(t: Term, e: Equation):
-    """
-    Returns True if term t appears
-    within either the left side or right
-    side of equation e.
-    """
-    for e_part in [e.left_side, e.right_side]:
-        # Split check based on Constant/Variable and FuncTerms
-        if isinstance(e_part, (Constant, Variable)):
-            if t == e_part:
-                return True
-        if isinstance(e_part, FuncTerm):
-            if t in e_part:
-                return True
-    return False
-
-def within_equations(t: Term, equations: Set[Equation]):
-    """
-    Returns True if term t appears
-    within any of the equations provided.
-    """
-    return any(
-        within_equation(t, e) for e in equations
-    )
-
-def variable_replacement(equations, orignal_equations):
-    """
-    Source; Boudet 1990
-    Variable Replacement Rule
-
-    If x and y appear in P and either
-    y occurs in the original problem or
-    x does not occur in the original problem then
-
-    P∪{x=y} => P{x -> y}∪{x=y}
-
-    Returns original equations and sigma
-    if the rule cannot be matched.
-    """
-    matched_equation: Optional[Equation] = None
-
-    for equation in equations:
-        lhs = equation.left_side
-        rhs = equation.right_side
-
-        # Make sure both sides are variables
-        if not isinstance(lhs, Variable) or not isinstance(rhs, Variable):
-            continue
-
-        # Original problem check:
-        # Either y occurs in the OG problem or x does not occur in the OG problem
-        og_problem_check = \
-            within_equations(rhs, orignal_equations) or not within_equations(lhs, orignal_equations)
-
-        if not og_problem_check:
-            continue
-
-        # Make sure that both the left hand side
-        # and right hand side of the equation exist
-        # in any of the other equations.
-        loccurs = within_equations(lhs, equations - {equation})
-        roccurs = within_equations(rhs, equations - {equation})
-
-        # If both sides are found, we're proceeding with this equation
-        # for the rest of the rule.
-        if loccurs and roccurs:
-            matched_equation = equation
-            break
-
-    # If no equations are found return early
-    if matched_equation is None:
-        return equations
-
-
-    # Create the new substitution
-    new_sub = SubstituteTerm()
-    new_sub.add(matched_equation.left_side, matched_equation.right_side)
-
-    # Apply the new substitution to the set of equations
-    new_equations = set()
-    for equation in equations - {matched_equation}:
-        new_equations.add(Equation(
-            equation.left_side * new_sub,
-            equation.right_side * new_sub
-        ))
-
-    # Add the matched equation to the result
-    new_equations.add(matched_equation)
-
-    return new_equations
-
-
-def remove_rule(equations, original_equations):
-    """
-    Source: Boudet 1990
-    Remove rule:
-
-    If x not in the original problem and
-    x not in either s or P then
-    {x=s}∪P => P
-
-    Note: Removes useless equations
-    that do not satisfy the condition 4
-    of the definition of the dag solved form.
-    """
-    matched_equation = None
-    for equation in equations:
-        lhs = equation.left_side
-        rhs = equation.right_side
-
-        if not isinstance(lhs, Variable):
-            continue
-
-        # Check x \not\in V(s)
-        if isinstance(rhs, (Constant, Variable)) and lhs == rhs:
-            continue
-        if isinstance(rhs, FuncTerm) and lhs in rhs:
-            continue
-
-        # Check x \not\in V(P^0)
-        if within_equations(lhs, original_equations):
-            continue
-
-        # Check x \not\in V(P)
-        if within_equation(lhs, equations - {equation}):
-            continue
-
-        matched_equation = equation
-        break
-
-    if matched_equation is None:
-        return equations
-
-    return equations - {matched_equation}
+from symcollab.algebra import Equation, get_vars, Variable, SubstituteTerm, Constant, Term, Function
+from symcollab.Unification.common import (
+    delete_trivial, occurs_check, function_clash
+)
+from symcollab.Unification.registry import Unification_Algorithms
 
 
 def infinite_sequences(vector_len):
@@ -295,6 +161,7 @@ def get_functions(t: Term) -> Set[Function]:
 
 #Assumes currently that we have a single AC-symbol
 #need to update to allow other function symbols and cons
+@Unification_Algorithms.register('AC')
 def ac_unify(U: Set[Equation]):
 
     # Return no unifiers for a set of empty equations
@@ -306,7 +173,7 @@ def ac_unify(U: Set[Equation]):
         sigs = sigs.union(get_functions(u.left_side))
         sigs = sigs.union(get_functions(u.right_side))
     if len(sigs) > 1:
-        raise Exception('Can only handle one AC symbol')
+        raise Exception('Can only handle one function symbol that is AC')
     ac_symbol = next(iter(sigs))
 
     U = delete_trivial(U)

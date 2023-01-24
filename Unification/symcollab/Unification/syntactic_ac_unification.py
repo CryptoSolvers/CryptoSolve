@@ -1,9 +1,10 @@
-from .unif import unif
 from copy import deepcopy
-from symcollab.algebra import *
-from collections import Counter
-from symcollab.Unification.flat import flat
-from typing import Dict, Set
+from symcollab.algebra import (
+	get_vars, Equation, Variable, FuncTerm,
+	Term, depth, get_vars_or_constants,
+	SubstituteTerm
+)
+from typing import Set
 
 #Tree
 class MutateNode:
@@ -130,7 +131,7 @@ def solved_form_vd(U: list, VS1: set):
 	return(True)
 
 #helper function to check for linear term
-def linear(t: term, VS1: Set[Equation]):
+def linear(t: Term, VS1: Set[Equation]):
 	V = get_vars(t)
 	VTL = list()
 	for var in V:

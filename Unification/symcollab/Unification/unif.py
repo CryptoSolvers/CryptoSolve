@@ -1,10 +1,15 @@
-#Slow syntactic unification
-
 #!/usr/bin/env python3
-from symcollab.algebra import *
-from typing import Dict, Set
-from symcollab.Unification.common import *
-from .registry import Unification_Algorithms
+"""
+Slow Syntactic Unification
+"""
+
+from symcollab.algebra import Equation, SubstituteTerm
+from typing import Set
+from symcollab.Unification.common import (
+    occurs_check, function_clash, eliminate,
+    orient, decompose
+)
+from symcollab.Unification.registry import Unification_Algorithms
 
 # Franz Baader and Wayne Snyder. Unification Theory. Handbook of Automated Reasoning, 2001.
 @Unification_Algorithms.register('')

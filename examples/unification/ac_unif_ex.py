@@ -14,6 +14,7 @@ rhs = f(z, z)
 e4 = Equation(lhs, rhs)
 U4 = set()
 U4.add(e4)
-ac_unify(U4)
 
+unifiers = ac_unify(U4)
+print(next(iter(unifiers)))
 
