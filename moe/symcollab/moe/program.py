@@ -30,6 +30,15 @@ class MOOProgram:
     which the advesary sends blocks of plaintext to be encrypted
     and the oracle sends back blocks of ciphertext according
     to some fixed schedule defined by the mode of operation.
+
+    Example
+    -------
+    >>> # One interaction with oracle example
+    >>> p = MOOProgram('propogating_cbc')
+    >>> # Receive the ciphertext with x as the plaintext input
+    >>> print(p.rcv_block(x))
+    >>> # Stop an interaction
+    >>> p.rcv_stop()
     """
     def __init__(self, moo_name: str, schedule_name: str = 'every'):
         chaining_function = MOO.find(moo_name)

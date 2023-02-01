@@ -6,7 +6,10 @@ from symcollab.algebra import Function
 from symcollab.algebra.callable_registry import CallableRegistry
 from symcollab.xor import xor
 
-__all__ = ['MOO']
+__all__ = [
+    'MOO', 'cipher_block_chaining', 'propogating_cbc',
+    'hash_cbc', 'cipher_feedback', 'output_feedback'
+]
 
 MOO = CallableRegistry(enforce_arity=4)
 

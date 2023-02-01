@@ -24,7 +24,7 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     Currently it checks syntactically and for collisions.
 
     Parameters
-    ==========
+    ----------
     moo_name: str
       Name of the mode of operation to consider.
     schedule_name: str
@@ -36,6 +36,15 @@ def moo_check(moo_name: str = 'cipher_block_chaining', schedule_name: str = 'eve
     knows_iv: bool
       Whether or not the adversary knows the initialization vector.
 
+    Example
+    -------
+    >>> moo_check(
+    >>>    moo_name = 'cipher_block_chaining',
+    >>>    schedule_name = 'every',
+    >>>    unif_algo = p_unif,
+    >>>    length_bound = 2,
+    >>>    knows_iv = True
+    >>> )
     """
     program = MOOProgram(moo_name, schedule_name)
     xor_zero = Zero()
