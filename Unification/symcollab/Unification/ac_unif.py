@@ -4,16 +4,15 @@
 
 ####################################################
 To-Do:
+-- [IN PROGRESS] Add free function symbols
 -- Add ACU, ACUI, and AG  unification
--- Fix the conversion from the diophantine solver
--- Add free function symbols
 -- Allow more than one AC symbol
 -- Test the solver and AC solutions
--- Fix variable generation in algorithm
 """
 from collections import Counter
+from copy import deepcopy
 from itertools import product
-from typing import Set, Dict
+from typing import Set, Dict, Tuple, List, Optional
 
 import functools
 
@@ -26,6 +25,7 @@ from symcollab.algebra import Equation, get_vars, Variable, SubstituteTerm, Cons
 from symcollab.Unification.common import (
     delete_trivial, occurs_check, function_clash
 )
+from symcollab.Unification.unif import unif as syntactic_unification
 from symcollab.Unification.registry import Unification_Algorithms
 
 
@@ -60,24 +60,173 @@ def infinite_sequences(vector_len):
         last_result = next_result
 
 
-def convert_eq(U: Set[Equation], ac_symbol: Function):
+def flatten_term(t: Term, ac_symbol: Function) -> List[Term]:
+    """
+    Takes a term that's rooted with an ac_symbol and flattens
+    it and returns its list of subarguments.
+
+    Parameters
+    ----------
+    t : Term
+        Term to flatten.
+    ac_symbol : Function
+        Root function that should be treated as an associative
+        commutative function for flattening.
+
+    Examples
+    ========
+    >>> flatten_term(f(f(x, g(x)), g(g(f(x,x)))), f)
+    [x, g(x), g(g(f(x, x)))]
+    """
+    if isinstance(t, (Constant, Variable)):
+        return [t]
+    
+    if t.function != ac_symbol:
+        return [t]
+    
+    l : List[Term] = []
+    for ti in t.arguments:
+        l = l + flatten_term(ti, ac_symbol)
+    
+    return l
+
+
+def flatten_equation(eq: Equation, ac_symbol: Function) -> Tuple[List[Term], List[Term]]:
+    """
+    Takes an equation that's rooted with an ac_symbol and flattens
+    each side.
+
+    Parameters
+    ----------
+    eq : Equation
+        Equation to flatten.
+    ac_symbol : Function
+        Root function that should be treated as an associative
+        commutative function for flattening.
+
+    Examples
+    ========
+    >>> flatten_equation(Equation(f(f(x, g(x)), x), f(g(x), g(x))), f)
+    ([x, g(x), x], [g(x), g(x)])
+    """
+    return flatten_term(eq.left_side, ac_symbol), flatten_term(eq.right_side, ac_symbol)
+
+def fresh_variable(existing_vars: Set[Variable], prefix : str = "z") -> Variable:
+    """
+    Returns a new variable that doesn't already
+    exist in the existing_vars set.
+    Note: Does not modify existing_vars
+    """
+    new_var = Variable(prefix)
+    while new_var in existing_vars:
+        new_var = Variable(new_var.symbol + "_1")
+    return new_var
+
+def n_fresh_variables(existing_vars: Set[Variable], n: int, prefix: str = "z") -> List[Variable]:
+    """
+    Generates multiple fresh varables.
+    Note: Does not modify existing_vars
+    """
+    existing_vars = deepcopy(existing_vars)
+    new_vars: List[Variable] = []
+    for _ in range(n):
+        v = fresh_variable(existing_vars, prefix)
+        existing_vars.add(v)
+        prefix = v.symbol
+        new_vars.append(v)
+    return new_vars
+
+
+def generate_basis_table(basis_vector):
+    """
+    From a basis vector solution of a diophantine
+    equation, generate a basis table 
+    that satisfy the following constraints.
+
+    (1) All entries are non-negative with respect to the basis vector
+    (2) The sum of every column is greater than zero
+
+    This is implemented as a generator, so you can generate infinite
+    basis tables.
+    """
+    free_symbols = list(functools.reduce(lambda c, n: c.union(n), (x.free_symbols for x in basis_vector)))
+    possible_instantiations = infinite_sequences(len(free_symbols))
+    next(possible_instantiations) # Throw away all zero instantation
+    basis_table = []
+    while True:
+        finish_generating = False
+        while not finish_generating:
+            # Instantiate free variables until a valid vector is found
+            # Valid is defined as every entry being non-negative with respect to the basis vector.
+            valid = False
+            while not valid:
+                vector = []
+                inst = next(possible_instantiations)
+                for entry in basis_vector:
+                    for var_name, count in zip(free_symbols, inst):
+                        entry = entry.subs(var_name, count)
+                    vector.append(int(entry))
+                # Check validity
+                valid = all((entry >= 0 for entry in vector))
+
+            # Add row to the table
+            basis_table.append(vector)
+
+            # Check to see if table is finished
+            # A table is finished if the sum of every column is greater than 0
+            finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
+        
+        yield basis_table
+
+def vars_from_equations(U: Set[Equation]):
+    """
+    Return all variables from a
+    set of equations
+    """
+    ALL_VARS = set()
+    for e in U:
+        LS = get_vars(e.left_side, unique=True)
+        RS = get_vars(e.right_side, unique=True)
+        ALL_VARS = ALL_VARS.union(LS).union(RS)
+    return ALL_VARS
+
+def stickel_method(U: Set[Equation], ac_symbol: Function) -> SubstituteTerm:
     """
     Convert a set of term equations into a single
     linear homogeneous diophantine equation
-    and solve it using Z3.
+    and solve it using stickel's method.
+    
+    The current diophantine solver uses Z3.
     """
+    # Gather all variables for fresh var calculation
+    ALL_VARS = vars_from_equations(U)
+    generalized_term : Dict[Variable, Term] = dict()
+
+    def generalize_term(t: Term) -> Variable:
+        """
+        Returns a generalized variable for every
+        term that's not a variable.
+        """
+        vt = t
+        if not isinstance(t, Variable):
+            vt = fresh_variable(ALL_VARS)
+            ALL_VARS.add(vt)
+            generalized_term[vt] = t
+        return vt
+
     var_count = Counter()
-    first = True
     # Go through each equation
     for e in U:
-        LS = get_vars(e.left_side)
-        RS = get_vars(e.right_side)
-        VARS_IN_EQ = set(LS).union(set(RS))
-        # Go through all the variables in the equation
+        LS, RS = flatten_equation(e, ac_symbol)
+
+        # Generalize left and right sides
+        LS_VARS = [generalize_term(t) for t in LS]
+        RS_VARS = [generalize_term(t) for t in RS]
+
+        # Calculate multiplicity
+        VARS_IN_EQ = set(LS_VARS).union(set(RS_VARS))
         for x in VARS_IN_EQ:
-            # Update the variable count based on the
-            # presense of the variable in the left and right side.
-            num = LS.count(x) - RS.count(x)
+            num = LS_VARS.count(x) - RS_VARS.count(x)
             var_count[x] += num
 
     # Create the equation with variable coeficients
@@ -100,48 +249,33 @@ def convert_eq(U: Set[Equation], ac_symbol: Function):
     # Solve diophantine equation
     basis_vector = diop_linear(sympy_expression)
 
-    ####### Generate table until each column is at least a 1
-    # Grab unique free symbols
-    free_symbols = list(functools.reduce(lambda c, n: c.union(n), (x.free_symbols for x in basis_vector)))
-    possible_instantiations = infinite_sequences(len(free_symbols))
-    next(possible_instantiations) # Throw away all zero instantation
+    # Generate the basis table
+    basis_table = next(generate_basis_table(basis_vector))
 
-    basis_table = []
-    finish_generating = False
-    while not finish_generating:
-        # Instantiate free variables until a valid vector is found
-        # Valid is defined as every entry being non-negative with respect to the basis vector.
-        valid = False
-        while not valid:
-            vector = []
-            inst = next(possible_instantiations)
-            for entry in basis_vector:
-                for var_name, count in zip(free_symbols, inst):
-                    entry = entry.subs(var_name, count)
-                vector.append(int(entry)) # TODO: Can throw an exception?
-            # Check validity
-            valid = all((entry >= 0 for entry in vector))
+    # Create variables representing each row
+    row_vars = n_fresh_variables(ALL_VARS, len(basis_table))
+    ALL_VARS = ALL_VARS.union(set(row_vars))
 
-        # Add row to the table
-        basis_table.append(vector)
-
-        # Check to see if table is finished
-        # A table is finished if the sum of every column is greater than 0
-        finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
-
+    # Craft substitution from basis table
     sigma = SubstituteTerm()
     for column, sympy_var in enumerate(sympy_ordering):
         term = None
         for i, row in enumerate(basis_table):
-            row_var = Variable("z_" + str(i)) # TODO: Make sure z_ isnt taken...
-            if row[column] > 0:
-                # print(f"Add {row[column]} instances of {row_var} to {variables[column]}")
-                for _ in range(row[column]):
-                    if term is None:
-                        term = row_var
-                    else: # z_2 + z_4
-                        term = ac_symbol(term, row_var)
+            if row[column] == 0:
+                continue
+            row_var = row_vars[i]
+            for _ in range(row[column]):
+                if term is None:
+                    term = row_var
+                else: # z_2 + z_4
+                    term = ac_symbol(term, row_var)
         sigma.add(var_map[sympy_var], term)
+
+    # [TODO] [IN PROGRESS] Unify variables in the generalized terms with
+    # their counterparts in the original terms.
+    # new_eqs = {Equation(lhs, rhs) for lhs, rhs in generalized_term.items()}
+    # generalize_sigma = syntactic_unification(new_eqs)
+
 
     # Currently returning one posisble unifier but we can keep generating
     # using the basis vector
@@ -162,19 +296,11 @@ def get_functions(t: Term) -> Set[Function]:
 #Assumes currently that we have a single AC-symbol
 #need to update to allow other function symbols and cons
 @Unification_Algorithms.register('AC')
-def ac_unify(U: Set[Equation]):
+def ac_unify(U: Set[Equation], ac_symbol: Function):
 
     # Return no unifiers for a set of empty equations
     if len(U) == 0:
         return False # TODO: return set()
-
-    sigs = set()
-    for u in U:
-        sigs = sigs.union(get_functions(u.left_side))
-        sigs = sigs.union(get_functions(u.right_side))
-    if len(sigs) > 1:
-        raise Exception('Can only handle one function symbol that is AC')
-    ac_symbol = next(iter(sigs))
 
     U = delete_trivial(U)
 
@@ -185,6 +311,6 @@ def ac_unify(U: Set[Equation]):
         return False # TODO: return set()
 
     # Send the problem to the diophantine solver
-    delta=convert_eq(U, ac_symbol)
+    delta = stickel_method(U, ac_symbol)
 
     return set(delta)

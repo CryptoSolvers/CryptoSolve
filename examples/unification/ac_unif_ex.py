@@ -15,6 +15,6 @@ e4 = Equation(lhs, rhs)
 U4 = set()
 U4.add(e4)
 
-unifiers = ac_unify(U4)
+unifiers = ac_unify(U4, f)
 print(next(iter(unifiers)))
 
