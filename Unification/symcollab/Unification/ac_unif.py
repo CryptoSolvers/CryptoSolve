@@ -209,9 +209,12 @@ def stickel_method(U: Set[Equation], ac_symbol: Function) -> SubstituteTerm:
         """
         vt = t
         if not isinstance(t, Variable):
-            vt = fresh_variable(ALL_VARS)
-            ALL_VARS.add(vt)
-            generalized_term[vt] = t
+            if t not in generalized_term:
+                vt = fresh_variable(ALL_VARS)
+                ALL_VARS.add(vt)
+                generalized_term[vt] = t
+            else:
+                vt = generalized_term[t]
         return vt
 
     var_count = Counter()
