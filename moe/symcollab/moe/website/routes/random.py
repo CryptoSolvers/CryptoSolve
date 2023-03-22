@@ -34,7 +34,7 @@ def random():
     unif_choice = unif_algo.get(request.args.get('unif'))
     schedule = request.args.get('schedule')
     length_bound = restrict_to_range(
-        int(request.form.get('length_bound', 1)),
+        int(request.args.get('length_bound', 1)),
         lower_bound=0,
         upper_bound=100
     )
@@ -43,7 +43,7 @@ def random():
         lower_bound=1,
         upper_bound=100
     )
-    knows_iv = request.form.get('knows_iv') == "knows_iv"
+    knows_iv = request.args.get('knows_iv') == "knows_iv"
 
     # Generate random modes of operation
     filtered_gen = FilteredMOOGenerator(
