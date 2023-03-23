@@ -68,11 +68,12 @@ class Parser:
         """Attempt to parse a string given the parser's existing signature."""
         # First remove all whitespace since it's irrelevant
         x = x.replace(' ', '')
-        start_i = self._find_first_char("(", x)
+        start_i = x.find("(")
         if start_i != -1:
             end_i = self._find_last_char(")", x)
             if end_i == -1:
                 raise ValueError("Parenthesis misbalance")
+
             # We have a function!
             function_name = x[:start_i]
             function_handle = self._find_function(function_name)
@@ -85,9 +86,7 @@ class Parser:
                 raise ValueError("Arity Mismatch: Parsed String: " + str(len(argument_strings)) +
                     ", Function " + function_handle.symbol + ": " + str(function_handle.arity))
 
-            args = []
-            for arg_string in argument_strings:
-                args.append(self.parse(arg_string))
+            args = [self.parse(arg_string) for arg_string in argument_strings]
             return function_handle(*args)
         else:
             x_var = self._find_variable(x)
@@ -102,29 +101,20 @@ class Parser:
             # If none of the above matched return an error
             raise ValueError("Symbol " + x + " is undefined in the Parser")
 
-    def _find_function(self, x: str) -> Optional[Function]:
-        for f in self.functions:
-            if x == f.symbol:
-                return f
-        return None
-
-    def _find_constant(self, x: str) -> Optional[Constant]:
-        for c in self.constants:
+    def _find(self, x: str, container: List[Union[Function, Constant, Variable]]):
+        for c in container:
             if x == c.symbol:
                 return c
         return None
 
-    def _find_variable(self, x: str) -> Optional[Variable]:
-        for v in self.variables:
-            if x == v.symbol:
-                return v
-        return None
+    def _find_function(self, x: str) -> Optional[Function]:
+        return self._find(x, self.functions)
 
-    def _find_first_char(self, needle: str, haystack: str) -> int:
-        for i, c in enumerate(haystack):
-            if c == needle:
-                return i
-        return -1
+    def _find_constant(self, x: str) -> Optional[Constant]:
+        return self._find(x, self.constants)
+
+    def _find_variable(self, x: str) -> Optional[Variable]:
+        return self._find(x, self.variables)
 
     def _find_last_char(self, needle: str, haystack: str) -> int:
         for i, c in enumerate(reversed(haystack)):
@@ -133,32 +123,28 @@ class Parser:
         return -1
 
     # Splits the arguments up to a list of arguments
-    def _parse_arguments(self, x: str) -> List[str]:
+    def _parse_arguments(self, arguments_string: str) -> List[str]:
         args: List[str] = []
-        parenthesis = False
         start_i = 0
-        counter = 0
-        for i, c in enumerate(x):
+        num_parentheses = 0
+        for i, c in enumerate(arguments_string):
             # If we saw an opening parenthesis,
             # we need to ignore input until the end parenthesis is matched.
-            if parenthesis:
+            if num_parentheses > 0:
                 if c == ")":
-                    counter = counter-1
-                    if counter == 0:
-                        parenthesis = False
+                    num_parentheses -= 1
                 elif c == "(":
-                    counter = counter+1
-                else:
-                    continue
+                    num_parentheses += 1
             else:
                 if c == ",":
-                    args.append(x[start_i:i])
+                    args.append(arguments_string[start_i:i])
                     start_i = i + 1
                 elif c == "(":
-                    parenthesis = True
-                    counter = counter + 1
-        if parenthesis:
+                    num_parentheses += 1
+
+        if num_parentheses > 0:
             raise ValueError("Parenthesis Mismatch")
+
         # Add last argument
-        args.append(x[start_i:])
+        args.append(arguments_string[start_i:])
         return args

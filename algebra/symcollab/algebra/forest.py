@@ -51,6 +51,8 @@ from typing import List
 from anytree import AnyNode, RenderTree
 from .term import Equation, Term, FuncTerm
 
+__all__ = ['Term_Forest']
+
 class Term_Forest:
 
 	def __init__(self, seed: List[Equation], max_height: int):

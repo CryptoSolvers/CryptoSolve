@@ -3,7 +3,7 @@ Contains various schedules for MOO Programs
 """
 from symcollab.algebra.callable_registry import CallableRegistry
 
-__all__ = ['MOO_Schedule']
+__all__ = ['MOO_Schedule', 'every_schedule', 'end_schedule']
 
 MOO_Schedule = CallableRegistry(enforce_arity=1)
 

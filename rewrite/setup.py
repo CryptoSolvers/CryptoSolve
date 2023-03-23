@@ -12,9 +12,6 @@ setup(name="symcollab-rewrite",
     install_requires = [
         # Our dependencies
         "symcollab-algebra",
-        "symcollab-unification",
-        # Outside dependencies
-        "mypy>=0.740",
-        "mypy-extensions>=0.4.0"
+        "symcollab-unification"
     ],
 )

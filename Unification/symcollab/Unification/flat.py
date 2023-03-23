@@ -4,7 +4,10 @@
 
 #!/usr/bin/env python3
 from typing import Set
-from symcollab.algebra import *
+from symcollab.algebra import (
+	FuncTerm, Variable, Equation, Function
+)
+# from symcollab.algebra import *
 
 def flat(U: Set[Equation]):
 	#break equations into two

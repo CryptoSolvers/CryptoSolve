@@ -20,15 +20,14 @@ setup(name="symcollab-moe",
     long_description_content_type="text/markdown",
     url="https://github.com/symcollab/cryptosolve",
     scripts=["moo_tool", "moo_website"],
+    python_requires='>=3.8',
     install_requires = [
         # Our dependencies
         "symcollab-algebra",
         "symcollab-unification",
         "symcollab-xor",
         # Outside dependencies
-        "Flask>=1.1.1",
-        "mypy>=0.740",
-        "mypy-extensions>=0.4.0",
+        "Flask~=2.2.2"
     ],
     data_files = data_files,
     include_package_data = True

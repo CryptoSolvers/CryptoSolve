@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from typing import Set
-from symcollab.algebra import Variable, SubstituteTerm, FuncTerm
+from symcollab.algebra import Variable, SubstituteTerm, FuncTerm, Equation
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.eac_unif import R1
 from symcollab.Unification.flat import flat
-from .registry import Unification_Algorithms
+from symcollab.Unification.registry import Unification_Algorithms
 
 #H_AC(R_1) unification 
 #Using the new hierarrchical method

@@ -8,7 +8,29 @@ from .moo import MOO
 __all__ = ['CustomMOO']
 
 class CustomMOO:
-    """Create and register a custom mode of operation from a term."""
+    """
+    Create and register a custom mode of operation from a term.
+    
+    Parameters
+    ----------
+    term: Term 
+        Term representing the recursive definition
+        of a mode of operation
+    
+    moo_name: Optional[str]
+        Name to associate with this custom mode of operation.
+        By default, it names it based on the string that the
+        term produces.
+
+    Examples
+    --------
+    >>> P = Variable("P[i]")
+    >>> C1 = Variable("C[i-1]")
+    >>> f = Function("f", 1)
+    >>> t = xor(f(xor(P, f(C1))), f(C1))
+    >>> tm = CustomMOO(t)
+    >>> M=moo_check(tm.name, 'every', XOR_rooted_security, 3, True, True)
+    """
     def __init__(self, term: Term, moo_name: Optional[str] = None):
         self.term = term
         self.name = str(term) if moo_name is None else moo_name

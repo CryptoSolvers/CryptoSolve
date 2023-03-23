@@ -7,8 +7,8 @@ This library also contains helper functions that can be useful
 in algorithms that operate on terms.
 """
 from copy import deepcopy
-from functools import partial
-from typing import Union, List, Set, overload, Optional, Any
+from functools import partial, reduce
+from typing import Union, List, Set, Optional, Any
 from typing_extensions import Literal
 
 __all__ = [
@@ -68,10 +68,10 @@ class Sort:
     def __str__(self):
         return self.name
     def __deepcopy__(self, memo):
-        new_sort = Sort(deepcopy(self.name))
+        new_sort = Sort(self.name)
         memo[id(self)] = new_sort
         dcopy = partial(deepcopy, memo=memo)
-        new_sort.parents = set(map(dcopy, self.parents))
+        new_sort.parents = { dcopy(p) for p in self.parents }
         return new_sort
 
 class Function:
@@ -96,11 +96,6 @@ class Function:
     range_sort : AnySort
         The sort to restrict the output to.
 
-    theory: str
-        The class of Equational Theory that this function falls under.
-        For example: AC, C, I, etc. By default "". This determines
-        the decision procedure called when calling unification.
-
     Examples
     --------
     >>> from symcollab.algebra import *
@@ -111,13 +106,12 @@ class Function:
     """
     def __init__(self, symbol: str, arity: int,
                  domain_sort: Union[Optional[Sort], List[Optional[Sort]]] = None,
-                 range_sort: Optional[Sort] = None, theory: str = ""):
+                 range_sort: Optional[Sort] = None):
         assert arity >= 0
         self.symbol = symbol
         self.domain_sort = domain_sort
         self.range_sort = range_sort
         self.arity = arity
-        self.theory = theory
 
         # If the domain sort is a list, make sure it has a one-to-one mapping with the arguments
         if isinstance(domain_sort, list):
@@ -131,8 +125,7 @@ class Function:
                 if not isinstance(self.domain_sort, list) else self.domain_sort[i]
 
             if domain_sort is not None:
-                error_message = "Domain Mismatch. Expected {}, Got {}.".format(
-                    str(domain_sort), str(arg.sort))
+                error_message = f"Domain Mismatch. Expected {domain_sort}, Got {arg.sort}."
                 if arg.sort is None:
                     raise ValueError(error_message)
                 if arg.sort != domain_sort and not arg.sort.subset_of(domain_sort):
@@ -145,11 +138,10 @@ class Function:
     def __hash__(self):
         return hash((self.symbol, self.arity))
     def __eq__(self, x):
-        return type(self) == type(x) \
+        return isinstance(x, Function) \
             and self.symbol == x.symbol \
             and self.domain_sort == x.domain_sort \
-            and self.range_sort == x.range_sort \
-            and self.theory == x.theory
+            and self.range_sort == x.range_sort
 
 class Variable:
     """
@@ -176,7 +168,7 @@ class Variable:
     def __hash__(self):
         return hash(self.symbol)
     def __eq__(self, x):
-        return type(self) == type(x) and self.symbol == x.symbol and self.sort == x.sort
+        return isinstance(x, Variable) and self.symbol == x.symbol and self.sort == x.sort
     def __deepcopy__(self, memo):
         return Variable(self.symbol, deepcopy(self.sort))
 
@@ -227,7 +219,7 @@ class FuncTerm:
     def __hash__(self):
         return hash((self.function, tuple(self.arguments)))
     def __eq__(self, x):
-        return type(self) == type(x) and \
+        return isinstance(x, FuncTerm) and \
             self.function == x.function and \
                 self.arguments == x.arguments
     def __contains__(self, term):
@@ -291,19 +283,7 @@ def _get_type(t: Term, unique: Literal[False], classinfo):
     return set(l) if unique else l
 
 
-#
-## get_vars Section
-#
-
-@overload
-def get_vars(t: Term, unique: Literal[False]) -> List[Variable]:
-    """Get the variables inside a term"""
-
-@overload
-def get_vars(t: Term, unique: Literal[True]) -> Set[Variable]:
-    """Get the variables inside a term"""
-
-def get_vars(t, unique=False):
+def get_vars(t, unique=False) -> Union[List[Variable], Set[Variable]]:
     """
     Get the variables inside a term
 
@@ -325,17 +305,8 @@ def get_vars(t, unique=False):
     """
     return _get_type(t, unique, Variable)
 
-#
-## get_constants Section
-#
-@overload
-def get_constants(t: Term, unique: Literal[False]) -> List[Constant]:
-    """Get the constants inside a term"""
-@overload
-def get_constants(t: Term, unique: Literal[True]) -> Set[Constant]:
-    """Get the constants inside a term"""
 
-def get_constants(t, unique=False):
+def get_constants(t, unique=False) -> Union[List[Constant], Set[Constant]]:
     """
     Get the constants inside a term
 
@@ -361,13 +332,8 @@ def get_constants(t, unique=False):
 #
 ## get_vars_or_constants Section
 #
-@overload
-def get_vars_or_constants(t: Term, unique: Literal[False]) -> List[Union[Variable, Constant]]:
-    """Get the variables and constants inside a term"""
-@overload
-def get_vars_or_constants(t: Term, unique: Literal[True]) -> Set[Union[Variable, Constant]]:
-    """Get the variables and constants inside a term"""
-def get_vars_or_constants(t, unique=False):
+def get_vars_or_constants(t, unique=False) -> \
+    Union[List[Union[Variable, Constant]], Set[Union[Variable, Constant]]]:
     """
     Get the variables and constants inside a term
 
@@ -410,7 +376,7 @@ def depth(t: Term, depth_level: int = 0):
     >>> depth(f(f(x,a), f(x,a)))
     2
     """
-    if isinstance(t, Variable) or isinstance(t, Constant) or isinstance(t, Function):
+    if isinstance(t, (Variable, Constant, Function)):
         return depth_level
     # Assume FuncTerm
     max_depth = 0
@@ -474,7 +440,7 @@ class Equation:
         return hash((self.left_side, self.right_side))
 
     def __eq__(self, x):
-        if(type(self) != type(x)):
+        if not isinstance(x, Equation):
             return False
         set1 = {self.left_side, self.right_side}
         set2 = {x.left_side, x.right_side}

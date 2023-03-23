@@ -15,11 +15,27 @@ class MOOGenerator():
 	"""
 	Only generates modes of operations that satisfy these parameters:
 
+	Parameters
+	----------
 	max_history: int
 		The mximum number of past cipher blocks to consider for
 		constructing a mode of operation.
 	max_f_depth: int
 		The maximum amount of nested encryption applications.
+
+	Example
+	-------
+	>>> g = MOOGenerator()
+	>>> # Generate the 17th term
+	>>> t = [next(g) for i in range(17)][-1]
+	>>> # Register the custom MOO
+	>>> tm = CustomMOO(t)
+	>>> # Check the mode of operation
+	>>> moo_check(tm.name, 'every', p_unif, 5)
+	>>> # We can also generate more random MOOs if we'd like
+	>>> # The next 5 random MOO
+	>>> for _ in range(5):
+    >>>	    print(next(g))
 	"""
 	def __init__(self, max_history: int = 2, max_f_depth: int = 3):
 		self.max_history = max_history

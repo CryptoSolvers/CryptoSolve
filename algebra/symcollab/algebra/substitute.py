@@ -12,6 +12,22 @@ __all__ = ['SortMismatch', 'SubstituteTerm']
 class SortMismatch(Exception):
     """Raise when there is a sort mismatch."""
 
+def _variable_key(v: Variable):
+    """
+    Can be used within sorted and similar functions to sort
+    variables both lexigraphically and via numeric underscores
+    """
+    name_with_subscript = v.symbol.split("_")
+    if len(name_with_subscript) == 1:
+        name_with_subscript.append(0)
+    else:
+        subscript = name_with_subscript[1]
+        try:
+            name_with_subscript[1] = int(subscript)
+        except ValueError:
+            name_with_subscript[1] = 0
+    return name_with_subscript
+
 class SubstituteTerm:
     """
     Represents a substitution from variables to terms.
@@ -108,38 +124,22 @@ class SubstituteTerm:
         return len(self.subs)
 
     def __deepcopy__(self, memo):
-        subs = set()
-        for variable, term in self.subs:
-            new_variable = deepcopy(variable)
-            new_term = deepcopy(term)
-            subs.add((new_variable, new_term))
         subterm = SubstituteTerm()
-        subterm.subs = subs
+        for variable, term in self.subs:
+            subterm.add(
+                deepcopy(variable),
+                deepcopy(term)
+            )
+
         return subterm
 
     def __str__(self):
-        if len(self.subs) == 0:
-            return "{}"
-        if len(self.subs) == 1:
-            variable, term = self.subs.pop()
-            self.subs.add((variable, term))
-            return "{ %s ↦ %s }" % (str(variable), str(term))
-        str_repr = "{\n"
-        i = 1
-        if len(self.subs) < 9:
-            sorted_subs = sorted(self.subs, key=lambda k: k[0].symbol)
-            for variable, term in sorted_subs:
-                str_repr += "  " + str(variable) + " ↦ " + str(term)
-                str_repr += ",\n" if i < len(self.subs) else ""
-                i += 1
-        else:
-            subs_str = self._subSort(self.subs)
-            for string in subs_str:
-                str_repr += string
-                print(string)
-                str_repr += ",\n" if i < len(self.subs) else ""
-                i += 1
-        str_repr += "\n}"
+        sorted_subs = sorted(self.subs, key=lambda k: _variable_key(k[0]))
+        str_repr = "{\n" if len(self.subs) > 1 else "{"
+        str_repr += ",\n".join(
+            [f"{variable} ↦ {term}" for variable, term in sorted_subs]
+        )
+        str_repr += "\n}" if len(self.subs) > 1 else "}"
         return str_repr
 
     def _applysub(self, term: Term) -> Term:
@@ -223,20 +223,3 @@ class SubstituteTerm:
                     return deepcopy(sub_term)
 
         return term
-
-    def _subSort(self, subs: Set) -> list:
-        #creates an ordered list of formatted strings from the substitutions
-        #only using this method when the list of substitions is longer than 9,
-        #because thats where the issue occurs, everywhere else its fine
-        unsorted_list = list(subs)
-        sorted_list = [None] * len(subs)
-        for variable, term in unsorted_list:
-            var = str(variable)
-            index = int(var[2:len(var)])
-            sorted_list[index-1] = str(variable) + " ↦ " + str(term)
-        return sorted_list
-
-
-
-
-

@@ -6,6 +6,5 @@ Welcome to Algebra's documentation!
 
    term
    substitute
-   sympy
    parser
    dag

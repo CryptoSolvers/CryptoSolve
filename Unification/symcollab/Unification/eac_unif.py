@@ -12,11 +12,13 @@
 #!/usr/bin/env python3
 from copy import deepcopy
 from typing import Set
-from symcollab.algebra import *
+from symcollab.algebra import (
+	Equation, get_vars, Function, FuncTerm,
+	SubstituteTerm, Variable
+)
 from symcollab.Unification.ac_unif import ac_unify
 from symcollab.Unification.flat import flat
 from .registry import Unification_Algorithms
-#from itertools import combinations
 
 @Unification_Algorithms.register("E_AC")
 def eac_unif(U: Set[Equation]):
