@@ -11,7 +11,7 @@ To-Do:
 """
 from collections import Counter
 from copy import deepcopy
-from itertools import product
+from itertools import product, combinations
 from typing import Set, Dict, Tuple, List, Optional
 
 import functools
@@ -118,8 +118,10 @@ def fresh_variable(existing_vars: Set[Variable], prefix : str = "z") -> Variable
     Note: Does not modify existing_vars
     """
     new_var = Variable(prefix)
+    i = 1
     while new_var in existing_vars:
-        new_var = Variable(new_var.symbol + "_1")
+        new_var = Variable(prefix + f"_{i}")
+        i += 1
     return new_var
 
 def n_fresh_variables(existing_vars: Set[Variable], n: int, prefix: str = "z") -> List[Variable]:
@@ -132,9 +134,23 @@ def n_fresh_variables(existing_vars: Set[Variable], n: int, prefix: str = "z") -
     for _ in range(n):
         v = fresh_variable(existing_vars, prefix)
         existing_vars.add(v)
-        prefix = v.symbol
         new_vars.append(v)
     return new_vars
+
+
+def valid_subsets(basis_table):
+    """
+    From a basis table solution, find the subset
+    of vectors needed to satisfy the following constraints
+
+    (1) All entries are non-negative with respect to the basis vector
+    (2) The sum of every column is greater than zero
+    """
+    for num_rows in range(len(basis_table)):
+        for c in combinations(basis_table, num_rows):
+            if all(sum(col) > 0 for col in zip(*c)):
+                yield c
+
 
 
 def generate_basis_table(basis_vector):
@@ -152,6 +168,7 @@ def generate_basis_table(basis_vector):
     free_symbols = list(functools.reduce(lambda c, n: c.union(n), (x.free_symbols for x in basis_vector)))
     possible_instantiations = infinite_sequences(len(free_symbols))
     next(possible_instantiations) # Throw away all zero instantation
+    memory = []
     basis_table = []
     while True:
         finish_generating = False
@@ -176,7 +193,20 @@ def generate_basis_table(basis_vector):
             # A table is finished if the sum of every column is greater than 0
             finish_generating = all(sum(col) > 0 for col in zip(*basis_table))
         
-        yield basis_table
+        # Yield valid subsets which includes the last row generated
+        # Rationale: Avoid repeat yields
+        # for num_rows in range(len(basis_table[:-1])):
+        #     for c in combinations(basis_table[:-1], num_rows):
+        #         c = [basis_table[-1]] + list(c)
+        #         if all(sum(col) > 0 for col in zip(*c)):
+        #             yield c
+        for num_rows in range(1, len(basis_table)):
+            for c in combinations(basis_table, num_rows):
+                if all(sum(col) > 0 for col in zip(*c)):
+                    set_c = { frozenset(l) for l in c }
+                    if set_c not in memory:
+                        yield c
+                        memory.append(set_c)
 
 def vars_from_equations(U: Set[Equation]):
     """
@@ -200,7 +230,7 @@ def stickel_method(U: Set[Equation], ac_symbol: Function) -> SubstituteTerm:
     """
     # Gather all variables for fresh var calculation
     ALL_VARS = vars_from_equations(U)
-    generalized_term : Dict[Variable, Term] = dict()
+    original_from_generalized : Dict[Variable, Term] = dict()
 
     def generalize_term(t: Term) -> Variable:
         """
@@ -208,19 +238,26 @@ def stickel_method(U: Set[Equation], ac_symbol: Function) -> SubstituteTerm:
         term that's not a variable.
         """
         vt = t
-        if not isinstance(t, Variable):
-            if t not in generalized_term:
+        if isinstance(t, Variable):
+            original_from_generalized[t] = t
+        else:
+            vt = None
+            for gen_var, og_term in original_from_generalized.items():
+                if t == og_term:
+                    vt = gen_var
+                    break
+            if vt is None:
                 vt = fresh_variable(ALL_VARS)
                 ALL_VARS.add(vt)
-                generalized_term[vt] = t
-            else:
-                vt = generalized_term[t]
+                original_from_generalized[vt] = t
         return vt
 
     var_count = Counter()
     # Go through each equation
     for e in U:
         LS, RS = flatten_equation(e, ac_symbol)
+        # print("LS", LS)
+        # print("RS", RS)
 
         # Generalize left and right sides
         LS_VARS = [generalize_term(t) for t in LS]
@@ -250,34 +287,47 @@ def stickel_method(U: Set[Equation], ac_symbol: Function) -> SubstituteTerm:
     sympy_ordering.sort(key=default_sort_key)
 
     # Solve diophantine equation
+    # print(original_from_generalized)
+    # print(sympy_expression)
     basis_vector = diop_linear(sympy_expression)
+    basis_tables = generate_basis_table(basis_vector)
 
-    # Generate the basis table
-    basis_table = next(generate_basis_table(basis_vector))
+    sigma = False
+    while not sigma:
+        # Generate the basis table
+        basis_table = next(basis_tables)
+        # print(basis_table)
 
-    # Create variables representing each row
-    row_vars = n_fresh_variables(ALL_VARS, len(basis_table))
-    ALL_VARS = ALL_VARS.union(set(row_vars))
+        # Create variables representing each row
+        row_vars = n_fresh_variables(ALL_VARS, len(basis_table))
+        ALL_VARS = ALL_VARS.union(set(row_vars))
 
-    # Craft substitution from basis table
-    sigma = SubstituteTerm()
-    for column, sympy_var in enumerate(sympy_ordering):
-        term = None
-        for i, row in enumerate(basis_table):
-            if row[column] == 0:
-                continue
-            row_var = row_vars[i]
-            for _ in range(row[column]):
-                if term is None:
-                    term = row_var
-                else: # z_2 + z_4
-                    term = ac_symbol(term, row_var)
-        sigma.add(var_map[sympy_var], term)
+        # Craft intermediate substitution from basis table
+        sub_basis: Dict[Variable, Term] = dict()
+        for column, sympy_var in enumerate(sympy_ordering):
+            term = None
+            for i, row in enumerate(basis_table):
+                if row[column] == 0:
+                    continue
+                row_var = row_vars[i]
+                for _ in range(row[column]):
+                    if term is None:
+                        term = row_var
+                    else: # z_2 + z_4
+                        term = ac_symbol(term, row_var)
+            sub_basis[var_map[sympy_var]] = term
 
-    # [TODO] [IN PROGRESS] Unify variables in the generalized terms with
-    # their counterparts in the original terms.
-    # new_eqs = {Equation(lhs, rhs) for lhs, rhs in generalized_term.items()}
-    # generalize_sigma = syntactic_unification(new_eqs)
+        # [TODO] [IN PROGRESS] Unify variables in the generalized terms with
+        # their counterparts in the original terms.
+        # print(sub_basis)
+        new_eqs = set()
+        for gen_var, basis_var in sub_basis.items():
+            rhs = original_from_generalized[gen_var]
+            new_eqs.add(Equation(
+                basis_var,
+                rhs
+            ))
+        sigma = syntactic_unification(new_eqs)
 
 
     # Currently returning one posisble unifier but we can keep generating
