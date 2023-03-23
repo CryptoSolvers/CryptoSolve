@@ -9,6 +9,7 @@ setup(name="symcollab",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/symcollab/cryptosolve",
+    python_requires='>=3.8',
     install_requires = [
         "symcollab-algebra",
         "symcollab-xor",

@@ -20,6 +20,7 @@ setup(name="symcollab-moe",
     long_description_content_type="text/markdown",
     url="https://github.com/symcollab/cryptosolve",
     scripts=["moo_tool", "moo_website"],
+    python_requires='>=3.8',
     install_requires = [
         # Our dependencies
         "symcollab-algebra",

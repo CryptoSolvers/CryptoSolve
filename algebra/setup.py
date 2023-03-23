@@ -9,6 +9,7 @@ setup(name="symcollab-algebra",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/symcollab/cryptosolve",
+    python_requires='>=3.8',
     install_requires = [
         "matplotlib~=3.6.2",
         "networkx~=2.8.8",
