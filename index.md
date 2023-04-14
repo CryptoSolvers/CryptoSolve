@@ -77,28 +77,39 @@ This module contains unification over terms modulo several popular theories. Cur
 Various data structures and their properties defined as rewrite rules are defined in this module. This module can be further extended in order to define an automated theorem prover for objects such as natural numbers, booleans, and lists.
 
 ***
+# Citing
 
-# Collaboration
- 
-The Symcollab collaboration consist of the following people both past and present: 
+If you reference this work, please use the following citation:
 
-## Present:
-- [Brandon Rozek](https://brandonrozek.com/) (Rensselaer Polytechnic Institute)
-- Hai Lin (Clarkson University)
-- Wei Du (University at Albany–SUNY)
-- Catherine Meadows (Naval Research Laboratory)
-- [Chris Lynch](https://lin-web.clarkson.edu/~clynch/) (Clarkson University)
-- [Paliath Narendran](http://www.cs.albany.edu/~dran/) (University at Albany–SUNY)
-- Veena Ravishankar (University of Mary Washington)
-- Meghan Cooke (University of Mary Washington)
-- Mikayla Stitts (University of Mary Washington)
-- Serdar Erbatur (University of Texas at Dallas)
-- [Andrew Marshall](https://www.marshallandrew.net) (University of Mary Washington)
+```
+@inproceedings{DBLP:journals/corr/abs-2209-10321,
+  author       = {Dalton Chichester and
+                  Wei Du and
+                  Raymond Kauffman and
+                  Hai Lin and
+                  Christopher Lynch and
+                  Andrew M. Marshall and
+                  Catherine A. Meadows and
+                  Paliath Narendran and
+                  Veena Ravishankar and
+                  Luis Rovira and
+                  Brandon Rozek},
+  editor       = {Pierre Ganty and
+                  Dario Della Monica},
+  title        = {{CryptoSolve}: Towards a Tool for the Symbolic Analysis of Cryptographic
+                  Algorithms},
+  booktitle    = {Proceedings of the 13th International Symposium on Games, Automata,
+                  Logics and Formal Verification, {GandALF} 2022, Madrid, Spain, September
+                  21-23, 2022},
+  series       = {{EPTCS}},
+  volume       = {370},
+  pages        = {147--161},
+  year         = {2022},
+  url          = {https://doi.org/10.4204/EPTCS.370.10},
+  doi          = {10.4204/EPTCS.370.10},
+}
+```
 
-## Past: 
-- Luis Rovira 
-- Raymond Kauffman 
-- Dalton Chichester
 
 ***
 
