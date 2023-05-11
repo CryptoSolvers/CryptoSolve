@@ -75,7 +75,6 @@ def solved_form(U: Set[Equation]):
 
 #helper function for solved forms dist vars
 def solved_form_vd(U: Set[Equation], VS1: Set[Term]) -> bool:
-	U = set(U) # TODO: Remove
 	#orient
 	#print("Checking solved form for : ")
 	#print(U)
@@ -177,7 +176,7 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]):
 			break
 
 	if matched_equation is None:
-		return list(U) # TODO: Remove list
+		return U
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -213,7 +212,7 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]):
 			break
 	
 	if matched_equation is None:
-		return list(U) #TODO: Remove list
+		return U
 	
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -256,7 +255,7 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]):
 			break
 	
 	if matched_equation is None:
-		return list(U) # TODO: Remove list
+		return U
 	
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -300,7 +299,7 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]):
 			break
 	
 	if matched_equation is None:
-		return list(U) # TODO: Remove list
+		return U
 	
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -724,7 +723,7 @@ def s_rules(U: Set[Equation], VS1: Set[Equation]):
 				if not linear(e.right_side, VS1):
 					#print("Prune: ")
 					#print(e)
-					return list()
+					return set()
 	
 	
 	return U
