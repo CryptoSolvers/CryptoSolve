@@ -442,6 +442,8 @@ class Equation:
     def __eq__(self, x):
         if not isinstance(x, Equation):
             return False
+        
         set1 = {self.left_side, self.right_side}
         set2 = {x.left_side, x.right_side}
-        return set1 == set2
+        return len(set1.symmetric_difference(set2)) == 0
+
