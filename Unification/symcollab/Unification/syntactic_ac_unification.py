@@ -11,7 +11,7 @@ from .common import orient
 
 #Tree
 class MutateNode:
-	def __init__(self, data: list):
+	def __init__(self, data: Set[Equation]):
 		self.id = None
 		self.c = None
 		self.a1 = None
@@ -20,6 +20,14 @@ class MutateNode:
 		self.lc = None
 		self.mc = None
 		self.data = data
+	def __str__(self):
+		return f"MutateNode(data={self.data})"
+
+def already_explored(m: MutateNode, Q_history: List[MutateNode]):
+	return any((
+		m.data == q.data
+		for q in Q_history
+	))
 
 
 #helper function for solved forms
@@ -57,7 +65,7 @@ def solved_form(U: Set[Equation]):
 			return(True)
 		else:
 			return(False)
-		
+
 	# Check for duplicate assignments
 	V = list()
 	for e in U:
@@ -66,7 +74,7 @@ def solved_form(U: Set[Equation]):
 	if len(V) != len(set(V)):
 		return(False)
 
-	if occurs_check(U):
+	if occurs_check_full(U):
 		return False
 
 	#print("Yes, solved")
@@ -79,7 +87,7 @@ def solved_form_vd(U: Set[Equation], VS1: Set[Term]) -> bool:
 	#print("Checking solved form for : ")
 	#print(U)
 	U = orient(U)
-	
+
 	FTF = False
 	for e in U:
 		if isinstance(e.right_side, FuncTerm):
@@ -88,7 +96,7 @@ def solved_form_vd(U: Set[Equation], VS1: Set[Term]) -> bool:
 				return(False)
 	if not FTF:
 		return(True)
-	
+
 	# Look for duplicate assignments
 	V = list()
 	for e in U:
@@ -97,8 +105,8 @@ def solved_form_vd(U: Set[Equation], VS1: Set[Term]) -> bool:
 				V.append(e.left_side)
 	if len(V) != len(set(V)):
 		return(False)
-	
-	if occurs_check(U):
+
+	if occurs_check_full(U):
 		return False
 
 	#print("Yes it's solved")
@@ -136,10 +144,10 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]):
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 	#Create the mutations
 	U = U - {matched_equation}
 	#ID
@@ -152,18 +160,18 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]):
 	var2 = 'v_'+str(var_count[0])
 	var_count[0] = var_count[0] + 1
 	var2 = Variable(var2)
-	
+
 	m1 = set()
 	m1.add(Equation(var1, matched_equation.left_side.arguments[0]))
 	m1.add(Equation(var1, matched_equation.right_side.arguments[0]))
 	m1.add(Equation(var2, matched_equation.left_side.arguments[1]))
 	m1.add(Equation(var2, matched_equation.right_side.arguments[1]))
 	U = U.union(m1)
-	
+
 	U = orient(U)
 	#print("U after ID :")
 	#print(U)
-	return(U) 
+	return(U)
 
 #Mutation Rule C
 def mutation_rule2(U: Set[Equation], var_count: List[int]):
@@ -184,18 +192,18 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]):
 	var1 = 'v_'+str(var_count[0])
 	var_count[0] = var_count[0] + 1
 	var1 = Variable(var1)
-	
+
 	var2 = 'v_'+str(var_count[0])
 	var_count[0] = var_count[0] + 1
 	var2 = Variable(var2)
-	
+
 	m1 = set()
 	m1.add(Equation(var1, matched_equation.left_side.arguments[0]))
 	m1.add(Equation(var2, matched_equation.right_side.arguments[0]))
 	m1.add(Equation(var2, matched_equation.left_side.arguments[1]))
 	m1.add(Equation(var1, matched_equation.right_side.arguments[1]))
 	U = U.union(m1)
-	
+
 	U = orient(U)
 	#print("U after C: ")
 	#print(U)
@@ -210,10 +218,10 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]):
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
 	#ID
@@ -237,7 +245,7 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]):
 	m1.add(Equation(matched_equation.right_side.arguments[0], var1))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t2))
 	U = U.union(m1)
-	
+
 	U = orient(U)
 
 	#print("U after A1: ")
@@ -253,10 +261,10 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]):
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
 	#ID
@@ -280,9 +288,9 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]):
 	m1.add(Equation(matched_equation.right_side.arguments[0], t1))
 	m1.add(Equation(var3, matched_equation.right_side.arguments[1]))
 	U = U.union(m1)
-	
+
 	U = orient(U)
-	
+
 	#print("U after A2: ")
 	#print(U)
 	return U
@@ -291,16 +299,16 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]):
 def mutation_rule5(U: Set[Equation], var_count: List[int]):
 	#print("U before RC: ")
 	#print(U)
-	
+
 	matched_equation: Optional[Equation] = None
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
 	#ID
@@ -323,13 +331,13 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]):
 	m1.add(Equation(matched_equation.right_side.arguments[0], t2))
 	m1.add(Equation(var2, matched_equation.right_side.arguments[1]))
 	U = U.union(m1)
-	
+
 	U = orient(U)
 
 	#print("U after RC: ")
 	#print(U)
 	return U
-	
+
 
 #Mutation Rule LC
 def mutation_rule6(U: Set[Equation], var_count: List[int]):
@@ -340,10 +348,10 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]):
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -368,10 +376,10 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]):
 	m1.add(Equation(var2, matched_equation.right_side.arguments[0]))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t2))
 	U = U.union(m1)
-	
-	
+
+
 	U = orient(U)
-	
+
 	#print("U after LC: ")
 	#print(U)
 	return U
@@ -386,10 +394,10 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]):
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			matched_equation = e
 			break
-	
+
 	if matched_equation is None:
 		return U
-	
+
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
 	#ID
@@ -419,7 +427,7 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]):
 	m1.add(Equation(matched_equation.right_side.arguments[0], t3))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t4))
 	U = U.union(m1)
-	
+
 	U = orient(U)
 
 	#print("U after MC: ")
@@ -455,23 +463,23 @@ def merge(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 		e1_matches = is_orriented(e1) and e1.left_side not in VS1
 		if not e1_matches:
 			continue
-		
+
 		# Require distinct orriented equation with matching variable
 		e2_matches = is_orriented(e2) and e1 != e2 and e1.left_side == e2.left_side
 		if not e2_matches:
 			continue
-		
+
 		# Rule applies
 		remove_equations.add(e2)
 		add_equations.add(Equation(
 			e1.right_side,
 			e2.right_side
 		))
-	
+
 	#print("U after merge: ")
 	#print((equations - remove_equations).union(add_equations) )
 
-	return (equations - remove_equations).union(add_equations) 
+	return (equations - remove_equations).union(add_equations)
 
 
 def occurs_check(equations: Set[Equation]) -> bool:
@@ -481,6 +489,55 @@ def occurs_check(equations: Set[Equation]) -> bool:
 			if found_cycle(e.left_side, S, equations - {e}) == True:
 				return True
 	return False
+
+
+def occurs_check_variable(equations: Set[Equation], v: Variable) -> bool:
+	Q: List[Term] = []
+	equations_to_remove = set()
+	for equation in equations:
+		# Ignore trivial equalities
+		if equation.left_side == v and equation.right_side != v:
+			Q.append(equation.right_side)
+			equations_to_remove.add(equation)
+		elif equation.right_side == v and equation.left_side != v:
+			Q.append(equation.left_side)
+			equations_to_remove.add(equation)
+
+	equations_left = equations - equations_to_remove
+
+	while len(Q) > 0:
+		t = Q.pop(0)
+		if v in get_vars(t):
+			return True
+
+		equations_to_remove = set()
+		for equation in equations_left:
+			if equation.left_side == t and equation.right_side != t:
+				Q.append(equation.right_side)
+				equations_to_remove.add(equation)
+			elif equation.right_side == t and equation.left_side != t:
+				Q.append(equation.left_side)
+				equations_to_remove.add(equation)
+		equations_left = equations_left - equations_to_remove
+
+	return False
+
+
+def occurs_check_full(equations: Set[Equation]) -> bool:
+	# Find all x = ... or ... = x
+	variables_to_check: Set[Variable] = set()
+	for equation in equations:
+		if isinstance(equation.left_side, Variable):
+			variables_to_check.add(equation.left_side)
+		elif isinstance(equation.right_side, Variable):
+			variables_to_check.add(equation.right_side)
+
+	# Look for cycles for each variable
+	return any((
+		occurs_check_variable(equations, v) for v in variables_to_check
+	))
+
+
 
 def create_substitution_from_equations(equations: Set[Equation], VS1: Set[Term]) -> SubstituteTerm:
 	delta = SubstituteTerm()
@@ -513,26 +570,26 @@ def variable_replacement_vd(equations: Set[Equation], VS1: Set[Term]) -> Set[Equ
 			and isinstance(e.right_side, Variable)
 		if not variable_equality:
 			continue
-			
+
 		if e.left_side in VS1:
 			continue
-		
+
 		if e.left_side not in helper_gvs(equations - {e}):
 			continue
 
 		already_exists = any((e2.left_side == e.left_side for e2 in candidate_equations))
 		if already_exists:
 			continue
-		
+
 		# Add equation to ones we'll variable replace
 		candidate_equations.add(e)
 
 	if len(candidate_equations) == 0:
 		return equations
 
-	# Create substitution 
+	# Create substitution
 	delta = create_substitution_from_equations(candidate_equations, VS1)
-	
+
 	# Apply substitution
 	add_equations = set()
 	remove_equations = set()
@@ -542,7 +599,7 @@ def variable_replacement_vd(equations: Set[Equation], VS1: Set[Term]) -> Set[Equ
 			e.left_side * delta,
 			e.right_side * delta
 		))
-	
+
 	#print("U after var-rep-vd: ")
 	#print((equations - remove_equations).union(add_equations))
 
@@ -563,10 +620,10 @@ def replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 			continue
 
 		candidate_equations.add(e1)
-	
+
 	if len(candidate_equations) == 0:
 		return equations
-	
+
 	# Create Substitution
 	delta = create_substitution_from_equations(candidate_equations, VS1)
 	#print("Delta 2:")
@@ -581,7 +638,7 @@ def replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 			e.left_side * delta,
 			e.right_side * delta
 		))
-	
+
 	#print("U after replacement: ")
 	#print((equations - remove_equations).union(add_equations))
 
@@ -617,7 +674,7 @@ def s_rules_vd(U: Set[Equation], VS1: Set[Term]):
 	U = merge(U, VS1)
 
 	# Occurs Check
-	if occurs_check(U):
+	if occurs_check_full(U):
 		#print("Occurs check: ")
 		#print(U)
 		return set()
@@ -638,16 +695,16 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equati
 		variable_equality = isinstance(e.left_side, Variable) and isinstance(e.right_side, Variable)
 		if not variable_equality:
 			continue
-		
+
 		if e.left_side in VS1:
 			if e.right_side in VS1:
 				continue
-			
+
 			etemp = Equation(e.right_side, e.left_side)
 			already_exists = any((e2.left_side == etemp.left_side for e2 in candidate_equations))
 			if not already_exists:
 				candidate_equations.add(etemp)
-		
+
 		else:
 			already_exists = any((e2.left_side == e.left_side for e2 in candidate_equations))
 			if not already_exists:
@@ -673,7 +730,7 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equati
 			e.left_side * delta,
 			e.right_side * delta
 		))
-	
+
 	# print("U after variable-replacement")
 	# print((equations - remove_equations).union(add_equations))
 
@@ -694,7 +751,7 @@ def eqe(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 				equations_to_remove.add(e)
 			elif e.right_side not in VS1 and e.right_side not in ST:
 				equations_to_remove.add(e)
-	
+
 	#print("U after EQE: ")
 	#print(equations - equations_to_remove)
 
@@ -707,7 +764,7 @@ def s_rules(U: Set[Equation], VS1: Set[Equation]):
 	U = variable_replacement(U, VS1)
 	U = replacement(U, set())
 
-	if occurs_check(U):
+	if occurs_check_full(U):
 		#print("Occurs check: ")
 		#print(U)
 		return(set())
@@ -724,45 +781,84 @@ def s_rules(U: Set[Equation], VS1: Set[Equation]):
 					#print("Prune: ")
 					#print(e)
 					return set()
-	
-	
+
+
 	return U
 
-def apply_mutation_rules(cn: MutateNode, var_count: int, Q: List[MutateNode]):
+def apply_mutation_rules(
+		cn: MutateNode, var_count: int,
+		Q: List[MutateNode], Q_history: List[MutateNode]):
 	"""
 	Applies mutation rules and adds nodes to the queue
 	"""
-	dcopy = deepcopy(cn.data) 
+	dcopy = deepcopy(cn.data)
 	cn.id = MutateNode(mutation_rule1(dcopy, var_count))
-	Q.append(cn.id)
+	if not already_explored(cn.id, Q_history):
+		Q.append(cn.id)
+		Q_history.append(cn.id)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.c = MutateNode(mutation_rule2(dcopy, var_count))
-	Q.append(cn.c)
+	if not already_explored(cn.c, Q_history):
+		Q.append(cn.c)
+		Q_history.append(cn.c)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
-	Q.append(cn.a1)
+	if not already_explored(cn.a1, Q_history):
+		Q.append(cn.a1)
+		Q_history.append(cn.a1)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
-	Q.append(cn.a2)
+	if not already_explored(cn.a2, Q_history):
+		Q.append(cn.a2)
+		Q_history.append(cn.a2)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
-	Q.append(cn.rc)
+	if not already_explored(cn.rc, Q_history):
+		Q.append(cn.rc)
+		Q_history.append(cn.rc)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
-	Q.append(cn.lc)
+	if not already_explored(cn.lc, Q_history):
+		Q.append(cn.lc)
+		Q_history.append(cn.lc)
+	else:
+		print("REPEAT FOUND")
+
 	dcopy = deepcopy(cn.data)
 	cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
-	Q.append(cn.mc)
-	
+	if not already_explored(cn.mc, Q_history):
+		Q.append(cn.mc)
+		Q_history.append(cn.mc)
+	else:
+		print("REPEAT FOUND")
+
 def build_tree(root: MutateNode, var_count, VS1, single_sol):
 	EQS = list()
 	Sol = list()
 	Q = list()
+	Q_history = list()
 	Q.append(root)
+	Q_history.append(root)
 	################### Step 1 #########################
 	#the upper length bound will be removed when we add pruning
 	while len(Q) > 0:
 		cn = Q.pop(0)
+		# print(cn)
 		#Apply S rules
 		Max = 20
 		count = 0
@@ -782,22 +878,24 @@ def build_tree(root: MutateNode, var_count, VS1, single_sol):
 			if solved_form_vd(cn.data, VS1):
 				EQS.append(cn.data)
 			else:
-				apply_mutation_rules(cn, var_count, Q)
+				apply_mutation_rules(cn, var_count, Q, Q_history)
 		#print("Len 1: " + str(len(Q)))
-	
+
 	#print("The final length of EQS: ")
 	#print(len(EQS))
 	#print(EQS)
 	################### Step 2, 3, 4 ###################
 	for s in EQS:
 		Q = list()
+		Q_history = list()
 		root = MutateNode(s)
 		Q.append(root)
+		Q_history.append(root)
 		#the upper length bound will be removed when we add pruning
 		while len(Q) > 0:
 			cn = Q.pop(0)
 			#Apply S rules - mutate
-			Max = 20
+			Max = 5
 			count =0
 			Utemp = set()
 			#print("Starting for problem: ")
@@ -819,7 +917,7 @@ def build_tree(root: MutateNode, var_count, VS1, single_sol):
 					if single_sol:
 						return Sol
 				else:
-					apply_mutation_rules(cn, var_count, Q)
+					apply_mutation_rules(cn, var_count, Q, Q_history)
 			#print("Len 2: " + str(len(Q)))
 	return(Sol)
 
@@ -831,7 +929,7 @@ def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
 	VS1 = helper_gvs(U)
 	N1 = MutateNode(U)
 	res = build_tree(N1, var_count, VS1, single_sol)
-	
+
 	final_sol = set()
 	for solve in res:
 		delta = SubstituteTerm()
@@ -841,12 +939,12 @@ def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
 			except:
 				print("error adding substitution")
 		final_sol.add(delta)
-	
+
 	#print("Solution: ")
 	#if res == set():
 	#	print("No solution found")
 	#else:
 	#	for s in res:
 	#		print(s)
-	
+
 	return(final_sol)
