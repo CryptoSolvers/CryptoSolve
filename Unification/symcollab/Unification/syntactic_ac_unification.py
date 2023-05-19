@@ -92,93 +92,43 @@ class MutateNode:
 	def __str__(self):
 		return f"MutateNode(data={self.data})"
 
-def already_explored(m: MutateNode, Q_history: List[MutateNode]):
+def already_explored(m: MutateNode, Tree: List[List[MutateNode]]):
 	# TODO: Check for equilvalence modulo renaming
-	return any((
-		m.data == q.data
-		for q in Q_history
-	))
+	for branch in Tree:
+		for q in branch:
+			if m.data == q.data:
+				return True
+	return False
 
-# TODO: Check solved form implementation
 #helper function for solved forms
-def solved_form(U: Set[Equation]):
-	#orient
+def solved_form(U: Set[Equation], VS1: Set[Variable]):
 	#print("Checking for solved form: ")
 	#print(U)
 	U = orient(U)
 
-	ft = False
+	V: List[Variable] = []
+	# Make sure every equation starts with a variable
+	# on the left side.
 	for e in U:
-		if isinstance(e.right_side, FuncTerm):
-			ft=True
-			if isinstance(e.left_side, FuncTerm) :
-				return(False)
-	if not ft:
-		V = list()
-		for e in U:
+		if not isinstance(e.left_side, Variable):
+			return False
+		if e.left_side not in VS1:
 			V.append(e.left_side)
-		if len(V) == len(set(V)):
-			return(True)
-		else:
-			return(False)
-
+	
 	# Check for duplicate assignments
-	V = list()
-	for e in U:
-		if isinstance(e.left_side, Variable):
-			V.append(e.left_side)
 	if len(V) != len(set(V)):
-		return(False)
+		return False
 
 	if occurs_check_full(U):
 		return False
 
-	#print("Yes, solved")
-	return(True)
-
-# TODO: Check solved form implementation
-#helper function for solved forms dist vars
-def solved_form_vd(U: Set[Equation], VS1: Set[Term]) -> bool:
-	#orient
-	#print("Checking solved form for : ")
-	#print(U)
-	U = orient(U)
-
-	FTF = False
-	for e in U:
-		if isinstance(e.right_side, FuncTerm):
-			FTF=True
-			if isinstance(e.left_side, FuncTerm):
-				return(False)
-	if not FTF:
-		return(True)
-
-	# Look for duplicate assignments
-	V = list()
-	for e in U:
-		if isinstance(e.left_side, Variable) and isinstance(e.right_side, FuncTerm):
-			if e.left_side not in VS1:
-				V.append(e.left_side)
-	if len(V) != len(set(V)):
-		return(False)
-
-	if occurs_check_full(U):
-		return False
-
-	#print("Yes it's solved")
-	return(True)
+	return True
 
 #helper function to check for linear term
 def linear(t: Term, VS1: Set[Term]):
 	V = get_vars(t)
-	VTL = list()
-	for var in V:
-		#if var not in VS1:
-		VTL.append(var)
-	if len(VTL) == len(set(VTL)):
-		return(True)
-	else:
-		return(False)
+	# False if there are duplicate variables within a term
+	return len(V) == len(set(V))
 
 # Helper function to retrieve a set of variables from a set of equations
 def helper_gvs(U: Set[Equation]):
@@ -489,10 +439,10 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]):
 
 
 ##########################################################
-############# S', vars distinct           ################
+############# S Rules                     ################
 ##########################################################
 
-def merge(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
+def merge(equations: Set[Equation], VS1: Set[Variable]) -> Set[Equation]:
 	"""
 	(x = s) /\ (x = t) -> (x = s) /\ (s = t)
 	if x not in VS1
@@ -523,7 +473,7 @@ def merge(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 
 	return (equations - remove_equations).union(add_equations)
 
-def create_substitution_from_equations(equations: Set[Equation], VS1: Set[Term]) -> SubstituteTerm:
+def create_substitution_from_equations(equations: Set[Equation], VS1: Set[Variable]) -> SubstituteTerm:
 	delta = SubstituteTerm()
 	for e in equations:
 		if not isinstance(e.left_side, Variable):
@@ -544,7 +494,7 @@ def create_substitution_from_equations(equations: Set[Equation], VS1: Set[Term])
 				delta.add(e.left_side, e.right_side)
 	return delta
 
-def variable_replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
+def variable_replacement(equations: Set[Equation], VS1: Set[Variable]) -> Set[Equation]:
 	#print("U before var-rep-vd: ")
 	#print(equations)
 	# Look for candidate equations to variable replace
@@ -585,7 +535,7 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equati
 
 	return substituted_equations.union(candidate_equations)
 
-def replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
+def replacement(equations: Set[Equation], VS1: Set[Variable]) -> Set[Equation]:
 	#print("U before replacement: ")
 	#print(equations)
 	candidate_equations = set()
@@ -614,7 +564,7 @@ def replacement(equations: Set[Equation], VS1: Set[Term]) -> Set[Equation]:
 
 	return substituted_equations.union(candidate_equations)
 
-def eqe(equations: Set[Equation], VS1: Set[Term]):
+def eqe(equations: Set[Equation], VS1: Set[Variable]):
 	# print("U before EQE-VD: ")
 	# print(equations)
 	equations_to_remove = set()
@@ -634,9 +584,7 @@ def eqe(equations: Set[Equation], VS1: Set[Term]):
 
 	return (equations - equations_to_remove)
 
-
-
-def s_rules_vd(U: Set[Equation], VS1: Set[Term]):
+def s_rules_vd(U: Set[Equation], VS1: Set[Variable]):
 	U = orient(U)
 	U = merge(U, VS1)
 
@@ -651,7 +599,6 @@ def s_rules_vd(U: Set[Equation], VS1: Set[Term]):
 	U = eqe(U, VS1)
 
 	return U
-
 
 def s_rules(U: Set[Equation], VS1: Set[Equation]):
 	U = orient(U)
@@ -683,76 +630,73 @@ def s_rules(U: Set[Equation], VS1: Set[Equation]):
 
 def apply_mutation_rules(
 		cn: MutateNode, var_count: int,
-		Q: List[MutateNode], Q_history: List[MutateNode]):
+		Q: List[MutateNode], Tree: List[List[MutateNode]]):
 	"""
 	Applies mutation rules and adds nodes to the queue
 	"""
+	nextBranch: List[MutateNode] = []
 	dcopy = deepcopy(cn.data)
+
 	cn.id = MutateNode(mutation_rule1(dcopy, var_count))
-	if not already_explored(cn.id, Q_history):
-		Q.append(cn.id)
-		Q_history.append(cn.id)
+	if not already_explored(cn.id, Tree):
+		nextBranch.append(cn.id)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.c = MutateNode(mutation_rule2(dcopy, var_count))
-	if not already_explored(cn.c, Q_history):
-		Q.append(cn.c)
-		Q_history.append(cn.c)
+	if not already_explored(cn.c, Tree):
+		nextBranch.append(cn.c)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
-	if not already_explored(cn.a1, Q_history):
-		Q.append(cn.a1)
-		Q_history.append(cn.a1)
+	if not already_explored(cn.a1, Tree):
+		nextBranch.append(cn.a1)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
-	if not already_explored(cn.a2, Q_history):
-		Q.append(cn.a2)
-		Q_history.append(cn.a2)
+	if not already_explored(cn.a2, Tree):
+		nextBranch.append(cn.a2)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
-	if not already_explored(cn.rc, Q_history):
+	if not already_explored(cn.rc, Tree):
 		Q.append(cn.rc)
-		Q_history.append(cn.rc)
+		nextBranch.append(cn.rc)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
-	if not already_explored(cn.lc, Q_history):
-		Q.append(cn.lc)
-		Q_history.append(cn.lc)
+	if not already_explored(cn.lc, Tree):
+		nextBranch.append(cn.lc)
 	else:
 		print("Pruning Branch")
 
 	dcopy = deepcopy(cn.data)
 	cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
-	if not already_explored(cn.mc, Q_history):
-		Q.append(cn.mc)
-		Q_history.append(cn.mc)
+	if not already_explored(cn.mc, Tree):
+		nextBranch.append(cn.mc)
 	else:
 		print("Pruning Branch")
+	
+	Tree.append(nextBranch)
+	Q.extend(nextBranch)
+
 
 def build_tree(root: MutateNode, var_count, VS1, single_sol):
-	# TODO: Redo structure with new Tree data structure
-	# Change Q to denote a particular branch width
-
 	EQS = list()
 	Sol = list()
-	Q = list()
-	Q_history = list()
+	Q: List[MutateNode] = list()
+	Tree: List[List[MutateNode]] = list()
 	Q.append(root)
-	Q_history.append(root)
+	Tree.append([root])
 	################### Step 1 #########################
 	#the upper length bound will be removed when we add pruning
 	while 0 < len(Q):
@@ -762,16 +706,14 @@ def build_tree(root: MutateNode, var_count, VS1, single_sol):
 		Utemp = set()
 		# While applying the rule changes...
 		while (Utemp != cn.data):
-			#print("Starting S rules: step(" +str(count) +")")
 			Utemp = cn.data
 			cn.data = s_rules_vd(cn.data, VS1)
-			#print("U after S rules: ")
-			#print(cn.data)
+			#print("U after S rules: ", cn.data)
 		if len(cn.data) > 0:
-			if solved_form_vd(cn.data, VS1):
+			if solved_form(cn.data, VS1):
 				EQS.append(cn.data)
 			else:
-				apply_mutation_rules(cn, var_count, Q, Q_history)
+				apply_mutation_rules(cn, var_count, Q, Tree)
 		#print("Len 1: " + str(len(Q)))
 
 	#print("The final length of EQS: ")
@@ -779,40 +721,33 @@ def build_tree(root: MutateNode, var_count, VS1, single_sol):
 	#print(EQS)
 	################### Step 2, 3, 4 ###################
 	for s in EQS:
-		Q = list()
-		Q_history = list()
+		Q = []
+		Tree = []
 		root = MutateNode(s)
 		Q.append(root)
-		Q_history.append(root)
+		Tree.append([root])
 		#the upper length bound will be removed when we add pruning
-		while 0 < len(Q) < 100:
+		while 0 < len(Q) < 1000:
 			cn = Q.pop(0)
 			#Apply S rules - mutate
 			Utemp = set()
-			#print("Starting for problem: ")
-			#print(cn.data)
+			#print("Starting for problem: ", cn.data)
 			while (Utemp != cn.data): # Remove once pruning is improved
 				Utemp = cn.data
-				#print("U before S rules: ")
-				#print(cn.data)
+				#print("U before S rules: ", cn.data)
 				cn.data = s_rules(cn.data, VS1)
-				#print("U after S rules: ")
-				#print(cn.data)
+				#print("U after S rules: ", cn.data)
 			if len(cn.data) > 0:
-				if solved_form(cn.data):
+				if solved_form(cn.data, set()):
 					Sol.append(cn.data)
 					if single_sol:
 						return Sol
 				else:
-					apply_mutation_rules(cn, var_count, Q, Q_history)
-					# TODO: NOTE: Since this directly modifies Q, if it is in solved
-					# form then further modificaitons are made....
+					apply_mutation_rules(cn, var_count, Q, Tree)
 			#print("Len 2: " + str(len(Q)))
 	return(Sol)
 
 def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
-	#print("Syntactic AC-Unification on the following problem: ")
-	#print(U)
 	var_count = [0] # Seems to be a global variable hack
 	#get the intial set of vars
 	VS1 = helper_gvs(U)
@@ -822,18 +757,12 @@ def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
 	final_sol = set()
 	for solve in res:
 		delta = SubstituteTerm()
+		# Convert equations to a substitution
 		for e in solve:
 			try:
 				delta.add(e.left_side, e.right_side)
 			except:
 				print("error adding substitution")
 		final_sol.add(delta)
-
-	#print("Solution: ")
-	#if res == set():
-	#	print("No solution found")
-	#else:
-	#	for s in res:
-	#		print(s)
 
 	return(final_sol)
