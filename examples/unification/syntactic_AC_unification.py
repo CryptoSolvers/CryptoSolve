@@ -38,7 +38,6 @@ def check_substitution(problem: Equation, unifier: SubstituteTerm):
 
     return True
 
-
 def print_sol(sol: Set[SubstituteTerm]):
     if len(sol) == 0:
         print("No Solution\n")
@@ -72,18 +71,30 @@ def print_failures(problem: Equation, sol: Set[SubstituteTerm]):
 
 #Setup the variables and AC function
 f = Function("f", 2)
+w = Variable("w")
 x = Variable("x")
 y = Variable("y")
 z = Variable("z")
 a = Constant("a")
 b = Constant("b")
+w1 = Variable("w1")
 x1 = Variable("x1")
 y1 = Variable("y1")
 z1 = Variable("z1")
 
 # synt_ac_unif(set of equations, single solution?)
 
-#Example 1
+## AC Unification with only distinct variables
+
+# Example 1: One distinct variable on each side (PASS)
+e = Equation(x, x1)
+U = {e}
+sol = synt_ac_unif(U, False)
+print_sol(sol)
+print_failures(e, sol)
+print("")
+
+#Example 2: Two distinct variables on each side (PASS)
 e = Equation(f(x, y), f(x1, y1))
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -91,7 +102,7 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 2
+# Example 3: Three distinct variables on each side (PASS)
 e = Equation(f(x, f(y, z)), f(x1, f(y1, z1)))
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -99,7 +110,17 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 3
+# Example 4: Four distinct variables on each side (DOESN'T TERMINATE)
+#e = Equation(f(w, f(x, f(y, z))), f(w1, f(x1, f(y1, z1))))
+#U = {e}
+#sol = synt_ac_unif(U, False)
+#print_sol(sol)
+#print_failures(e, sol)
+#print("")
+
+## Duplicate Variables
+
+# Example 5: Duplicate variable on each side (NO SOLUTION)
 e = Equation(f(x,x), f(y,y))
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -108,10 +129,10 @@ print_failures(e, sol)
 print("")
 
 
-# Example 3
+# Example 6: Differing multiplicity with duplicate variables (NO VALID SOLUTION)
 e = Equation(
-    f(x, x),
-    f(f(y,y),f(z,z))
+   f(x, x),
+   f(f(y,y),f(z,z))
 )
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -119,7 +140,7 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 4
+# Example 7: Differing multiplicity of duplicate variables (SOME VALID, SOME NOT)
 lhs = f(x,f(x, x))
 rhs = f(y, f(y, z))
 e = Equation(lhs, rhs)
