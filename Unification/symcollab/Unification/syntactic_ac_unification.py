@@ -483,8 +483,8 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Set[Equat
 	(x = s) /\ (x = t) -> (x = s) /\ (s = t)
 	if x is a variable and s and t are not variables
 	"""
-	remove_equations = set()
-	add_equations = set()
+	remove_equation: Optional[Equation] = None
+	add_equation: Optional[Equation] = None
 	for e1, e2 in itertools.product(equations, equations):
 		# Skip if the two equations are the same
 		if e1 == e2:
@@ -496,14 +496,18 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Set[Equat
 		not_restricted = e1.left_side not in restricted_vars
 
 		if matching_left_variable and right_side_not_variable and not_restricted:
-			remove_equations.add(e2)
-			add_equations.add(Equation(
+			remove_equation = e2
+			add_equation = Equation(
 				e1.right_side,
 				e2.right_side
-			))
-			break # NOTE: NEED TO BREAK!
+			)
+			break
 
-	return (equations - remove_equations).union(add_equations)
+	# No relevant equation pair found
+	if remove_equation is None or add_equation is None:
+		return equations
+
+	return (equations - {remove_equation}).union({add_equation})
 
 def create_substitution_from_equations(equations: Set[Equation]) -> SubstituteTerm:
 	delta = SubstituteTerm()
@@ -521,11 +525,11 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Variable], restricte
 		both_sides_variables = isinstance(e.left_side, Variable) and isinstance(e.right_side, Variable)
 		variables_in_P = helper_gvs(equations - {e})
 		exists_within_p = e.left_side in variables_in_P and e.right_side in variables_in_P
-		not_restricted = e.left_side not in restricted_vars and e.right_side not in restricted_vars
+		not_restricted_l = e.left_side not in restricted_vars
 		# NOTE: The only free variables are from the original problem, bound variables are created by mutation
 
 		left_bound_or_right_free = e.left_side not in VS1 or e.right_side in VS1
-		condition1 = both_sides_variables and exists_within_p and not_restricted and left_bound_or_right_free
+		condition1 = both_sides_variables and exists_within_p and not_restricted_l and left_bound_or_right_free
 		if condition1:
 			candidate_equation = e
 			delta = SubstituteTerm()
@@ -534,7 +538,8 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Variable], restricte
 
 
 		left_free_or_right_bound = e.left_side in VS1 or e.right_side not in VS1
-		condition2 = both_sides_variables and exists_within_p and not_restricted and left_free_or_right_bound
+		not_restricted_r = e.right_side not in restricted_vars
+		condition2 = both_sides_variables and exists_within_p and not_restricted_r and left_free_or_right_bound
 		if condition2:
 			candidate_equation = e
 			delta = SubstituteTerm()
@@ -586,7 +591,7 @@ def replacement(equations: Set[Equation], VS1: Set[Variable], restricted_vars: S
 	return equations
 
 def eqe(equations: Set[Equation], VS1: Set[Variable], restricted_vars: Set[Variable]) -> Set[Equation]:
-	equations_to_remove = set()
+	equation_to_remove: Optional[Equation] = None
 	for e in equations:
 		# Conditions
 		variable_left_side = isinstance(e.left_side, Variable)
@@ -595,13 +600,23 @@ def eqe(equations: Set[Equation], VS1: Set[Variable], restricted_vars: Set[Varia
 		variables_in_right_side = set(get_vars(e.right_side))
 		variables_in_P = helper_gvs(equations - {e})
 		not_in_SP = e.left_side not in variables_in_right_side.union(variables_in_P)
-		not_restricted = e.left_side not in restricted_vars
+		not_restricted_l = e.left_side not in restricted_vars
 
-		if variable_left_side and left_side_bound and not_in_SP and not_restricted:
-			equations_to_remove.add(e)
+		if variable_left_side and left_side_bound and not_in_SP and not_restricted_l:
+			equation_to_remove = e
 			break # NOTE: REQUIRED
 
-	return (equations - equations_to_remove)
+		variable_right_side = isinstance(e.right_side, Variable)
+		right_side_bound = e.right_side not in VS1
+		variables_in_left_side = set(get_vars(e.left_side))
+		not_in_XP = e.right_side not in variables_in_left_side.union(variables_in_P)
+		not_restricted_r = e.right_side not in restricted_vars
+
+		if variable_right_side and right_side_bound and not_in_XP and not_restricted_r:
+			equation_to_remove = e
+			break # NOTE: REQUIRED
+
+	return (equations - {equation_to_remove})
 
 def prune(equations: Set[Equation], VS1: Set[Variable], ignore_vars: Set[Variable]) -> bool:
 	VS2 = helper_gvs(equations)
@@ -637,7 +652,7 @@ def s_rules_no_mutate_og_vars(U: set[Equation], VS1: Set[Variable]):
 	new_V = helper_gvs(U) - VS1
 
 	U = orient(U)
-	U = merge(U, set())
+	U = merge(U, new_V)
 	U = variable_replacement(U, VS1, new_V)
 	U = replacement(U, VS1, new_V)
 	U = eqe(U, VS1, new_V)
@@ -645,7 +660,7 @@ def s_rules_no_mutate_og_vars(U: set[Equation], VS1: Set[Variable]):
 	if occurs_check_full(U):
 		return set()
 
-	if prune(U, VS1, set()):
+	if prune(U, VS1, VS1):
 		# print("[Stage 2] Prune rule applied")
 		return set()
 
@@ -765,7 +780,7 @@ def apply_mutation_rules(
 
 def build_tree(U: Set[Equation], single_sol):
 
-	MAX_MUTATE_APPLICATION = 10 # Upper bound until algorithm performs better
+	MAX_MUTATE_APPLICATION = 20 # Upper bound until algorithm performs better
 
 	################ Step 0.5 #####################
 	# Translate the problem to one where there are no duplicate variables

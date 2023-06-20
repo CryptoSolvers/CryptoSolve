@@ -102,7 +102,7 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 3: Three distinct variables on each side (PASS with stage 1 bound)
+# Example 3: Three distinct variables on each side (PASS)
 e = Equation(f(x, f(y, z)), f(x1, f(y1, z1)))
 U = {e}
 sol = synt_ac_unif(U, False)
