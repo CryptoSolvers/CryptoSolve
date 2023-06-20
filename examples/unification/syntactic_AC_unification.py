@@ -102,7 +102,7 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 3: Three distinct variables on each side (PASS)
+# Example 3: Three distinct variables on each side (PASS with stage 1 bound)
 e = Equation(f(x, f(y, z)), f(x1, f(y1, z1)))
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -110,17 +110,17 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 4: Four distinct variables on each side (DOESN'T TERMINATE)
-#e = Equation(f(w, f(x, f(y, z))), f(w1, f(x1, f(y1, z1))))
-#U = {e}
-#sol = synt_ac_unif(U, False)
-#print_sol(sol)
-#print_failures(e, sol)
-#print("")
+# Example 4: Four distinct variables on each side (PASS with Stage 1 bound)
+e = Equation(f(w, f(x, f(y, z))), f(w1, f(x1, f(y1, z1))))
+U = {e}
+sol = synt_ac_unif(U, False)
+print_sol(sol)
+print_failures(e, sol)
+print("")
 
 ## Duplicate Variables
 
-# Example 5: Duplicate variable on each side (NO SOLUTION)
+# Example 5: Duplicate variable on each side (PASS with stage 2/3 bound)
 e = Equation(f(x,x), f(y,y))
 U = {e}
 sol = synt_ac_unif(U, False)
@@ -129,7 +129,7 @@ print_failures(e, sol)
 print("")
 
 
-# Example 6: Differing multiplicity with duplicate variables (NO VALID SOLUTION)
+# Example 6: Differing multiplicity with duplicate variables (PASS with stage 1/2/3 bound)
 e = Equation(
    f(x, x),
    f(f(y,y),f(z,z))
@@ -140,7 +140,7 @@ print_sol(sol)
 print_failures(e, sol)
 print("")
 
-# Example 7: Differing multiplicity of duplicate variables (SOME VALID, SOME NOT)
+# Example 7: Differing multiplicity of duplicate variables (PASS with stage 2/3 bound)
 lhs = f(x,f(x, x))
 rhs = f(y, f(y, z))
 e = Equation(lhs, rhs)
