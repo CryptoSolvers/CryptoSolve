@@ -509,14 +509,6 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Set[Equat
 
 	return (equations - {remove_equation}).union({add_equation})
 
-def create_substitution_from_equations(equations: Set[Equation]) -> SubstituteTerm:
-	delta = SubstituteTerm()
-	for e in equations:
-		if not isinstance(e.left_side, Variable):
-			raise Exception("create_substitution_from_equations require var-left equations")
-		delta.add(e.left_side, e.right_side)
-	return delta
-
 def variable_replacement(equations: Set[Equation], VS1: Set[Variable], restricted_vars: Set[Variable]) -> Set[Equation]:
 	# Look for candidate equations to variable replace
 	candidate_equation = None
@@ -584,7 +576,8 @@ def replacement(equations: Set[Equation], VS1: Set[Variable], restricted_vars: S
 
 	# Create and apply substitution
 	# NOTE: Can have cycles in substitutions one call to the method will only perform this rule once
-	delta = create_substitution_from_equations({candidate_equation})
+	delta = SubstituteTerm()
+	delta.add(candidate_equation.left_side, candidate_equation.right_side)
 	substituted_equations = apply_substitution_on_equations(delta, equations - {candidate_equation})
 	equations = substituted_equations.union({candidate_equation})
 
@@ -643,7 +636,6 @@ def s_rules_no_mutate(U: Set[Equation], VS1: Set[Variable]):
 		return set()
 
 	return U
-
 
 def s_rules_no_mutate_og_vars(U: set[Equation], VS1: Set[Variable]):
 	"""
@@ -729,7 +721,6 @@ def can_apply_mutation_rules(
 		return True
 
 	return False
-
 
 def apply_mutation_rules(
 		cn: MutateNode, var_count: int,
