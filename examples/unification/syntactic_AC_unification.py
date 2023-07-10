@@ -130,15 +130,15 @@ print("")
 
 
 # Example 6: Differing multiplicity with duplicate variables (PASS with stage 1/2/3 bound)
-e = Equation(
-   f(x, x),
-   f(f(y,y),f(z,z))
-)
-U = {e}
-sol = synt_ac_unif(U, False)
-print_sol(sol)
-print_failures(e, sol)
-print("")
+#e = Equation(
+#   f(x, x),
+#   f(f(y,y),f(z,z))
+#)
+#U = {e}
+#sol = synt_ac_unif(U, False)
+#print_sol(sol)
+#print_failures(e, sol)
+#print("")
 
 # Example 7: Differing multiplicity of duplicate variables (PASS with stage 2/3 bound)
 lhs = f(x,f(x, x))
@@ -149,3 +149,37 @@ sol = synt_ac_unif(U, False)
 print_sol(sol)
 print_failures(e, sol)
 print("")
+
+# Example 8: Four distinct variables on each side (PASS with Stage 1 bound) repeat of 4 with swapped nesting
+print("Example 8")
+lhs = f(f(x,f(x,y)),w)
+rhs = f(f(x1,f(y1,z1)),w1)
+e = Equation(lhs,rhs)
+U = {e}
+sol = synt_ac_unif(U, False)
+print_sol(sol)
+print_failures(e, sol)
+print("")
+
+# Example 9:
+#print("Example 9")
+#lhs = a
+#rhs = b
+#e = Equation(lhs,rhs)
+#U = {e}
+#sol = synt_ac_unif(U, False)
+#print_sol(sol)
+#print_failures(e, sol)
+#print("")
+
+# Example 10:
+#print("Example 10")
+#lhs = f(a,a)
+#rhs = f(b,b)
+#e = Equation(lhs,rhs)
+#U = {e}
+#sol = synt_ac_unif(U, False)
+#print_sol(sol)
+#print_failures(e, sol)
+#print("")
+
