@@ -142,6 +142,8 @@ def helper_gvs(U: Set[Equation]) -> Set[Variable]:
 		V = V.union(get_vars(e.right_side))
 	return(V)
 
+def is_binary_function(t: Term):
+	return isinstance(t, FuncTerm) and t.function.arity == 2
 
 #Rules
 
@@ -149,7 +151,7 @@ def helper_gvs(U: Set[Equation]) -> Set[Variable]:
 def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			# print("Matched Equation", e)
 			matched_equation = e
 			break
@@ -192,7 +194,7 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation : Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
@@ -234,7 +236,7 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
@@ -281,7 +283,7 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
@@ -329,7 +331,7 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
@@ -377,7 +379,7 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
@@ -426,7 +428,7 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
+		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
 			matched_equation = e
 			break
 
