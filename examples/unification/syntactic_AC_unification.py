@@ -71,6 +71,7 @@ def print_failures(problem: Equation, sol: Set[SubstituteTerm]):
 
 #Setup the variables and AC function
 f = Function("f", 2)
+g = Function("g", 2)
 w = Variable("w")
 x = Variable("x")
 y = Variable("y")
@@ -182,4 +183,15 @@ print("")
 #print_sol(sol)
 #print_failures(e, sol)
 #print("")
+
+# Example 11:
+print("Example 11")
+lhs = g(f(x,z),f(y,w))
+rhs = g(f(z1,x1),f(w1,y1))
+e = Equation(lhs,rhs)
+U = {e}
+sol = synt_ac_unif(U, False)
+print_sol(sol)
+print_failures(e, sol)
+print("")
 
