@@ -883,7 +883,9 @@ def build_tree(U: Set[Equation], single_sol):
 		# NOTE: DEBUG
 		# print("\n")
 
-
+	# print("---- Step 1 solutions --------")
+	# for eq in step_1_solutions:
+	# 	print(eq)
 
 	############## Step 1.5 #####################
 	# Undo deduplication
@@ -914,9 +916,6 @@ def build_tree(U: Set[Equation], single_sol):
 		return new_U
 	step_1_5_solutions = [undo_dedup(equation) for equation in step_1_solutions]
 
-	# print("---- Step 1 solutions --------")
-	# for eq in step_1_solutions:
-	# 	print(eq)
 	# print("------- Step 1.5 solutions ---------")
 	# for eq in step_1_5_solutions:
 	# 	print(eq)
@@ -983,6 +982,8 @@ def build_tree(U: Set[Equation], single_sol):
 			if not can_apply_mutation_rules(cn, [0], Tree):
 				if len(cn.data) > 0:
 					Sol.append(cn.data)
+					if single_sol:
+						return Sol
 			else:
 				apply_mutation_rules(cn, var_count, Q, Tree)
 
