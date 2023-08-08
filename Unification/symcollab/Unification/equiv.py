@@ -21,13 +21,9 @@ def syntactic_equal(sigma1: SubstituteTerm, sigma2: SubstituteTerm) -> bool:
 	S1 = sub_to_equation(sigma1)
 	S2 = sub_to_equation(sigma2)
 	S3 = S1.union(S2)
-	print("S3: ")
-	print(S3)
 
 	unif = syntactic_unification(S3)
-	print(unif)
 	if unif == False:
-		print("Not unifiable")
 		return False
 
 	unif_set = sub_to_equation(unif)
@@ -39,7 +35,6 @@ def syntactic_equal(sigma1: SubstituteTerm, sigma2: SubstituteTerm) -> bool:
 		if isinstance(x.right_side, FuncTerm):
 			if x in S3:
 				set_copy.discard(x)
-	print(set_copy)
 
 	# Any remaining non-variable mapping means that the
 	# two equations are not equivalent modulo variable renaming
