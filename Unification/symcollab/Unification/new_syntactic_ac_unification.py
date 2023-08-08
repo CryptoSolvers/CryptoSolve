@@ -665,7 +665,7 @@ def prune(equations: Set[Equation], VS1: Set[Variable], ignore_vars: Set[Variabl
 
 def s_rules_no_mutate(U: Set[Equation], VS1: Set[Variable], ac_symbol):
 	"""
-	Apply S rules on set of equations with no restrictions
+	Apply S rules (without mutate) on set of equations with no restrictions
 	"""
 	U = orient(U)
 	U = decompose(U, ac_symbol)
@@ -685,8 +685,7 @@ def s_rules_no_mutate(U: Set[Equation], VS1: Set[Variable], ac_symbol):
 
 def s_rules_no_mutate_new_vars(U: set[Equation], VS1: Set[Variable], ac_symbol):
 	"""
-	Apply S rules only on variables not from the original equations
-	NOTE: It actually works better if we don't put any restrictions
+	Apply S ruless without mutate and including the merge rule
 	"""
 	U = orient(U)
 	U = decompose(U, ac_symbol)
