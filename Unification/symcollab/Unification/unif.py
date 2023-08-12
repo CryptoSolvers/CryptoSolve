@@ -7,7 +7,7 @@ from symcollab.algebra import Equation, SubstituteTerm
 from typing import Set
 from symcollab.Unification.common import (
     occurs_check, function_clash, eliminate,
-    orient, decompose
+    orient, decompose, delete_trivial
 )
 from symcollab.Unification.registry import Unification_Algorithms
 
@@ -27,4 +27,5 @@ def unif(equations: Set[Equation]) -> Set[SubstituteTerm]:
         equations, sigma = eliminate(equations, sigma)
         equations = orient(equations)
         equations = decompose(equations)
+        equations = delete_trivial(equations)
     return sigma # TODO: return {sigma}
