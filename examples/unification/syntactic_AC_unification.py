@@ -98,14 +98,14 @@ lhs = x
 rhs = x1
 e = Equation(lhs, rhs)
 U = {e}
-# run_example("Example 1", U)
+run_example("Example 1", U)
 
 # [PASS] Two distinct variables on each side
 lhs = f(x, y)
 rhs = f(x1, y1)
 e = Equation(lhs, rhs)
 U = {e}
-# run_example("Example 2", U)
+run_example("Example 2", U)
 
 
 # [PASS] Three distinct variables on each side
@@ -113,7 +113,7 @@ lhs = f(x, f(y, z))
 rhs = f(x1, f(y1, z1))
 e = Equation(lhs, rhs)
 U = {e}
-# run_example("Example 3", U)
+run_example("Example 3", U)
 
 # [PASS] Four distinct variables on each side
 lhs = f(w, f(x, f(y, z)))
