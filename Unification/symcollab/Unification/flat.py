@@ -17,17 +17,17 @@ def equ_test(S1: set, S2: set):
 	for x in S1:
 		if x not in S2:
 			equal = False
-	print("Results of equality test")
-	print(equal)
+	# print("Results of equality test")
+	# print(equal)
 	return equal
 
 def flat(U: Set[Equation], varcount: int):
 	#break equations into two
-	print("In Flat\n")
-	print("varcount is: ")
-	print(varcount)
-	print("U is: ")
-	print(U)
+	# print("In Flat\n")
+	# print("varcount is: ")
+	# print(varcount)
+	# print("U is: ")
+	# print(U)
 	z=varcount
 	
 	for e in list(U):
@@ -43,21 +43,21 @@ def flat(U: Set[Equation], varcount: int):
 			U.add(add1)
 			U.add(add2)
 	
-	print("U after breaking two sided functions: ")
-	print(U)
+	# print("U after breaking two sided functions: ")
+	# print(U)
 	#Flatten the terms
 	#Need to update to include deeper than two levels in the term
 	lp = 1
 	temp = set()
 	while not equ_test(U, temp):
-		print("U : at start of loop: " + str(lp))
-		print(U)
-		print("Varcount: ")
-		print(z)
+		# print("U : at start of loop: " + str(lp))
+		# print(U)
+		# print("Varcount: ")
+		# print(z)
 		temp = set()
 		temp = deepcopy(U)
-		print("Temp at loop: " + str(lp))
-		print(temp)
+		# print("Temp at loop: " + str(lp))
+		# print(temp)
 		for e in list(U):
 			mod = False
 			if isinstance(e.right_side, FuncTerm):
@@ -72,15 +72,15 @@ def flat(U: Set[Equation], varcount: int):
 						tempterm[arg_index] = vtemp
 						e.right_side.arguments = tuple(tempterm)
 						z = z + 1
-		print("U : at end of loop: " + str(lp))
-		print(U)
-		print("Temp at end of loop: " + str(lp))
-		print(temp)
+		# print("U : at end of loop: " + str(lp))
+		# print(U)
+		# print("Temp at end of loop: " + str(lp))
+		# print(temp)
 		lp = lp + 1
 		if lp > 5:
 			break				
-	print("U after removing subterms: ")
-	print(U)
-	print("Final Varcount: ")
-	print(z)
+	# print("U after removing subterms: ")
+	# print(U)
+	# print("Final Varcount: ")
+	# print(z)
 	return (U, z+1) 
