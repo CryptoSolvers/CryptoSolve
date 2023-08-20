@@ -57,28 +57,67 @@ def function_clash(equations: Set[Equation]) -> bool:
         for equation in equations
     ))
 
-def occurs_check_condition(equation: Equation) -> bool:
-    """
-    Check for Occurance
 
-    Returns True if Occurs Check
-    if {x = f(s0,...,sn)} and x in vars(f(s0,...,sn)) => ⊥
-    """
-    el = equation.left_side
-    er = equation.right_side
-    return isinstance(el, Variable) and el in get_vars(er, unique=True)
+def occurs_check_variable(equations: Set[Equation], v: Variable) -> bool:
+	"""
+	Check to see if there is a cycle of
+	equality for a given variable.
+	"""
+
+	Q: List[Tuple[Set[Equation], List[Term]]] = []
+
+	for equation in equations:
+		# Ignore trivial equalities
+		if equation.left_side == equation.right_side:
+			continue
+
+		if equation.left_side == v:
+			Q.append((
+				equations - {equation},
+				[equation.right_side]
+			))
+		elif equation.right_side == v:
+			Q.append((
+				equations - {equation},
+				[equation.left_side]
+			))
+
+
+	while len(Q) > 0:
+		c_equations, c_path = Q.pop(0)
+
+		last_term = c_path[-1]
+		last_term_vars = get_vars(last_term)
+
+		if v in last_term_vars and v != last_term:
+			return True
+
+		for lv in last_term_vars:
+			for ce in c_equations:
+				# Ignore trivial equalities
+				if ce.left_side == ce.right_side:
+					continue
+
+				if ce.left_side == lv:
+					Q.append((c_equations - {ce}, c_path + [ce.right_side]))
+				elif ce.right_side == lv:
+					Q.append((c_equations - {ce}, c_path + [ce.left_side]))
+
+	return False
 
 def occurs_check(equations: Set[Equation]) -> bool:
-    """
-    Check for Occurance
+	# Find all x = ... or ... = x
+	variables_to_check: Set[Variable] = set()
+	for equation in equations:
+		if isinstance(equation.left_side, Variable):
+			variables_to_check.add(equation.left_side)
+		elif isinstance(equation.right_side, Variable):
+			variables_to_check.add(equation.right_side)
 
-    Returns True if Occurs Check
-    if {x = f(s0,...,sn)} and x in vars(f(s0,...,sn)) => ⊥
-    """
-    return any((
-        occurs_check_condition(equation)
-        for equation in equations
-    ))
+	# Look for cycles for each variable
+	return any((
+		occurs_check_variable(equations, v) for v in variables_to_check
+	))
 
 def decompose(equations: Set[Equation]) -> Set[Equation]:
     """
@@ -151,7 +190,7 @@ def eliminate(
 
     for equation in equations:
         if isinstance(equation.left_side, Variable) and \
-           not occurs_check_condition(equation):
+            equation.left_side not in get_vars(equation.right_side):
             matched_equation = equation
             break
 
