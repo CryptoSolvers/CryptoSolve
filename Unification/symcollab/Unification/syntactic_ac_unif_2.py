@@ -146,7 +146,10 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
-	print("Applied A1")
+	print("+++++++++Applying A1++++++++++++++++")
+	print(matched_equation)
+	print(U)
+	print("++++++++++++++++++++++++++++++++++++")
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -171,6 +174,9 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	m1.add(Equation(matched_equation.right_side.arguments[0], var1))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t2))
 	U = U.union(m1)
+	print("--------------After Applying A1-------------------")
+	print(U)
+	print("--------------------------------------------------")
 
 	return U
 
@@ -190,7 +196,10 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
-	print("Applied A2")
+	print("+++++++++Applying A2++++++++++++++++")
+	print(matched_equation)
+	print(U)
+	print("++++++++++++++++++++++++++++++++++++")
 
 
 	#Create the 7 possible mutations
@@ -217,6 +226,9 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	m1.add(Equation(matched_equation.right_side.arguments[1], var3))
 	U = U.union(m1)
 
+	print("--------------After Applying A2-------------------")
+	print(U)
+	print("--------------------------------------------------")
 	return U
 
 #Mutation Rule RC
@@ -234,7 +246,10 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
-	print("Applied RC")
+	print("++++++++++++Applying RC++++++++++")
+	print(matched_equation)
+	print(U)
+	print("+++++++++++++++++++++++++++++++++")
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -260,10 +275,17 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	m1.add(Equation(matched_equation.right_side.arguments[1], var2))
 	U = U.union(m1)
 
+	print("----------After applying RC--------------")
+	print(U)
+	print("-----------------------------------------")
+	
 	return U
 
 #Mutation Rule LC
 def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+	print("=============In LC============")
+	print(U)
+	print("==============================")
 	matched_equation: Optional[Equation] = None
 	for e in U:
 		lhs = e.left_side
@@ -277,8 +299,10 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
-	print("Applied LC")
+	print("++++++++++Applying LC+++++++++++++")
 	print(matched_equation)
+	print(U)
+	print("+++++++++++++++++++++++++++++++++")
 
 
 	#Create the 7 possible mutations
@@ -304,11 +328,17 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	m1.add(Equation(matched_equation.right_side.arguments[0], var2))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t2))
 	U = U.union(m1)
-
+	
+	print("---------After applying LC---------------")
+	print(U)
+	print("-----------------------------------------")
 	return U
 
 #Mutation Rule MC
 def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+	print("=======In MC Rule ======")
+	print(U)
+	print("========================")
 	matched_equation: Optional[Equation] = None
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
@@ -321,7 +351,10 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
-	print("Applied MC")
+	print("++++++++++Applying MC+++++++++++++")
+	print(matched_equation)
+	print(U)
+	print("++++++++++++++++++++++++++++++++++")
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -352,6 +385,10 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	m1.add(Equation(matched_equation.right_side.arguments[0], t3))
 	m1.add(Equation(matched_equation.right_side.arguments[1], t4))
 	U = U.union(m1)
+	
+	print("--------After applying MC------------")
+	print(U)
+	print("-------------------------------------")
 
 	return U
 
@@ -366,6 +403,8 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Tuple[Set
 	if x is a variable and s and t are not variables
 	Returns new set of equations and whether merge was applied
 	"""
+	#Bug in this code, the for loop will double match and remove x = s when it is supposed to keep it.
+	#the break below is a hack fix
 	applied_merge = False
 	remove_equations = set()
 	add_equations = set()
@@ -381,13 +420,21 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Tuple[Set
 
 		if matching_left_variable and right_side_not_variable and not_restricted:
 			applied_merge = True
+			print("Applying merge on: ")
+			print(e1)
+			print(e2)
 			remove_equations.add(e2)
 			if (Equation(e1.right_side, e2.right_side) not in add_equations) and (Equation(e2.right_side, e1.right_side) not in add_equations):
 				add_equations.add(Equation(
 					e1.right_side,
 					e2.right_side
 				))
-
+			break
+	print("New set of equations after merge: ")
+	print(equations)
+	print(remove_equations)
+	print(add_equations)
+	print((equations - remove_equations).union(add_equations))
 	return (equations - remove_equations).union(add_equations), applied_merge
 
 def non_flat_check(eqs):
@@ -466,8 +513,8 @@ def s_rules(U: Set[Equation], var_count, ES1):
 	"""
 	S Rules
 	"""
-	# print("in S rules\n")
-	# print(U)
+	print("in S rules\n")
+	print(U)
 	Utemp = set()
 	U = deepcopy(U)
 	U, var_count[0] = flat(U, var_count[0])
@@ -477,12 +524,16 @@ def s_rules(U: Set[Equation], var_count, ES1):
 		U = var_rep_andrew(U)
 		U = delete_trivial_brandon(U, ES1)
 		if occurs_check(U):
+			print("Found Occurs Check in: ")
+			print(U)
 			return set()
 
 	U = deepcopy(U)
 	U, var_count[0] = flat(U, var_count[0])
 	# NOTE: Need occurs check here
 	if occurs_check(U):
+		print("Found Occurs check after flat in: ")
+		print(U)
 		return set()
 
 	return U
@@ -511,26 +562,26 @@ def apply_mutation_rules(
 	if not already_explored(cn.a1, Tree):
 		nextBranch.append((cn.a1, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
-	# if not already_explored(cn.a2, Tree):
-	# 	nextBranch.append((cn.a2, level + 1))
+	dcopy = deepcopy(cn.data)
+	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
+	if not already_explored(cn.a2, Tree):
+		nextBranch.append((cn.a2, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
-	# if not already_explored(cn.rc, Tree):
-	# 	Q.append(cn.rc)
-	# 	nextBranch.append((cn.rc, level + 1))
+	dcopy = deepcopy(cn.data)
+	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
+	if not already_explored(cn.rc, Tree):
+		#Q.append(cn.rc)
+		nextBranch.append((cn.rc, level + 1))
 
 	dcopy = deepcopy(cn.data)
 	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
 	if not already_explored(cn.lc, Tree):
 		nextBranch.append((cn.lc, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
-	# if not already_explored(cn.mc, Tree):
-	# 	nextBranch.append(cn.mc)
+	dcopy = deepcopy(cn.data)
+	cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
+	if not already_explored(cn.mc, Tree):
+		nextBranch.append((cn.mc, level + 1))
 
 	Tree[level + 1].extend([c for c, _ in nextBranch])
 	Q.extend(nextBranch)
@@ -551,8 +602,9 @@ def build_tree(root: MutateNode, var_count, ES1, single_sol):
 		if current_level > 100:
 			print("[HIT UPPER BOUND]")
 			break
-		# if current_level > 3:
-		# 	raise Exception("")
+		if current_level > 3:
+			print("Stopping after level 3")
+			raise Exception("")
 
 		cn, level = Q.pop(0)
 
