@@ -40,9 +40,8 @@ class MutateNode:
 		return f"MutateNode(data={self.data})"
 
 def already_explored(m: MutateNode, Tree: List[List[MutateNode]]) -> bool:
-	# TODO: Check for equilvalence modulo renaming
-	for branch in Tree:
-		for q in branch:
+	for branch_num in Tree:
+		for q in Tree[branch_num]:
 			if m.data == q.data:
 				return True
 	return False
@@ -76,6 +75,8 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	if matched_equation is None:
 		return U
 
+	print("Applied ID")
+
 	#Create the mutations
 	U = U - {matched_equation}
 	#ID
@@ -106,6 +107,8 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 
 	if matched_equation is None:
 		return U
+
+	print("Applied C")
 
 	#Create the 7 possible mutations
 	U = U - {matched_equation}
@@ -142,7 +145,7 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 
 	if matched_equation is None:
 		return U
-	
+
 	print("Applied A1")
 
 	#Create the 7 possible mutations
@@ -391,12 +394,12 @@ def non_flat_check(eqs):
 	for eq in eqs:
 		if isinstance(eq.left_side, FuncTerm) and isinstance(eq.right_side, FuncTerm):
 			return True
-	return False 
+	return False
 
 def orient_andrew(equations, original_equations):
 	VS1 = helper_gvs(original_equations)
 	new_equations = set()
-    
+
 	for equation in equations:
 		lhs = equation.left_side
 		rhs = equation.right_side
@@ -422,15 +425,15 @@ def var_rep_andrew(equations):
 		rest_vars = helper_gvs(equations - {equation})
 		if isinstance(lhs, Variable) and lhs in rest_vars:
 			matched_equation = equation
-	
+
 	# If no equations are found return early
 	if matched_equation is None:
 		return equations
-	
+
 	# Create the new substitution
 	new_sub = SubstituteTerm()
 	new_sub.add(matched_equation.left_side, matched_equation.right_side)
-	
+
 	# Apply the new substitution to the set of equations
 	new_equations = set()
 	for equation in equations - {matched_equation}:
@@ -441,9 +444,9 @@ def var_rep_andrew(equations):
 
     # Add the matched equation to the result
 	new_equations.add(matched_equation)
-	
-	return new_equations	
-	  
+
+	return new_equations
+
 def delete_trivial_brandon(equations, original_equations):
 	new_equations = set()
 	VS1 = helper_gvs(original_equations)
@@ -453,7 +456,7 @@ def delete_trivial_brandon(equations, original_equations):
 		rest_vars = helper_gvs(equations - {equation})
 		if not (isinstance(lhs, Variable) and lhs not in rest_vars and lhs not in VS1):
 			new_equations.add(equation)
-	
+
 	return new_equations
 
 
@@ -475,7 +478,7 @@ def s_rules(U: Set[Equation], var_count, ES1):
 		U = delete_trivial_brandon(U, ES1)
 		if occurs_check(U):
 			return set()
-	
+
 	U = deepcopy(U)
 	U, var_count[0] = flat(U, var_count[0])
 	# NOTE: Need occurs check here
@@ -487,78 +490,82 @@ def s_rules(U: Set[Equation], var_count, ES1):
 
 def apply_mutation_rules(
 		cn: MutateNode, var_count: int,
-		Q: List[MutateNode], Tree: List[List[MutateNode]]):
+		Q: List[MutateNode], Tree: List[List[MutateNode]], level: int):
 	"""
 	Applies mutation rules and adds nodes to the queue
 	"""
-	nextBranch: List[MutateNode] = []
+	nextBranch: List[Tuple[MutateNode, int]] = []
 
 	dcopy = deepcopy(cn.data)
 	cn.id = MutateNode(mutation_rule1(dcopy, var_count))
 	if not already_explored(cn.id, Tree):
-		nextBranch.append(cn.id)
+		nextBranch.append((cn.id, level + 1))
 
 	dcopy = deepcopy(cn.data)
 	cn.c = MutateNode(mutation_rule2(dcopy, var_count))
 	if not already_explored(cn.c, Tree):
-		nextBranch.append(cn.c)
+		nextBranch.append((cn.c, level + 1))
 
 	dcopy = deepcopy(cn.data)
 	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
 	if not already_explored(cn.a1, Tree):
-		nextBranch.append(cn.a1)
+		nextBranch.append((cn.a1, level + 1))
 
-	dcopy = deepcopy(cn.data)
-	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
-	if not already_explored(cn.a2, Tree):
-		nextBranch.append(cn.a2)
+	# dcopy = deepcopy(cn.data)
+	# cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
+	# if not already_explored(cn.a2, Tree):
+	# 	nextBranch.append((cn.a2, level + 1))
 
-	dcopy = deepcopy(cn.data)
-	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
-	if not already_explored(cn.rc, Tree):
-		Q.append(cn.rc)
-		nextBranch.append(cn.rc)
+	# dcopy = deepcopy(cn.data)
+	# cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
+	# if not already_explored(cn.rc, Tree):
+	# 	Q.append(cn.rc)
+	# 	nextBranch.append((cn.rc, level + 1))
 
 	dcopy = deepcopy(cn.data)
 	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
 	if not already_explored(cn.lc, Tree):
-		nextBranch.append(cn.lc)
+		nextBranch.append((cn.lc, level + 1))
 
 	# dcopy = deepcopy(cn.data)
 	# cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
 	# if not already_explored(cn.mc, Tree):
 	# 	nextBranch.append(cn.mc)
-	
-	Tree.append(nextBranch)
+
+	Tree[level + 1].extend([c for c, _ in nextBranch])
 	Q.extend(nextBranch)
 
 
 Tree = None
+from collections import defaultdict
 
 def build_tree(root: MutateNode, var_count, ES1, single_sol):
 	global Tree
 	Sol = list()
 	Q = list()
-	Q.append(root)
-	# Tree: List[List[MutateNode]] = [[root]]
-	Tree = [[root]]
-	mutate_rule_count = 0
+	Q.append((root, 0))
+	Tree = defaultdict(list)
+	Tree[0] = [root]
+	current_level = 0
 	while 0 < len(Q):
-		if mutate_rule_count > 100:
+		if current_level > 100:
 			print("[HIT UPPER BOUND]")
 			break
-		# if len(Tree) > 5:
-		# 	last_branch = Tree[-1]
-		# 	# print(last_branch)
-		# 	for branch in Tree:
-		# 		print('-' * 5)
-		# 		for eqs in branch:
-		# 			print(eqs.data)
-		# 			print(" ")
-		# 		print('-' * 5)
+		# if current_level > 3:
 		# 	raise Exception("")
 
-		cn = Q.pop(0)
+		cn, level = Q.pop(0)
+
+		if level > current_level:
+			print("=" * 5)
+			print("Layer", current_level)
+			last_branch = Tree[current_level]
+			for node in last_branch:
+				print(node.data)
+			print("=" * 5)
+			current_level = level
+
+
 		#Apply S rules - mutate
 		# print("Mutate rule count", mutate_rule_count)
 		cn.data = s_rules(cn.data, var_count, ES1)
@@ -569,13 +576,16 @@ def build_tree(root: MutateNode, var_count, ES1, single_sol):
 				if not occurs_check(cn.data) and not function_clash(cn.data):
 					Sol.append(cn.data)
 			else:
-				apply_mutation_rules(cn, var_count, Q, Tree)
-				mutate_rule_count += 1
+				print('-' * 5)
+				print("About to Mutate", cn.data)
+				apply_mutation_rules(cn, var_count, Q, Tree, level)
+				print('-' * 5)
+
 
 	return Sol
 
 def synt_ac_unif2(U: Set[Equation], single_sol: bool = True):
-	var_count = [0] 
+	var_count = [0]
 	#flatten equations:
 	ES1 = deepcopy(U)
 	U, var_count[0] = flat(deepcopy(U), 0)
