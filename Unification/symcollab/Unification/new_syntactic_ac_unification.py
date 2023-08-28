@@ -4,12 +4,49 @@ from typing import List, Set, Optional, Tuple, Dict
 import itertools
 
 from symcollab.algebra import (
-	get_vars, Equation, Variable, FuncTerm,
-	Term, SubstituteTerm, Constant
+	get_vars, Equation, Variable, Function,
+	FuncTerm, Term, SubstituteTerm, Constant
 )
 
-from .common import orient, occurs_check
+from .common import orient, function_clash, delete_trivial, occurs_check
 
+def decompose(equations: Set[Equation], ac_symbol: Function) -> Set[Equation]:
+    """
+    Applies decomposition to an equation.
+    If it is not possible, it will return None.
+
+    f(s1,...,sn)=f(t1,...,tn) -> s1=t1,...,sn=tn
+
+    Returns None if the rule cannot be matched.
+    NOTE: Terms that have the AC symbol at its root
+    """
+    new_equations: Set[Equation] = set()
+    matched_equation: Optional[Equation] = None
+
+    # Find a match for the decomposition rule
+    # and create the new equations if found.
+    for equation in equations:
+        el = equation.left_side
+        er = equation.right_side
+        if isinstance(el, FuncTerm) and \
+           isinstance(er, FuncTerm) and \
+			el.function == er.function and \
+			el.function.arity > 1 and \
+			el.function != ac_symbol:
+            matched_equation = equation
+            for i in range(el.function.arity):
+                new_equations.add(Equation(
+                    el.arguments[i],
+                    er.arguments[i]
+                ))
+            break # Only match one equation
+
+    # If the rule isn't matched, return the original input
+    if matched_equation is None:
+        return equations
+
+    # Remove previous equation and add decomposed ones
+    return (equations - {matched_equation}) | new_equations
 
 
 def apply_substitution_on_equations(delta: SubstituteTerm, U: Set[Equation]) -> Set[Equation]:
@@ -87,16 +124,19 @@ def helper_gvs(U: Set[Equation]) -> Set[Variable]:
 		V = V.union(get_vars(e.right_side))
 	return(V)
 
-def is_binary_function(t: Term):
-	return isinstance(t, FuncTerm) and t.function.arity == 2
 
 #Rules
 
+def is_ac_symbol(t: Term, ac_symbol: Function):
+	return isinstance(t, FuncTerm) \
+		and t.function.arity == 2 \
+		and t.function == ac_symbol
+
 #Mutation Rule ID
-def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule1(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			# print("Matched Equation", e)
 			matched_equation = e
 			break
@@ -136,10 +176,10 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return(U)
 
 #Mutation Rule C
-def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule2(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation : Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -178,10 +218,10 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return U
 
 #Mutation Rule A1
-def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule3(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -225,10 +265,10 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return U
 
 #Mutation Rule A2
-def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule4(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -273,10 +313,10 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return U
 
 #Mutation Rule RC
-def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule5(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -321,10 +361,10 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return U
 
 #Mutation Rule LC
-def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule6(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -370,10 +410,10 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
 	return U
 
 #Mutation Rule MC
-def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule7(U: Set[Equation], var_count: List[int], ac_symbol: Function) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 	for e in U:
-		if is_binary_function(e.left_side) and is_binary_function(e.right_side):
+		if is_ac_symbol(e.left_side, ac_symbol) and is_ac_symbol(e.right_side, ac_symbol):
 			matched_equation = e
 			break
 
@@ -568,55 +608,42 @@ def prune(equations: Set[Equation], VS1: Set[Variable], ignore_vars: Set[Variabl
 					return True
 	return False
 
-
-def s_rules_no_mutate(U: Set[Equation], VS1: Set[Variable]):
+def s_rules_no_mutate(U: Set[Equation], VS1: Set[Variable], ac_symbol):
 	"""
-	Apply S rules on set of equations with no restrictions
+	Apply S rules (without mutate) on set of equations with no restrictions
 	"""
 	U = orient(U)
+	U = decompose(U, ac_symbol)
 	U = merge(U, set())
 	U = variable_replacement(U, VS1, set())
 	U = replacement(U, VS1, set())
 	U = eqe(U, VS1, set())
+	U = delete_trivial(U)
 
 	if occurs_check(U):
 		return set()
 
-	return U
-
-def s_rules_no_mutate_og_vars(U: set[Equation], VS1: Set[Variable]):
-	"""
-	Apply S rules only on the variables from the original equations
-	"""
-	new_V = helper_gvs(U) - VS1
-
-	U = orient(U)
-	U = merge(U, new_V)
-	U = variable_replacement(U, VS1, new_V)
-	U = replacement(U, VS1, new_V)
-	U = eqe(U, VS1, new_V)
-
-	if occurs_check(U):
-		return set()
-
-	if prune(U, VS1, VS1):
-		# print("[Stage 2] Prune rule applied")
+	if function_clash(U):
 		return set()
 
 	return U
 
-def s_rules_no_mutate_new_vars(U: set[Equation], VS1: Set[Variable]):
+def s_rules_no_mutate_new_vars(U: set[Equation], VS1: Set[Variable], ac_symbol):
 	"""
-	Apply S rules only on variables not from the original equations
-	NOTE: It actually works better if we don't put any restrictions
+	Apply S ruless without mutate and including the merge rule
 	"""
 	U = orient(U)
+	U = decompose(U, ac_symbol)
 	U = merge(U, set())
 	U = variable_replacement(U, VS1, set())
 	U = replacement(U, VS1, set())
 	U = eqe(U, VS1, set())
+	U = delete_trivial(U)
 
 	if occurs_check(U):
+		return set()
+
+	if function_clash(U):
 		return set()
 
 	if prune(U, VS1, set()):
@@ -627,43 +654,44 @@ def s_rules_no_mutate_new_vars(U: set[Equation], VS1: Set[Variable]):
 
 def can_apply_mutation_rules(
 		cn: MutateNode, var_count: int,
-		Tree: List[List[MutateNode]]):
+		Tree: List[List[MutateNode]],
+		ac_symbol: Function):
 	"""
 	Applies mutation rules and adds nodes to the queue
 	"""
 	dcopy = deepcopy(cn.data)
 
-	cn.id = MutateNode(mutation_rule1(dcopy, var_count))
+	cn.id = MutateNode(mutation_rule1(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.id, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.c = MutateNode(mutation_rule2(dcopy, var_count))
+	cn.c = MutateNode(mutation_rule2(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.c, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
+	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.a1, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
+	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.a2, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
+	cn.rc = MutateNode(mutation_rule5(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.rc, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
+	cn.lc = MutateNode(mutation_rule6(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.lc, Tree):
 		return True
 
 	dcopy = deepcopy(cn.data)
-	cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
+	cn.mc = MutateNode(mutation_rule7(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.mc, Tree):
 		return True
 
@@ -671,54 +699,54 @@ def can_apply_mutation_rules(
 
 def apply_mutation_rules(
 		cn: MutateNode, var_count: int,
-		Q: List[MutateNode], Tree: List[List[MutateNode]]):
+		Q: List[MutateNode], Tree: List[List[MutateNode]],
+		ac_symbol: Function):
 	"""
 	Applies mutation rules and adds nodes to the queue
 	"""
 	nextBranch: List[MutateNode] = []
 	dcopy = deepcopy(cn.data)
 
-	cn.id = MutateNode(mutation_rule1(dcopy, var_count))
+	cn.id = MutateNode(mutation_rule1(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.id, Tree):
 		nextBranch.append(cn.id)
 
 	dcopy = deepcopy(cn.data)
-	cn.c = MutateNode(mutation_rule2(dcopy, var_count))
+	cn.c = MutateNode(mutation_rule2(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.c, Tree):
 		nextBranch.append(cn.c)
 
 	dcopy = deepcopy(cn.data)
-	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count))
+	cn.a1 = MutateNode(mutation_rule3(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.a1, Tree):
 		nextBranch.append(cn.a1)
 
 	dcopy = deepcopy(cn.data)
-	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count))
+	cn.a2 = MutateNode(mutation_rule4(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.a2, Tree):
 		nextBranch.append(cn.a2)
 
 	dcopy = deepcopy(cn.data)
-	cn.rc = MutateNode(mutation_rule5(dcopy, var_count))
+	cn.rc = MutateNode(mutation_rule5(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.rc, Tree):
 		nextBranch.append(cn.rc)
 
 	dcopy = deepcopy(cn.data)
-	cn.lc = MutateNode(mutation_rule6(dcopy, var_count))
+	cn.lc = MutateNode(mutation_rule6(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.lc, Tree):
 		nextBranch.append(cn.lc)
 
 	dcopy = deepcopy(cn.data)
-	cn.mc = MutateNode(mutation_rule7(dcopy, var_count))
+	cn.mc = MutateNode(mutation_rule7(dcopy, var_count, ac_symbol))
 	if not already_explored(cn.mc, Tree):
 		nextBranch.append(cn.mc)
 
 	Tree.append(nextBranch)
 	Q.extend(nextBranch)
 
+def build_tree(U: Set[Equation], single_sol, ac_symbol: Function):
 
-def build_tree(U: Set[Equation], single_sol):
-
-	MAX_MUTATE_APPLICATION = 20 # Upper bound until algorithm performs better
+	MAX_MUTATE_APPLICATION = 100 # Upper bound until algorithm performs better
 
 	################ Step 0.5 #####################
 	# Translate the problem to one where there are no duplicate variables
@@ -759,20 +787,6 @@ def build_tree(U: Set[Equation], single_sol):
 	original_variables_distinct = helper_gvs(distinct_u)
 	var_count = [0] # NOTE: Fresh variable global hack
 
-	# NOTE: DEBUG
-	# print("Distinct Check")
-	# for eq in distinct_u:
-	# 	print(eq)
-	# print("")
-
-
-	# NOTE: I like to imagine that there are sets of equations within
-	# EQS and EQS2 that are equivalent modulo renaming.
-	# It would greatly reduce the search tree if we can identify and remove those
-
-
-
-
 	################### Step 1 #########################
 	# Apply rules of S for as long as possible except
 	# each distinct occurance of a variable is treated
@@ -792,45 +806,22 @@ def build_tree(U: Set[Equation], single_sol):
 			print("[Stage 1] Warning: Upper bound reached")
 			break
 
-		i += 1 # NOTE: DEBUG
 		cn = Q.pop(0)
-
-		# NOTE: DEBUG
-		# if i == 10:
-			# raise Exception("")
-
-		# NOTE: DEBUG
-		# print('-' * 5)
-		# for eq in cn.data:
-		# 	print(eq)
-		# print('-' * 5)
 
 		# Saturate S rules without mutate
 		U_temp = set()
 		while U_temp != cn.data:
 			U_temp = cn.data
-			cn.data = s_rules_no_mutate(cn.data, original_variables_distinct)
-
-		# NOTE: DEBUG
-		# print('-' * 5)
-		# for eq in cn.data:
-		# 	print(eq)
-		# print('-' * 5)
+			cn.data = s_rules_no_mutate(cn.data, original_variables_distinct, ac_symbol)
 
 		# If we can't apply anymore rules,
 		# then append to step 1 solution list
-		if not can_apply_mutation_rules(cn, [0], Tree):
+		if not can_apply_mutation_rules(cn, [0], Tree, ac_symbol):
 			if len(cn.data) > 0:
 				step_1_solutions.append(cn.data)
 		else:
-			apply_mutation_rules(cn, var_count, Q, Tree)
+			apply_mutation_rules(cn, var_count, Q, Tree, ac_symbol)
 
-		# NOTE: DEBUG
-		# print("\n")
-
-	# print("---- Step 1 solutions --------")
-	# for eq in step_1_solutions:
-	# 	print(eq)
 
 	############## Step 1.5 #####################
 	# Undo deduplication
@@ -861,15 +852,10 @@ def build_tree(U: Set[Equation], single_sol):
 		return new_U
 	step_1_5_solutions = [undo_dedup(equation) for equation in step_1_solutions]
 
-	# print("------- Step 1.5 solutions ---------")
-	# for eq in step_1_5_solutions:
-	# 	print(eq)
-
-	################### Step 2, 3 ###################
-	# Apply S rules only on the variables
-	# from the original problem
-	step_2_solutions: List[Set[Equation]] = []
-	print("# Equations after Stage 1 = ", len(step_1_5_solutions))
+	# ################### Step 2 ###################
+	# Apply S rules on converted equations
+	Sol: List[Set[Equation]] = []
+	# print("# Equations after Stage 1.5 =", len(step_1_5_solutions))
 	for s in step_1_5_solutions:
 		Tree = [[MutateNode(s)]]
 		Q = [MutateNode(s)]
@@ -888,54 +874,22 @@ def build_tree(U: Set[Equation], single_sol):
 			U_temp = set()
 			while U_temp != cn.data:
 				U_temp = cn.data
-				cn.data = s_rules_no_mutate_og_vars(cn.data, original_variables)
-
-			# If we can't apply anymore rules,
-			# then append to step 2 solution list
-			if not can_apply_mutation_rules(cn, [0], Tree):
-				if len(cn.data) > 0:
-					step_2_solutions.append(cn.data)
-			else:
-				apply_mutation_rules(cn, var_count, Q, Tree)
-
-	# ################### Step 3, 4 ###################
-	Sol: List[Set[Equation]] = []
-	print("# Equations after Stage 2 =", len(step_2_solutions))
-	for s in step_2_solutions:
-		Tree = [[MutateNode(s)]]
-		Q = [MutateNode(s)]
-		while len(Q) > 0:
-
-			# Depth of search tree corresponds to the number of times
-			# the mutation rules are applied
-			# NOTE: Currently have an upper bound until algorithm improves
-			if len(Tree) > MAX_MUTATE_APPLICATION:
-				print("[Stage 3] Warning: Upper bound reached")
-				break
-
-			cn = Q.pop(0)
-
-			# Saturate S Rules
-			U_temp = set()
-			while U_temp != cn.data:
-				U_temp = cn.data
-				cn.data = s_rules_no_mutate_new_vars(cn.data, original_variables)
+				cn.data = s_rules_no_mutate_new_vars(cn.data, original_variables, ac_symbol)
 
 
 			# If we can't apply anymore rules,
 			# then append to solution list
-			if not can_apply_mutation_rules(cn, [0], Tree):
+			if not can_apply_mutation_rules(cn, [0], Tree, ac_symbol):
 				if len(cn.data) > 0:
 					Sol.append(cn.data)
 					if single_sol:
 						return Sol
 			else:
-				apply_mutation_rules(cn, var_count, Q, Tree)
+				apply_mutation_rules(cn, var_count, Q, Tree, ac_symbol)
 
 	return Sol
 
-def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
-
+def synt_ac_unif(U: Set[Equation], ac_symbol: Function, single_sol: bool = True):
 	# This algorithm assumes that the same variable
 	# doesn't appear on both sides.
 	for equation in U:
@@ -947,8 +901,7 @@ def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
 				"equations without shared variables on both sides"
 			)
 
-
-	res = build_tree(U, single_sol)
+	res = build_tree(U, single_sol, ac_symbol)
 
 	final_sol = set()
 	for solve in res:
@@ -958,6 +911,7 @@ def synt_ac_unif(U: Set[Equation], single_sol: bool = True):
 			try:
 				delta.add(e.left_side, e.right_side)
 			except:
+				# Print equations for easier debugging
 				print("-" * 5)
 				for e in solve:
 					print(e)
