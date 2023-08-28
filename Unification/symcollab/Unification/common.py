@@ -1,7 +1,7 @@
 """
 Common rules used in Unification algorithms
 """
-from typing import Optional, Set, Tuple
+from typing import Optional, Set, Tuple, List
 
 from symcollab.algebra import (
     Constant, Equation, FuncTerm, get_vars, SubstituteTerm, Term, Variable
