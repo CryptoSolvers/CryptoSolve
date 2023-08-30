@@ -4,7 +4,7 @@ Module to check security of modes of operations.
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
-from symcollab.algebra import Constant, Function, SubstituteTerm, Term, Variable
+from symcollab.algebra import Constant, Function, SubstituteTerm, Term, Variable, unravel
 from symcollab.Unification.constrained.p_unif import p_unif
 from symcollab.Unification.constrained.xor_rooted_unif import XOR_rooted_security
 from symcollab.xor.structure import Zero
@@ -141,12 +141,6 @@ def search_for_collision(ciphertext: Term, previous_ciphertexts: List[Term],
         if any_unifiers(collisions):
             return collisions
     return collisions
-
-def unravel(t: Term, s: SubstituteTerm) -> Term:
-    """Apply a substitution until you can't"""
-    while t != t * s:
-        t = t * s
-    return t
 
 def any_unifiers(unifiers: Optional[Union[bool, SubstituteTerm, List[SubstituteTerm]]]) -> bool:
     """Searches a list of unifiers to see if any of them have an entry"""

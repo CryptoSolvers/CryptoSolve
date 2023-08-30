@@ -7,7 +7,7 @@ from typing import List, Set, Tuple
 from copy import deepcopy
 from .term import Variable, Constant, FuncTerm, Term
 
-__all__ = ['SortMismatch', 'SubstituteTerm']
+__all__ = ['SortMismatch', 'SubstituteTerm', 'unravel']
 
 class SortMismatch(Exception):
     """Raise when there is a sort mismatch."""
@@ -223,3 +223,9 @@ class SubstituteTerm:
                     return deepcopy(sub_term)
 
         return term
+
+def unravel(t: Term, s: SubstituteTerm) -> Term:
+    """Apply a substitution until you can't"""
+    while t != t * s:
+        t = t * s
+    return t

@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import Set
 
-from symcollab.algebra import Equation, SubstituteTerm, get_vars
+from symcollab.algebra import Equation, SubstituteTerm, get_vars, unravel
 from symcollab.Unification.equiv import syntactic_equal
 
 def check_domain(problem: Set[Equation], unifier: SubstituteTerm):
@@ -37,7 +37,7 @@ def check_simple_ac_unifier(problem: Set[Equation], unifier: SubstituteTerm):
         # side after substitution is applied
         left_substituted_solution = Counter()
         for l in left_vars:
-            l_sub = l * unifier
+            l_sub = unravel(l, unifier)
             l_sub_vars = get_vars(l_sub)
             for lsv in l_sub_vars:
                 left_substituted_solution[lsv] += 1
@@ -46,7 +46,7 @@ def check_simple_ac_unifier(problem: Set[Equation], unifier: SubstituteTerm):
         # side after substitution is applied
         right_substituted_solution = Counter()
         for r in right_vars:
-            r_sub = r * unifier
+            r_sub = unravel(r, unifier)
             r_sub_vars = get_vars(r_sub)
             for rsv in r_sub_vars:
                 right_substituted_solution[rsv] += 1

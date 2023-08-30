@@ -628,7 +628,7 @@ def build_tree(root: MutateNode, var_count, ES1, single_sol):
 			cn.data, applied_merge = merge(cn.data, set())
 			if not applied_merge:
 				# Check failure conditions
-				if not occurs_check(cn.data) and not function_clash(cn.data) and is_linear(cn.data, ES1):
+				if not occurs_check(cn.data) and not function_clash(cn.data):
 					Sol.append(cn.data)
 			else:
 				print('-' * 5)
