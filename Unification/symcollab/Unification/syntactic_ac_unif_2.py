@@ -1,5 +1,5 @@
-from collections import defaultdict
 from copy import deepcopy
+from collections import defaultdict
 from typing import List, Set, Optional, Tuple
 
 import itertools
@@ -12,6 +12,24 @@ from symcollab.Unification.common import (
     occurs_check, function_clash
 )
 from symcollab.Unification.flat import flat
+
+# OrderedSet makes it so that the outputs are deterministic
+# this is at a great expense of execution speed.
+# Leave in when testing, remove when done.
+from symcollab.Unification.orderedset import OrderedSet
+# OrderedSet = set()
+
+def get_vars_uo(t: Term):
+	"""Recursively get unique and ordered variables"""
+	if isinstance(t, Variable):
+		return OrderedSet([t])
+
+	l = OrderedSet()
+	if isinstance(t, FuncTerm):
+		for i in t.arguments:
+			l |= get_vars_uo(i)
+
+	return l
 
 
 #Tree
@@ -36,10 +54,11 @@ def linear(t: Term) -> bool:
 
 # Helper function to retrieve a set of variables from a set of equations
 def helper_gvs(U: Set[Equation]) -> Set[Variable]:
-	V = set()
+	# V = set()
+	V = OrderedSet()
 	for e in U:
-		V = V.union(get_vars(e.left_side))
-		V = V.union(get_vars(e.right_side))
+		V = V.union(get_vars_uo(e.left_side))
+		V = V.union(get_vars_uo(e.right_side))
 	return(V)
 
 
@@ -69,7 +88,8 @@ def mutation_rule1(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] += 1
 	var2 = Variable(var2)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	m1.add(Equation(matched_equation.left_side.arguments[0], var1))
 	m1.add(Equation(matched_equation.right_side.arguments[0], var1))
 	m1.add(Equation(matched_equation.left_side.arguments[1], var2))
@@ -102,7 +122,8 @@ def mutation_rule2(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var2 = Variable(var2)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	m1.add(Equation(matched_equation.left_side.arguments[0], var1))
 	m1.add(Equation(matched_equation.right_side.arguments[0], var2))
 	m1.add(Equation(matched_equation.left_side.arguments[1], var2))
@@ -147,7 +168,8 @@ def mutation_rule3(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var3 = Variable(var3)
 
-	m1 =  set()
+	# m1 =  set()
+	m1 = OrderedSet()
 	t1 = matched_equation.right_side.function(var1, var2)
 	t2 = matched_equation.right_side.function(var2, var3)
 	m1.add(Equation(matched_equation.left_side.arguments[0],  t1))
@@ -198,7 +220,8 @@ def mutation_rule4(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var3 = Variable(var3)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	t1 = matched_equation.right_side.function(var1, var2)
 	t2 = matched_equation.right_side.function(var2, var3)
 	m1.add(Equation(matched_equation.left_side.arguments[0], var1))
@@ -247,7 +270,8 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var3 = Variable(var3)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	t1 = matched_equation.right_side.function(var1, var2)
 	t2 = matched_equation.right_side.function(var1, var3)
 	m1.add(Equation(matched_equation.left_side.arguments[0], t1))
@@ -264,9 +288,9 @@ def mutation_rule5(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 
 #Mutation Rule LC
 def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation], bool]:
-	print("=============In LC============")
-	print(U)
-	print("==============================")
+	# print("=============In LC============")
+	# print(U)
+	# print("==============================")
 	matched_equation: Optional[Equation] = None
 	for e in U:
 		lhs = e.left_side
@@ -301,7 +325,8 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var3 = Variable(var3)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	t1 = matched_equation.right_side.function(var2, var3)
 	t2 = matched_equation.right_side.function(var1, var3)
 	m1.add(Equation(matched_equation.left_side.arguments[0], var1))
@@ -317,15 +342,12 @@ def mutation_rule6(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 
 #Mutation Rule MC
 def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation], bool]:
-	print("=======In MC Rule ======")
-	print(U)
-	print("========================")
 	matched_equation: Optional[Equation] = None
 	for e in U:
 		if isinstance(e.left_side, FuncTerm) and isinstance(e.right_side, FuncTerm):
 			# TODO: Is this condition complete?
 			# NOTE: This is a distinct variable check
-			if len(get_vars(e.right_side, unique=True).union(get_vars(e.left_side, unique=True))) == 4:
+			if len(get_vars(e.right_side, unique=True) | get_vars(e.left_side, unique=True)) == 4:
 				matched_equation = e
 				break
 
@@ -356,7 +378,8 @@ def mutation_rule7(U: Set[Equation], var_count: List[int]) -> Tuple[Set[Equation
 	var_count[0] = var_count[0] + 1
 	var4 = Variable(var4)
 
-	m1 = set()
+	# m1 = set()
+	m1 = OrderedSet()
 	t1 = matched_equation.right_side.function(var1, var2)
 	t2 = matched_equation.right_side.function(var3, var4)
 	t3 = matched_equation.right_side.function(var1, var3)
@@ -387,6 +410,7 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Tuple[Set
 	matched_equations: Optional[Tuple[Equation, Equation]] = None
 
 	for e1, e2 in itertools.product(equations, equations):
+		# Don't merge an equation with itself
 		if e1 == e2:
 			continue
 
@@ -397,7 +421,7 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Tuple[Set
 
 		if matching_left_variable and right_sides_not_variable and not_restricted:
 			matched_equations = (e1, e2)
-			print("Applying merge on:", matched_equations)
+			# print("Applying merge on:", matched_equations)
 			break
 
 	# If no equations are found return early
@@ -416,9 +440,10 @@ def non_flat_check(eqs):
 			return True
 	return False
 
-def orient_andrew(equations, original_equations):
+def orient_andrew(equations, original_equations) -> Set[Equation]:
 	VS1 = helper_gvs(original_equations)
-	new_equations = set()
+	# new_equations = set()
+	new_equations = OrderedSet()
 
 	for equation in equations:
 		lhs = equation.left_side
@@ -438,7 +463,7 @@ def orient_andrew(equations, original_equations):
 			new_equations.add(equation)
 	return new_equations
 
-def var_rep_andrew(equations, original_equations):
+def var_rep_andrew(equations, original_equations) -> Set[Equation]:
 	matched_equation: Optional[Equation] = None
 
 	for equation in equations:
@@ -459,7 +484,8 @@ def var_rep_andrew(equations, original_equations):
 	new_sub.add(matched_equation.left_side, matched_equation.right_side)
 
 	# Apply the new substitution to the set of equations
-	new_equations = set()
+	# new_equations = set()
+	new_equations = OrderedSet()
 	for equation in equations - {matched_equation}:
 		new_equations.add(Equation(
             equation.left_side * new_sub,
@@ -471,8 +497,7 @@ def var_rep_andrew(equations, original_equations):
 
 	return new_equations
 
-
-def eqe(equations, original_equations):
+def eqe(equations, original_equations) -> Set[Equation]:
 	VS1 = helper_gvs(original_equations)
 
 	matched_equation: Optional[Equation] = None
@@ -486,7 +511,7 @@ def eqe(equations, original_equations):
 		is_fresh_var = lhs not in VS1
 		match_condition = isinstance(lhs, Variable) and not_in_right_side and not_in_rest_vars and is_fresh_var
 		if match_condition:
-			print("Removing", equation)
+			# print("Removing", equation)
 			matched_equation = equation
 
 	if matched_equation is None:
@@ -494,18 +519,71 @@ def eqe(equations, original_equations):
 
 	return equations - {matched_equation}
 
+def cancel(equations: Set[Equation]) -> Set[Equation]:
+	"""
+	x + y = x + t => y = t
+	if x doesn't appear anywhere else in the set of equations
+	Assumes flat terms, ordering doesn't matter.
+	"""
+	matched_equation: Optional[Equation] = None
+	new_equation: Optional[Equation] = None
+
+	for equation in equations:
+		lhs = equation.left_side
+		rhs = equation.right_side
+		rest_vars = helper_gvs(equations - {equation})
+		# Skip equations where both sides aren't FuncTerms
+		if not isinstance(lhs, FuncTerm) or not isinstance(rhs, FuncTerm):
+			continue
+
+		if lhs.arguments[0] == rhs.arguments[0]:
+			if lhs.arguments[0] not in rest_vars:
+				matched_equation = equation
+				new_equation = Equation(lhs.arguments[1], rhs.arguments[1])
+				break
+		elif lhs.arguments[0] == rhs.arguments[1]:
+			if lhs.arguments[0] not in rest_vars:
+				matched_equation = equation
+				new_equation = Equation(lhs.arguments[1], rhs.arguments[0])
+				break
+		elif lhs.arguments[1] == rhs.arguments[0]:
+			if lhs.arguments[1] not in rest_vars:
+				matched_equation = equation
+				new_equation = Equation(lhs.arguments[0], rhs.arguments[1])
+				break
+		elif lhs.arguments[1] == rhs.arguments[1]:
+			if lhs.arguments[1] not in rest_vars:
+				matched_equation = equation
+				new_equation = Equation(lhs.arguments[0], rhs.arguments[0])
+				break
+
+	# If no equations are found return early
+	if matched_equation is None:
+		return equations
+
+	# print("APPLYING CANCELLATION")
+
+	remove_equations = {matched_equation}
+	add_equations = {new_equation}
+	new_equations = (equations - remove_equations).union(add_equations)
+	return new_equations
+
+
 def s_rules(U: Set[Equation], var_count, ES1):
 	"""
 	S Rules
 	"""
-	print("Before S Rules:", U)
-	Utemp = set()
+	# print("Before S Rules:", U)
+	# Utemp = set()
+	Utemp = OrderedSet()
 	U, var_count[0] = flat(U, var_count[0])
 	while (Utemp != U):
 		Utemp = U
 		U = orient_andrew(U, ES1)
 		U = var_rep_andrew(U, ES1)
 		U = eqe(U, ES1)
+		U, _ = merge(U, set())
+		U = cancel(U)
 		# NOTE: Can't insert flat in loop because
 		# flat and var_rep undo each other
 		if occurs_check(U):
@@ -520,7 +598,7 @@ def s_rules(U: Set[Equation], var_count, ES1):
 		print(U)
 		return set()
 
-	print("After S Rules:", U)
+	# print("After S Rules:", U)
 	return U
 
 
@@ -593,7 +671,7 @@ def is_linear(U: Set[Equation], original_equations: Set[Equation]):
 
 Tree = None
 
-def build_tree(root: MutateNode, var_count, ES1, single_sol):
+def build_tree(root: MutateNode, var_count, ES1, single_sol: bool):
 	global Tree
 	Sol = list()
 	Q = list()
@@ -602,12 +680,10 @@ def build_tree(root: MutateNode, var_count, ES1, single_sol):
 	Tree[0] = [root]
 	current_level = 0
 	while 0 < len(Q):
-		if current_level > 100:
-			print("[HIT UPPER BOUND]")
-			break
-		if current_level > 3:
-			print("Stopping after level 3")
-			raise Exception("")
+		if current_level > 5:
+			print("[WARNING] Stopping after level 5")
+			return Sol
+			# raise Exception("")
 
 		cn, level = Q.pop(0)
 
@@ -630,13 +706,16 @@ def build_tree(root: MutateNode, var_count, ES1, single_sol):
 				# Check failure conditions
 				if not occurs_check(cn.data) and not function_clash(cn.data):
 					Sol.append(cn.data)
+					if single_sol:
+						print("Total Layers Computed:", current_level)
+						return Sol
 			else:
-				print('-' * 5)
-				print("About to Mutate", cn.data)
+				# print('-' * 5)
+				# print("About to Mutate", cn.data)
 				apply_mutation_rules(cn, var_count, Q, Tree, level)
-				print('-' * 5)
+				# print('-' * 5)
 
-
+	print("Total Layers Computed:", current_level)
 	return Sol
 
 def synt_ac_unif2(U: Set[Equation], single_sol: bool = True):

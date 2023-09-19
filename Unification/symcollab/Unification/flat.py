@@ -9,6 +9,11 @@ from symcollab.algebra import (
 	FuncTerm, Variable, Equation, Function, depth
 )
 
+# OrderedSet makes it so that the outputs are deterministic
+# this is at a great expense of execution speed.
+# Leave in when testing, remove when done.
+from symcollab.Unification.orderedset import OrderedSet
+# OrderedSet = set()
 
 
 def flat(U: Set[Equation], varcount: int):
@@ -26,7 +31,8 @@ def flat(U: Set[Equation], varcount: int):
 
 	# Step 1: Create a new variable for the left hand side
 	# of any given equation
-	new_equations = set()
+	# new_equations = set()
+	new_equations = OrderedSet()
 	for e in U:
 		lhs = e.left_side; rhs = e.right_side
 		if isinstance(lhs, FuncTerm):
@@ -50,7 +56,8 @@ def flat(U: Set[Equation], varcount: int):
 	# print("U after breaking two sided functions: ")
 	# print(U)
 	#Flatten the terms
-	temp = set()
+	# temp = set()
+	temp = OrderedSet()
 	while U != temp:
 		# print("U : at start of loop: " + str(lp))
 		# print(U)
@@ -59,7 +66,8 @@ def flat(U: Set[Equation], varcount: int):
 		temp = U
 		# print("Temp at loop: " + str(lp))
 		# print(temp)
-		new_equations = set()
+		# new_equations = set()
+		new_equations = OrderedSet()
 		for e in U:
 			lhs = e.left_side
 			rhs = e.right_side

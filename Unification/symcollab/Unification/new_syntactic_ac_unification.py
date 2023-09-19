@@ -796,7 +796,6 @@ def build_tree(U: Set[Equation], single_sol, ac_symbol: Function):
 	step_1_solutions: List[Set[Equation]] = []
 	Q: List[MutateNode] = [root]
 	Tree: List[List[MutateNode]] = [[root]]
-	i = 0 # NOTE: DEBUG
 	while len(Q) > 0:
 
 		# Depth of search tree corresponds to the number of times
