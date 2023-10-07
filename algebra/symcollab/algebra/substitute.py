@@ -226,6 +226,8 @@ class SubstituteTerm:
 
 def unravel(t: Term, s: SubstituteTerm) -> Term:
     """Apply a substitution until you can't"""
-    while t != t * s:
-        t = t * s
+    ts = t * s
+    while t != ts:
+        t = ts
+        ts = t * s
     return t
