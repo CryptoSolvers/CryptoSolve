@@ -3,20 +3,23 @@
 creates flat terms from terms.
 needed for some unification algorithms such as E_AC
 """
-from typing import Set
+from typing import Set, Dict
 
 from symcollab.algebra import (
-	FuncTerm, Variable, Equation, Function, depth
+	FuncTerm, Variable, Equation, Function, depth, Term
 )
 
 # OrderedSet makes it so that the outputs are deterministic
 # this is at a great expense of execution speed.
 # Leave in when testing, remove when done.
 from symcollab.Unification.orderedset import OrderedSet
-# OrderedSet = set()
+OrderedSet = set
 
-
+# NOTE: In syntactic AC, the algorithm expects older_var = newer_var
 def flat(U: Set[Equation], varcount: int):
+
+	name_map: Dict[Term, Variable] = dict()
+
 	#break equations into two
 	# print("In Flat\n")
 	# print("varcount is: ")
@@ -33,24 +36,40 @@ def flat(U: Set[Equation], varcount: int):
 	# of any given equation
 	# new_equations = set()
 	new_equations = OrderedSet()
+
 	for e in U:
-		lhs = e.left_side; rhs = e.right_side
-		if isinstance(lhs, FuncTerm):
-			# If the rhs is a variable, then flip
-			# the equation
-			if isinstance(rhs, Variable):
-				new_equations.add(Equation(rhs, lhs))
-			else:
-				# Otherwise create a new variable and split
-				# the equation
-				v = fresh_variable()
-				add1 = Equation(v, e.left_side)
-				add2 = Equation(v, e.right_side)
-				new_equations.add(add1)
-				new_equations.add(add2)
-		else:
-			# Otherwise the lhs is already a variable
+		# Skip if variable on right side
+		if isinstance(e.right_side, Variable):
 			new_equations.add(e)
+			continue
+
+		if e.left_side in name_map:
+			v1 = name_map[e.left_side]
+		else:
+			v1 = fresh_variable()
+			name_map[e.left_side] = v1
+
+		if e.right_side in name_map:
+			v2 = name_map[e.right_side]
+		else:
+			v2 = v1
+			name_map[e.right_side] = v2
+
+		if v1 != v2:
+			# Replace names to be consistent
+			new_name_map = dict()
+			for k, v in name_map.items():
+				if v == v2:
+					new_name_map[k] = v1
+				else:
+					new_name_map[k] = v
+			name_map = new_name_map
+
+
+		new_equations.add(Equation(e.left_side, v1))
+		new_equations.add(Equation(e.right_side, v2))
+
+
 	U = new_equations
 
 	# print("U after breaking two sided functions: ")
@@ -59,28 +78,26 @@ def flat(U: Set[Equation], varcount: int):
 	# temp = set()
 	temp = OrderedSet()
 	while U != temp:
-		# print("U : at start of loop: " + str(lp))
-		# print(U)
-		# print("Varcount: ")
-		# print(z)
 		temp = U
-		# print("Temp at loop: " + str(lp))
-		# print(temp)
-		# new_equations = set()
 		new_equations = OrderedSet()
 		for e in U:
 			lhs = e.left_side
 			rhs = e.right_side
-			if isinstance(rhs, FuncTerm):
+			if isinstance(lhs, FuncTerm):
 				# Flatten each argument
 				new_argument_list = []
-				for arg_term in rhs.arguments:
+				for arg_term in lhs.arguments:
 					if isinstance(arg_term, FuncTerm):
-						vtemp = fresh_variable()
+
+						if arg_term in name_map:
+							vtemp = name_map[arg_term]
+						else:
+							vtemp = fresh_variable()
+							name_map[arg_term] = vtemp
 						# Add a new equation mapping the fresh
 						# variable to the arugment
 						new_equations.add(
-							Equation(vtemp, arg_term)
+							Equation(arg_term, vtemp)
 						)
 						# Set the argument of this function
 						# to be the new variable
@@ -90,8 +107,8 @@ def flat(U: Set[Equation], varcount: int):
 						new_argument_list.append(arg_term)
 				# Create new equation from flattened arguments
 				new_equations.add(Equation(
-					lhs,
-					rhs.function(*new_argument_list)
+					lhs.function(*new_argument_list),
+					rhs
 				))
 			else:
 				new_equations.add(e)
@@ -107,88 +124,3 @@ def flat(U: Set[Equation], varcount: int):
 	# print("Final Varcount: ")
 	# print(z)
 	return (U, varcount)
-
-"""
-Below is an experiment with a version that doesn't enforce
-variable = flat term
-"""
-
-# def flat(U: Set[Equation], varcount: int):
-# 	def fresh_variable():
-# 		nonlocal varcount
-# 		var_name = 'vv_'+str(varcount)
-# 		varcount += 1
-# 		return Variable(var_name)
-
-# 	beyond_depth_limit = any((
-# 		depth(eq.left_side) > 1 or depth(eq.right_side) > 1 \
-# 		for eq in U
-# 	))
-# 	while beyond_depth_limit:
-
-# 		new_equations = set()
-# 		for e in U:
-# 			lhs = e.left_side
-# 			rhs = e.right_side
-
-# 			new_lhs = lhs
-# 			if isinstance(lhs, FuncTerm):
-# 				# Flatten each argument
-# 				new_argument_list = []
-# 				for arg_term in lhs.arguments:
-# 					if isinstance(arg_term, FuncTerm):
-# 						v = fresh_variable()
-# 						# Add a new equation mapping the fresh
-# 						# variable to the arugment
-# 						new_equations.add(
-# 							Equation(v, arg_term)
-# 						)
-# 						# Set the argument of this function
-# 						# to be the new variable
-# 						new_argument_list.append(v)
-# 					else:
-# 						# No work needs to be done
-# 						new_argument_list.append(arg_term)
-# 				new_lhs = lhs.function(*new_argument_list)
-
-# 			new_rhs = rhs
-# 			if isinstance(rhs, FuncTerm):
-# 				# Flatten each argument
-# 				new_argument_list = []
-# 				for arg_term in rhs.arguments:
-# 					if isinstance(arg_term, FuncTerm):
-# 						vtemp = fresh_variable()
-# 						# Add a new equation mapping the fresh
-# 						# variable to the arugment
-# 						new_equations.add(
-# 							Equation(vtemp, arg_term)
-# 						)
-# 						# Set the argument of this function
-# 						# to be the new variable
-# 						new_argument_list.append(vtemp)
-# 					else:
-# 						# No work needs to be done
-# 						new_argument_list.append(arg_term)
-# 				new_rhs = rhs.function(*new_argument_list)
-
-# 			# Create new equation from flattened arguments
-# 			new_equations.add(Equation(
-# 				new_lhs,
-# 				new_rhs
-# 			))
-
-# 		U = new_equations
-# 		beyond_depth_limit = any((
-# 			depth(eq.left_side) > 2 or depth(eq.right_side) > 2 \
-# 			for eq in U
-# 		))
-# 		# print("U : at end of loop: " + str(lp))
-# 		# print(U)
-# 		# print("Temp at end of loop: " + str(lp))
-# 		# print(temp)
-
-# 	# print("U after removing subterms: ")
-# 	# print(U)
-# 	# print("Final Varcount: ")
-# 	# print(z)
-# 	return (U, varcount)
