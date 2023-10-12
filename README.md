@@ -1,5 +1,3 @@
-# Moved to https://github.com/CryptoSolvers/CryptoSolve
-
 # CryptoSolve
 
 This is a tool that generates and verifies cryptographic modes of operation using symbolic methods.
@@ -13,7 +11,7 @@ To get started you should make sure that your environment is setup.
 <u>Clone the repository</u>
 
 ```bash
-git clone https://github.com/symcollab/CryptoSolve
+git clone https://github.com/cryptosolvers/cryptosolve
 cd CryptoSolve
 ```
 
