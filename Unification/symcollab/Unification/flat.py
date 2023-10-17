@@ -18,8 +18,6 @@ OrderedSet = set
 # NOTE: In syntactic AC, the algorithm expects older_var = newer_var
 def flat(U: Set[Equation], varcount: int):
 
-	name_map: Dict[Term, Variable] = dict()
-
 	#break equations into two
 	# print("In Flat\n")
 	# print("varcount is: ")
@@ -43,31 +41,9 @@ def flat(U: Set[Equation], varcount: int):
 			new_equations.add(e)
 			continue
 
-		if e.left_side in name_map:
-			v1 = name_map[e.left_side]
-		else:
-			v1 = fresh_variable()
-			name_map[e.left_side] = v1
-
-		if e.right_side in name_map:
-			v2 = name_map[e.right_side]
-		else:
-			v2 = v1
-			name_map[e.right_side] = v2
-
-		if v1 != v2:
-			# Replace names to be consistent
-			new_name_map = dict()
-			for k, v in name_map.items():
-				if v == v2:
-					new_name_map[k] = v1
-				else:
-					new_name_map[k] = v
-			name_map = new_name_map
-
-
-		new_equations.add(Equation(e.left_side, v1))
-		new_equations.add(Equation(e.right_side, v2))
+		v = fresh_variable()
+		new_equations.add(Equation(e.left_side, v))
+		new_equations.add(Equation(e.right_side, v))
 
 
 	U = new_equations
@@ -88,12 +64,7 @@ def flat(U: Set[Equation], varcount: int):
 				new_argument_list = []
 				for arg_term in lhs.arguments:
 					if isinstance(arg_term, FuncTerm):
-
-						if arg_term in name_map:
-							vtemp = name_map[arg_term]
-						else:
-							vtemp = fresh_variable()
-							name_map[arg_term] = vtemp
+						vtemp = fresh_variable()
 						# Add a new equation mapping the fresh
 						# variable to the arugment
 						new_equations.add(
