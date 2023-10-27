@@ -138,26 +138,20 @@ def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation],  var_count: 
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
 
 	# print("Applied ID")
 
 	#Create the mutations
 	U = U - {e2}
 
-	# Generate Fresh Variables
-	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, v1))
-	m1.add(Equation(t1, v1))
-	m1.add(Equation(s2, v2))
-	m1.add(Equation(t2, v2))
+	m1.add(Equation(y1, z1))
+	m1.add(Equation(y2, z2))
 	U = U.union(m1)
 
 	return U
@@ -187,26 +181,20 @@ def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
 
 	# print("Applied C")
 
 	#Create the 7 possible mutations
 	U = U - {e2}
 
-	# Generate Fresh Variables
-	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, v1))
-	m1.add(Equation(t1, v2))
-	m1.add(Equation(s2, v2))
-	m1.add(Equation(t2, v1))
+	m1.add(Equation(y1, z2))
+	m1.add(Equation(y2, z1))
 	U = U.union(m1)
 
 	return U
@@ -227,8 +215,9 @@ def match_mutation_rule3(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 		lhs2 = e2.left_side; rhs2 = e2.right_side
 		if isinstance(lhs1, Variable) and lhs1 == lhs2:
 			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				s1 = rhs1.arguments[0]; t2 = rhs2.arguments[1]
-				if not trace_check(s1, t2, U): # s1 != t2:
+				y1 = rhs1.arguments[0]; z2 = rhs2.arguments[1]
+				if y1 != z2:
+				# if not trace_check(y1, z2, U):
 					return (e1, e2)
 
 	return None
@@ -239,11 +228,11 @@ def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
-	assert s1 != t2
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
+	assert y1 != z2
 
 	# print("+++++++++Applying A1++++++++++++++++")
 	# print(e)
@@ -255,16 +244,12 @@ def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 	# Generate fresh variables
 	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-	v3 = fresh_var(var_count)
 	f = e1.right_side.function
 
 	# m1 =  set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, f(v1, v2)))
-	m1.add(Equation(s2, v3))
-	m1.add(Equation(t1, v1))
-	m1.add(Equation(t2, f(v2, v3)))
+	m1.add(Equation(y1, f(z1, v1)))
+	m1.add(Equation(z2, f(v1, y2)))
 	U = U.union(m1)
 	# print("--------------After Applying A1-------------------")
 	# print(U)
@@ -288,8 +273,9 @@ def match_mutation_rule4(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 		lhs2 = e2.left_side; rhs2 = e2.right_side
 		if isinstance(lhs1, Variable) and lhs1 == lhs2:
 			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				s2 = rhs1.arguments[1]; t1 = rhs2.arguments[0]
-				if not trace_check(s2, t1, U): #s2 != t1:
+				y2 = rhs1.arguments[1]; z1 = rhs2.arguments[0]
+				if y2 != z1:
+				# if not trace_check(y2, z1, U):
 					return (e1, e2)
 
 	return None
@@ -300,11 +286,11 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
-	assert s2 != t1
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
+	assert y2 != z1
 
 	# print("+++++++++Applying A2++++++++++++++++")
 	# print(e)
@@ -317,16 +303,12 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 	# Generate fresh variables
 	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-	v3 = fresh_var(var_count)
 	f = e1.right_side.function
 
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, v1))
-	m1.add(Equation(s2, f(v2, v3)))
-	m1.add(Equation(t1, f(v1, v2)))
-	m1.add(Equation(t2, v3))
+	m1.add(Equation(y1, f(v1, z2)))
+	m1.add(Equation(z1, f(y1, v1)))
 	U = U.union(m1)
 
 	# print("--------------After Applying A2-------------------")
@@ -351,8 +333,9 @@ def match_mutation_rule5(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 		lhs2 = e2.left_side; rhs2 = e2.right_side
 		if isinstance(lhs1, Variable) and lhs1 == lhs2:
 			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				s1 = rhs1.arguments[0]; t1 = rhs2.arguments[0]
-				if not trace_check(s1, t1, U): # s1 != t1:
+				y1 = rhs1.arguments[0]; z1 = rhs2.arguments[0]
+				if y1 != z1:
+				# if not trace_check(y1, z1, U):
 					return (e1, e2)
 
 	return None
@@ -362,11 +345,11 @@ def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int]) 
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
-	assert s1 != t1
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
+	assert y1 != z1
 
 	# print("++++++++++++Applying RC++++++++++")
 	# print(e)
@@ -378,16 +361,12 @@ def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int]) 
 
 	# Generate fresh variables
 	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-	v3 = fresh_var(var_count)
 	f = e1.right_side.function
 
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, f(v1, v2)))
-	m1.add(Equation(s2, v3))
-	m1.add(Equation(t1, f(v1, v3)))
-	m1.add(Equation(t2, v2))
+	m1.add(Equation(y1, f(v1, z2)))
+	m1.add(Equation(z1, f(v1, y2)))
 	U = U.union(m1)
 
 	# print("----------After applying RC--------------")
@@ -412,8 +391,9 @@ def match_mutation_rule6(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 		lhs2 = e2.left_side; rhs2 = e2.right_side
 		if isinstance(lhs1, Variable) and lhs1 == lhs2:
 			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				s2 = rhs1.arguments[1]; t2 = rhs2.arguments[1]
-				if not trace_check(s2, t2, U): #s2 != t2:
+				y2 = rhs1.arguments[1]; z2 = rhs2.arguments[1]
+				if y2 != z2:
+				# if not trace_check(y2, z2, U):
 					return (e1, e2)
 
 	return None
@@ -423,11 +403,11 @@ def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
-	assert s2 != t2
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
+	assert y2 != z2
 
 	# print("++++++++++Applying LC+++++++++++++")
 	# print(e)
@@ -440,16 +420,12 @@ def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 	# Generate fresh variables
 	v1 = fresh_var(var_count)
-	v2 = fresh_var(var_count)
-	v3 = fresh_var(var_count)
 	f = e1.right_side.function
 
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, v1))
-	m1.add(Equation(s2, f(v2, v3)))
-	m1.add(Equation(t1, v2))
-	m1.add(Equation(t2, f(v1, v3)))
+	m1.add(Equation(y2, f(z1, v1)))
+	m1.add(Equation(z2, f(y1, v1)))
 	U = U.union(m1)
 
 	# print("---------After applying LC---------------")
@@ -482,7 +458,8 @@ def match_mutation_rule7(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 					(rhs1.arguments[1], rhs2.arguments[1])
 				]
 				# NOTE: Temporary condition until conditions are worked out
-				if not any(trace_check(v1, v2, U) for v1, v2 in to_check):
+				if not any(v1 == v2 for v1, v2 in to_check):
+				# if not any(trace_check(v1, v2, U) for v1, v2 in to_check):
 					return (e1, e2)
 
 	return None
@@ -492,10 +469,10 @@ def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
 	assert isinstance(e1.right_side, FuncTerm) and isinstance(e2.right_side, FuncTerm)
-	s1 = e1.right_side.arguments[0]
-	s2 = e1.right_side.arguments[1]
-	t1 = e2.right_side.arguments[0]
-	t2 = e2.right_side.arguments[1]
+	y1 = e1.right_side.arguments[0]
+	y2 = e1.right_side.arguments[1]
+	z1 = e2.right_side.arguments[0]
+	z2 = e2.right_side.arguments[1]
 	assert len(get_vars_uo(e1.right_side) | get_vars_uo(e2.right_side)) == 4
 
 	# print("++++++++++Applying MC+++++++++++++")
@@ -515,10 +492,10 @@ def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(s1, f(v1, v2)))
-	m1.add(Equation(s2, f(v3, v4)))
-	m1.add(Equation(t1, f(v1, v3)))
-	m1.add(Equation(t2, f(v2, v4)))
+	m1.add(Equation(y1, f(v1, v2)))
+	m1.add(Equation(y2, f(v3, v4)))
+	m1.add(Equation(z1, f(v1, v3)))
+	m1.add(Equation(z2, f(v2, v4)))
 	U = U.union(m1)
 
 	# print("--------After applying MC------------")
@@ -672,25 +649,25 @@ def apply_mutation_rules(
 			cn.c.var_count = var_count
 			nextBranch.append((cn.c, level + 1))
 
-	dcopy = deepcopy(cn.data)
-	e = match_mutation_rule3(dcopy)
-	var_count = deepcopy(cn.var_count)
-	if e is not None:
-		new_eqs = mutation_rule3(dcopy, e, var_count)
-		if not look_for_duplicates(Tree, new_eqs):
-			cn.a1 = MutateNode(new_eqs)
-			cn.a1.var_count = var_count
-			nextBranch.append((cn.a1, level + 1))
-
 	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule4(dcopy)
+	# e = match_mutation_rule3(dcopy)
 	# var_count = deepcopy(cn.var_count)
 	# if e is not None:
-	# 	new_eqs = mutation_rule4(dcopy, e, var_count)
+	# 	new_eqs = mutation_rule3(dcopy, e, var_count)
 	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.a2 = MutateNode(new_eqs)
-	# 		cn.a2.var_count = var_count
-	# 		nextBranch.append((cn.a2, level + 1))
+	# 		cn.a1 = MutateNode(new_eqs)
+	# 		cn.a1.var_count = var_count
+	# 		nextBranch.append((cn.a1, level + 1))
+
+	dcopy = deepcopy(cn.data)
+	e = match_mutation_rule4(dcopy)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		new_eqs = mutation_rule4(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.a2 = MutateNode(new_eqs)
+			cn.a2.var_count = var_count
+			nextBranch.append((cn.a2, level + 1))
 
 	# dcopy = deepcopy(cn.data)
 	# e = match_mutation_rule5(dcopy)
