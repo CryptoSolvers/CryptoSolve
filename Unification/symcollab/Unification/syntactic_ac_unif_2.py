@@ -40,7 +40,7 @@ def fresh_var(var_count: List[int]) -> Variable:
 
 #Tree
 class MutateNode:
-	def __init__(self, data: Set[Equation]):
+	def __init__(self, data: Set[Equation], ruleList):
 		self.id = None
 		self.c = None
 		self.a1 = None
@@ -50,6 +50,7 @@ class MutateNode:
 		self.mc = None
 		self.data = data
 		self.var_count = None
+		self.ruleList = ruleList
 	def __str__(self):
 		return f"MutateNode(data={self.data})"
 
@@ -113,16 +114,15 @@ def trace_check(v1: Variable, v2: Variable, equations: Set[Equation]) -> bool:
 
 #Rules
 
-#Mutation Rule ID
-def match_mutation_rule1(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+def match_mutation(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
 	for e1, e2 in itertools.product(U, U):
 		# Skip if e1 and e2 are the same
 		if e1 == e2:
 			continue
 
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
+		# # TODO: Enforce some ordering...
+		# if poe(e1) > poe(e2):
+		# 	continue
 
 		# Variables on lhs are the same and right side are FuncTerms
 		lhs1 = e1.left_side; rhs1 = e1.right_side
@@ -132,6 +132,9 @@ def match_mutation_rule1(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]
 				return (e1, e2)
 
 	return None
+#Mutation Rule ID
+def match_mutation_rule1(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	return e
 
 def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation],  var_count: List[int]) -> Set[Equation]:
 	e1, e2 = es
@@ -157,24 +160,8 @@ def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation],  var_count: 
 	return U
 
 #Mutation Rule C
-def match_mutation_rule2(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				return (e1, e2)
-
-	return None
+def match_mutation_rule2(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	return e
 
 def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
 	e1, e2 = es
@@ -200,26 +187,14 @@ def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	return U
 
 #Mutation Rule A1
-def match_mutation_rule3(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				y1 = rhs1.arguments[0]; z2 = rhs2.arguments[1]
-				if y1 != z2:
-				# if not trace_check(y1, z2, U):
-					return (e1, e2)
-
+def match_mutation_rule3(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	if e is None:
+		return None
+	e1, e2 = e
+	rhs1 = e1.right_side; rhs2 = e2.right_side
+	y1 = rhs1.arguments[0]; z2 = rhs2.arguments[1]
+	if not trace_check(y1, z2, U):
+		return e
 	return None
 
 
@@ -258,26 +233,14 @@ def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	return U
 
 #Mutation Rule A2
-def match_mutation_rule4(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				y2 = rhs1.arguments[1]; z1 = rhs2.arguments[0]
-				if y2 != z1:
-				# if not trace_check(y2, z1, U):
-					return (e1, e2)
-
+def match_mutation_rule4(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	if e is None:
+		return None
+	e1, e2 = e
+	rhs1 = e1.right_side; rhs2 = e2.right_side
+	y2 = rhs1.arguments[1]; z1 = rhs2.arguments[0]
+	if not trace_check(y2, z1, U):
+		return e
 	return None
 
 
@@ -299,7 +262,7 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 
 	#Create the 7 possible mutations
-	U = U - {e2}
+	U = U - {e1}
 
 	# Generate fresh variables
 	v1 = fresh_var(var_count)
@@ -307,7 +270,7 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 	# m1 = set()
 	m1 = OrderedSet()
-	m1.add(Equation(y1, f(v1, z2)))
+	m1.add(Equation(y2, f(v1, z2)))
 	m1.add(Equation(z1, f(y1, v1)))
 	U = U.union(m1)
 
@@ -318,25 +281,15 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 #Mutation Rule RC
 
-def match_mutation_rule5(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				y1 = rhs1.arguments[0]; z1 = rhs2.arguments[0]
-				if y1 != z1:
-				# if not trace_check(y1, z1, U):
-					return (e1, e2)
+def match_mutation_rule5(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	if e is None:
+		return None
+	e1, e2 = e
+	rhs1 = e1.right_side
+	rhs2 = e2.right_side
+	y1 = rhs1.arguments[0]; z1 = rhs2.arguments[0]
+	if not trace_check(y1, z1, U):
+		return e
 
 	return None
 
@@ -376,25 +329,14 @@ def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int]) 
 	return U
 
 #Mutation Rule LC
-def match_mutation_rule6(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				y2 = rhs1.arguments[1]; z2 = rhs2.arguments[1]
-				if y2 != z2:
-				# if not trace_check(y2, z2, U):
-					return (e1, e2)
+def match_mutation_rule6(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	if e is None:
+		return None
+	e1, e2 = e
+	rhs1 = e1.right_side; rhs2 = e2.right_side
+	y2 = rhs1.arguments[1]; z2 = rhs2.arguments[1]
+	if not trace_check(y2, z2, U):
+		return (e1, e2)
 
 	return None
 
@@ -434,35 +376,25 @@ def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	return U
 
 #Mutation Rule MC
-def match_mutation_rule7(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
-	for e1, e2 in itertools.product(U, U):
-		# Skip if e1 and e2 are the same
-		if e1 == e2:
-			continue
-
-		# TODO: Enforce some ordering...
-		if poe(e1) > poe(e2):
-			continue
-
-		# Variables on lhs are the same and right side are FuncTerms
-		lhs1 = e1.left_side; rhs1 = e1.right_side
-		lhs2 = e2.left_side; rhs2 = e2.right_side
-		if isinstance(lhs1, Variable) and lhs1 == lhs2:
-			if isinstance(rhs1, FuncTerm) and isinstance(rhs2, FuncTerm):
-				to_check = [
-					(rhs1.arguments[0], rhs1.arguments[1]),
-					(rhs2.arguments[0], rhs2.arguments[1]),
-					(rhs1.arguments[0], rhs2.arguments[0]),
-					(rhs1.arguments[0], rhs2.arguments[1]),
-					(rhs1.arguments[1], rhs2.arguments[0]),
-					(rhs1.arguments[1], rhs2.arguments[1])
-				]
-				# NOTE: Temporary condition until conditions are worked out
-				if not any(v1 == v2 for v1, v2 in to_check):
-				# if not any(trace_check(v1, v2, U) for v1, v2 in to_check):
-					return (e1, e2)
-
+def match_mutation_rule7(e: Optional[Tuple[Equation, Equation]], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	if e is None:
+		return None
+	e1, e2 = e
+	rhs1 = e1.right_side; rhs2 = e2.right_side
+	to_check = [
+		(rhs1.arguments[0], rhs1.arguments[1]),
+		(rhs2.arguments[0], rhs2.arguments[1]),
+		(rhs1.arguments[0], rhs2.arguments[0]),
+		(rhs1.arguments[0], rhs2.arguments[1]),
+		(rhs1.arguments[1], rhs2.arguments[0]),
+		(rhs1.arguments[1], rhs2.arguments[1])
+	]
+	# NOTE: Temporary condition until conditions are worked out
+	if not any(v1 == v2 for v1, v2 in to_check):
+	# if not any(trace_check(v1, v2, U) for v1, v2 in to_check):
+		return e
 	return None
+
 
 def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
 	e1, e2 = es
@@ -630,72 +562,77 @@ def apply_mutation_rules(
 	nextBranch: List[Tuple[MutateNode, int]] = []
 
 	dcopy = deepcopy(cn.data)
-	e = match_mutation_rule1(dcopy)
-	var_count = deepcopy(cn.var_count)
-	if e is not None:
-		new_eqs = mutation_rule1(dcopy, e, var_count)
-		if not look_for_duplicates(Tree, new_eqs):
-			cn.id = MutateNode(new_eqs)
-			cn.id.var_count = var_count
-			nextBranch.append((cn.id, level + 1))
+	mutate_eq = match_mutation(dcopy)
 
-	dcopy = deepcopy(cn.data)
-	e = match_mutation_rule2(dcopy)
-	var_count = deepcopy(cn.var_count)
-	if e is not None:
-		new_eqs = mutation_rule2(dcopy, e, var_count)
-		if not look_for_duplicates(Tree, new_eqs):
-			cn.c = MutateNode(new_eqs)
-			cn.c.var_count = var_count
-			nextBranch.append((cn.c, level + 1))
-
-	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule3(dcopy)
+	# e = match_mutation_rule1(mutate_eq, cn.data)
 	# var_count = deepcopy(cn.var_count)
 	# if e is not None:
-	# 	new_eqs = mutation_rule3(dcopy, e, var_count)
+	# 	print("Applying ID")
+	# 	dcopy = deepcopy(cn.data)
+	# 	new_eqs = mutation_rule1(dcopy, e, var_count)
 	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.a1 = MutateNode(new_eqs)
-	# 		cn.a1.var_count = var_count
-	# 		nextBranch.append((cn.a1, level + 1))
+	# 		cn.id = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["ID"])
+	# 		cn.id.var_count = var_count
+	# 		nextBranch.append((cn.id, level + 1))
 
-	dcopy = deepcopy(cn.data)
-	e = match_mutation_rule4(dcopy)
+	# e = match_mutation_rule2(mutate_eq, cn.data)
+	# var_count = deepcopy(cn.var_count)
+	# if e is not None:
+	# 	print("Applying C")
+	# 	dcopy = deepcopy(cn.data)
+	# 	new_eqs = mutation_rule2(dcopy, e, var_count)
+	# 	if not look_for_duplicates(Tree, new_eqs):
+	# 		cn.c = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["C"])
+	# 		cn.c.var_count = var_count
+	# 		nextBranch.append((cn.c, level + 1))
+
+	e = match_mutation_rule3(mutate_eq, cn.data)
 	var_count = deepcopy(cn.var_count)
 	if e is not None:
+		dcopy = deepcopy(cn.data)
+		new_eqs = mutation_rule3(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.a1 = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["A_RIGHT"])
+			cn.a1.var_count = var_count
+			nextBranch.append((cn.a1, level + 1))
+
+	e = match_mutation_rule4(mutate_eq, cn.data)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		dcopy = deepcopy(cn.data)
 		new_eqs = mutation_rule4(dcopy, e, var_count)
 		if not look_for_duplicates(Tree, new_eqs):
-			cn.a2 = MutateNode(new_eqs)
+			cn.a2 = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["A_LEFT"])
 			cn.a2.var_count = var_count
 			nextBranch.append((cn.a2, level + 1))
 
 	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule5(dcopy)
+	# e = match_mutation_rule5(mutate_eq, dcopy)
 	# var_count = deepcopy(cn.var_count)
 	# if e is not None:
 	# 	new_eqs = mutation_rule5(dcopy, e, var_count)
 	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.rc = MutateNode(new_eqs)
+	# 		cn.rc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["RC"])
 	# 		cn.rc.var_count = var_count
 	# 		nextBranch.append((cn.rc, level + 1))
 
-	dcopy = deepcopy(cn.data)
-	e = match_mutation_rule6(dcopy)
-	var_count = deepcopy(cn.var_count)
-	if e is not None:
-		new_eqs = mutation_rule6(dcopy, e, var_count)
-		if not look_for_duplicates(Tree, new_eqs):
-			cn.lc = MutateNode(new_eqs)
-			cn.lc.var_count = var_count
-			nextBranch.append((cn.lc, level + 1))
+	# dcopy = deepcopy(cn.data)
+	# e = match_mutation_rule6(mutate_eq, dcopy)
+	# var_count = deepcopy(cn.var_count)
+	# if e is not None:
+	# 	new_eqs = mutation_rule6(dcopy, e, var_count)
+	# 	if not look_for_duplicates(Tree, new_eqs):
+	# 		cn.lc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["LC"])
+	# 		cn.lc.var_count = var_count
+	# 		nextBranch.append((cn.lc, level + 1))
 
 	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule7(dcopy)
+	# e = match_mutation_rule7(mutate_eq, dcopy)
 	# var_count = deepcopy(cn.var_count)
 	# if e is not None:
 	# 	new_eqs = mutation_rule7(dcopy, e, var_count)
 	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.mc = MutateNode(new_eqs)
+	# 		cn.mc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["MC"])
 	# 		cn.mc.var_count = var_count
 	# 		nextBranch.append((cn.mc, level + 1))
 
@@ -756,6 +693,7 @@ def build_tree(root: MutateNode, ES1, single_sol: bool):
 			last_node = Tree[current_level][-1]
 			print("Last Node:", last_node.data)
 			print("Length of last node:", len(last_node.data))
+			print("Rules for last node:", last_node.ruleList)
 			print("=" * 5)
 			current_level = level
 
@@ -778,7 +716,7 @@ def synt_ac_unif2(U: Set[Equation], single_sol: bool = True):
 	var_count = [0]
 	VS1 = helper_gvs(U)
 	U, var_count[0] = flat(U, var_count[0])
-	N1 = MutateNode(U)
+	N1 = MutateNode(U, [])
 	N1.var_count = var_count
 	res = build_tree(N1, VS1, single_sol)
 	# print("Final set of equations")
