@@ -395,7 +395,6 @@ def match_mutation_rule7(e: Optional[Tuple[Equation, Equation]], U: Set[Equation
 		return e
 	return None
 
-
 def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
@@ -441,7 +440,6 @@ def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 ############# S Rules                     ################
 ##########################################################
 
-
 def poe(equation: Equation) -> int:
 	"""
 	Returns the number of the subscript of the
@@ -454,7 +452,6 @@ def poe(equation: Equation) -> int:
 			num = int(v.symbol.split("_")[1])
 			max_num = max(max_num, num)
 	return max_num
-
 
 def variable_replacement(equations) -> Set[Equation]:
 	"""
@@ -516,6 +513,14 @@ def eqe(equations, VS1: Set[Variable]) -> Set[Equation]:
 
 	return equations - {matched_equation}
 
+
+def delete_trivial(equations) -> Set[Equation]:
+	new_equations = set()
+	for e in equations:
+		if e.left_side != e.right_side:
+			new_equations.add(e)
+	return new_equations
+
 def s_rules(U: Set[Equation], VS1: Set[Variable]):
 	"""
 	S Rules
@@ -530,7 +535,8 @@ def s_rules(U: Set[Equation], VS1: Set[Variable]):
 		U = variable_replacement(U)
 		# if occurs_check(U):
 		# 	return set()
-		# U = eqe(U, VS1)
+		U = eqe(U, VS1)
+		U = delete_trivial(U)
 
 		# For slow debugging
 		# print(U)
@@ -539,7 +545,6 @@ def s_rules(U: Set[Equation], VS1: Set[Variable]):
 
 	# print("After S Rules:", U)
 	return U
-
 
 def same_structure(U1: Set[Equation], U2: Set[Equation]):
 	if len(U1) != len(U2):
@@ -564,27 +569,27 @@ def apply_mutation_rules(
 	dcopy = deepcopy(cn.data)
 	mutate_eq = match_mutation(dcopy)
 
-	# e = match_mutation_rule1(mutate_eq, cn.data)
-	# var_count = deepcopy(cn.var_count)
-	# if e is not None:
-	# 	print("Applying ID")
-	# 	dcopy = deepcopy(cn.data)
-	# 	new_eqs = mutation_rule1(dcopy, e, var_count)
-	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.id = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["ID"])
-	# 		cn.id.var_count = var_count
-	# 		nextBranch.append((cn.id, level + 1))
+	e = match_mutation_rule1(mutate_eq, cn.data)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		# print("Applying ID")
+		dcopy = deepcopy(cn.data)
+		new_eqs = mutation_rule1(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.id = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["ID"])
+			cn.id.var_count = var_count
+			nextBranch.append((cn.id, level + 1))
 
-	# e = match_mutation_rule2(mutate_eq, cn.data)
-	# var_count = deepcopy(cn.var_count)
-	# if e is not None:
-	# 	print("Applying C")
-	# 	dcopy = deepcopy(cn.data)
-	# 	new_eqs = mutation_rule2(dcopy, e, var_count)
-	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.c = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["C"])
-	# 		cn.c.var_count = var_count
-	# 		nextBranch.append((cn.c, level + 1))
+	e = match_mutation_rule2(mutate_eq, cn.data)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		# print("Applying C")
+		dcopy = deepcopy(cn.data)
+		new_eqs = mutation_rule2(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.c = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["C"])
+			cn.c.var_count = var_count
+			nextBranch.append((cn.c, level + 1))
 
 	e = match_mutation_rule3(mutate_eq, cn.data)
 	var_count = deepcopy(cn.var_count)
@@ -606,39 +611,38 @@ def apply_mutation_rules(
 			cn.a2.var_count = var_count
 			nextBranch.append((cn.a2, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule5(mutate_eq, dcopy)
-	# var_count = deepcopy(cn.var_count)
-	# if e is not None:
-	# 	new_eqs = mutation_rule5(dcopy, e, var_count)
-	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.rc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["RC"])
-	# 		cn.rc.var_count = var_count
-	# 		nextBranch.append((cn.rc, level + 1))
+	dcopy = deepcopy(cn.data)
+	e = match_mutation_rule5(mutate_eq, dcopy)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		new_eqs = mutation_rule5(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.rc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["RC"])
+			cn.rc.var_count = var_count
+			nextBranch.append((cn.rc, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule6(mutate_eq, dcopy)
-	# var_count = deepcopy(cn.var_count)
-	# if e is not None:
-	# 	new_eqs = mutation_rule6(dcopy, e, var_count)
-	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.lc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["LC"])
-	# 		cn.lc.var_count = var_count
-	# 		nextBranch.append((cn.lc, level + 1))
+	dcopy = deepcopy(cn.data)
+	e = match_mutation_rule6(mutate_eq, dcopy)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		new_eqs = mutation_rule6(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.lc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["LC"])
+			cn.lc.var_count = var_count
+			nextBranch.append((cn.lc, level + 1))
 
-	# dcopy = deepcopy(cn.data)
-	# e = match_mutation_rule7(mutate_eq, dcopy)
-	# var_count = deepcopy(cn.var_count)
-	# if e is not None:
-	# 	new_eqs = mutation_rule7(dcopy, e, var_count)
-	# 	if not look_for_duplicates(Tree, new_eqs):
-	# 		cn.mc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["MC"])
-	# 		cn.mc.var_count = var_count
-	# 		nextBranch.append((cn.mc, level + 1))
+	dcopy = deepcopy(cn.data)
+	e = match_mutation_rule7(mutate_eq, dcopy)
+	var_count = deepcopy(cn.var_count)
+	if e is not None:
+		new_eqs = mutation_rule7(dcopy, e, var_count)
+		if not look_for_duplicates(Tree, new_eqs):
+			cn.mc = MutateNode(new_eqs, deepcopy(cn.ruleList) + ["MC"])
+			cn.mc.var_count = var_count
+			nextBranch.append((cn.mc, level + 1))
 
 	Tree[level + 1].extend([c for c, _ in nextBranch])
 	Q.extend(nextBranch)
-
 
 def solved_form(U: Set[Equation]) -> bool:
 	V: List[Variable] = []
@@ -662,18 +666,27 @@ Tree = None
 
 def build_tree(root: MutateNode, ES1, single_sol: bool):
 	global Tree
+	NODE_BOUND = 1000
+	LEVEL_BOUND = -1
 	Sol = list()
 	Q = list()
 	Q.append((root, 0))
 	Tree = defaultdict(list)
 	Tree[0] = [root]
 	current_level = 0
+	nodes_considered = 0
 	while 0 < len(Q):
-		# if current_level > 5:
-		# 	print("[WARNING] Stopping after level 5")
-		# 	return Sol
+		
+		if LEVEL_BOUND > 0 and current_level > LEVEL_BOUND:
+			print(f"[WARNING] Stopping after level {LEVEL_BOUND}")
+			return Sol
 
 		cn, level = Q.pop(0)
+		nodes_considered += 1
+
+		if NODE_BOUND > 0 and nodes_considered > NODE_BOUND:
+			print(f"[WARNING] Stopping after considering {NODE_BOUND} nodes")
+			return Sol
 
 		if level > current_level:
 			print("=" * 5)
