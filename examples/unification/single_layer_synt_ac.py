@@ -12,10 +12,11 @@ def run_example(label: str, equations: Set[Equation]):
     print(equations)
     # synt_ac_unif(set of equations, single solution?)
     sol = synt_ac_unif2(equations, False)
-    if len(sol) < 100:
-        print_unique_sol(sol)
-    else:
-        print_sol(sol)
+    # if len(sol) < 100:
+    #     print_unique_sol(sol)
+    # else:
+    #     print_sol(sol)
+    print_sol(sol)
     print_failures(equations, sol, check_simple_ac_unifier)
     print("")
 
@@ -31,7 +32,10 @@ a = Constant("a")
 b = Constant("b")
 
 
-# [PASS w bound]Example Special
+# [PASS] Example Special
+# Maude says there's one solution
+# Our algorihtm returns two (which are the same)
+# meaning that its equivalent
 e = Equation(
     f(x, x),
     f(f(y,z),x)
@@ -46,6 +50,7 @@ Test cases with only distinct variables
 """
 
 # [PASS] One distinct variable on each side
+# Matches maude's solution exactly
 lhs = x
 rhs = x1
 e = Equation(lhs, rhs)
@@ -53,6 +58,7 @@ U = {e}
 # run_example("Example 1", U)
 
 # [PASS] Two distinct variables on each side
+# Matches maude's solution
 lhs = f(x, y)
 rhs = f(x1, y1)
 e = Equation(lhs, rhs)
@@ -61,29 +67,24 @@ U = {e}
 
 
 # [PASS] Three distinct variables on each side
+# Matches maude's solution (265 solutions)
 lhs = f(x, f(y, z))
 rhs = f(x1, f(y1, z1))
 e = Equation(lhs, rhs)
 U = {e}
-# run_example("Example 3", U)
+run_example("Example 3", U)
 
-# [FAIL] Four distinct variables on each side
-# NOTE: Single solution flag passes
-# NOTE: This actually terminates, it exhausts through 9 layers
-# which takes a while
-# Total Layers Computed: 9
-# Total Solutions: 41503
-
-# [Pass with bound of 5]
+# [PASS] Four distinct variables on each side
+# Matches Maude's solutions (41503 solutions)
+# Takes a long time if you don't place bounds
 lhs = f(w, f(x, f(y, z)))
 rhs = f(w1, f(x1, f(y1, z1)))
 e = Equation(lhs, rhs)
 U = {e}
 # run_example("Example 4", U)
 
-# [FAIL] Five distinct variables on each side
-# NOTE: Single solutoin passes
-# [Pass with bound of 5]
+# [PASS w/Bound] Five distinct variables on each side
+# Over 102000 solutions in Maude (Didn't wait for it to finish)
 lhs = f(u, f(w, f(x, f(y, z))))
 rhs = f(u1, f(w1, f(x1, f(y1, z1))))
 e = Equation(lhs, rhs)
@@ -99,6 +100,7 @@ Test cases with duplicate variables
 """
 
 # [PASS] Duplicate variable on each side
+# Matches Maude's solution
 lhs = f(x, x)
 rhs = f(y, y)
 e = Equation(lhs, rhs)
@@ -106,9 +108,43 @@ U = {e}
 # run_example("Example 6", U)
 
 
-# [FAIL] Differing multiplicity with duplicate variables
-# NOTE: Single solution passes
-# [Pass with 5 bound]
+# [Pass with bound] Differing multiplicity with duplicate variables
+# Maude says there's only a single solution
+"""
+More notes:
+It seems that this is an example that can make better use from
+pruning
+
+First 5 solutions
+Solution 0 {
+v_1 ↦ f(y, y),
+x ↦ f(v_1, y),
+z ↦ f(y, y)
+}
+Solution 1 {
+v_2 ↦ f(v_4, v_4),
+x ↦ f(v_3, v_2),
+y ↦ f(v_3, v_4),
+z ↦ v_4
+}
+Solution 2 {
+v_2 ↦ f(z, z),
+x ↦ f(v_2, v_2),
+y ↦ f(v_2, z)
+}
+Solution 3 {
+x ↦ f(y, z),
+y ↦ f(v_6, z),
+z ↦ f(v_6, v_5)
+}
+Solution 4 {
+x ↦ f(y, z),
+y ↦ f(v_3, z)
+}
+Total Solutions: 54
+
+
+"""
 lhs = f(x, x)
 rhs = f(f(y,y),f(z,z))
 e = Equation(lhs, rhs)
@@ -117,12 +153,20 @@ U = {e}
 
 # [FAIL] Differing multiplicity of duplicate variables
 # NOTE: Single solution passes
-# [Pass with bound 5]
+# Maude says there's 5 solutions
+# [Pass with bound]
 lhs = f(x,f(x, x))
 rhs = f(y, f(y, z))
 e = Equation(lhs, rhs)
 U = {e}
-run_example("Example 8", U)
+# run_example("Example 8", U)
+
+# Maude says there's only one solutoin
+lhs = f(x, f(x, x))
+rhs = f(y, f(y, y))
+e = Equation(lhs, rhs)
+U = {e}
+# run_example("Brandon10", U)
 
 
 """
@@ -155,6 +199,7 @@ Testing commutativity
 =====================
 """
 # [PASS] Three distinct variables on each side flipping the order
+# Maude says there's 265 solutions
 lhs = f(x, f(y, z))
 rhs = f(z1, f(y1, x1))
 e = Equation(lhs, rhs)
@@ -162,6 +207,7 @@ U = {e}
 # run_example("Example 11", U)
 
 # [FAIL] Four distinct variables on each side changing the order
+# Maude says there's 41503 solutions
 # NOTE: Single solution passes
 # [Pass with bound of 5]
 lhs = f(w, f(x, f(y, z)))
@@ -172,17 +218,11 @@ U = {e}
 
 # [FAIL] Three distinct variables (1 duplicate) on each side changing the order
 # NOTE: Single solution passes
+# Maude says theres 1489 solutions
 # [Pass with bound of 5]
 lhs = f(w, f(w, f(y, z)))
 rhs = f(y1, f(w1, f(z1, w1)))
 e = Equation(lhs, rhs)
 U = {e}
 # run_example("Example 13", U)
-
-
-
-
-
-
-
 

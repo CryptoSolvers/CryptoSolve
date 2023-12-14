@@ -20,6 +20,8 @@ from symcollab.Unification.flat import flat
 from symcollab.Unification.orderedset import OrderedSet
 OrderedSet = set
 
+INITIAL_SET_HACK = set()
+
 @lru_cache(maxsize=1024)
 def get_vars_uo(t: Term):
 	"""Recursively get unique and ordered variables"""
@@ -665,8 +667,8 @@ def solved_form(U: Set[Equation]) -> bool:
 Tree = None
 
 def build_tree(root: MutateNode, ES1, single_sol: bool):
-	global Tree
-	NODE_BOUND = 1000
+	global Tree, INITIAL_SET_HACK
+	NODE_BOUND = -1
 	LEVEL_BOUND = -1
 	Sol = list()
 	Q = list()
@@ -675,6 +677,7 @@ def build_tree(root: MutateNode, ES1, single_sol: bool):
 	Tree[0] = [root]
 	current_level = 0
 	nodes_considered = 0
+	INITIAL_SET_HACK = ES1
 	while 0 < len(Q):
 		
 		if LEVEL_BOUND > 0 and current_level > LEVEL_BOUND:
@@ -702,6 +705,8 @@ def build_tree(root: MutateNode, ES1, single_sol: bool):
 			Tree[current_level] = new_last_branch
 			print("Occurs check on layer:", occurs_check_nodes)
 			print("Remaining nodes on layer:", len(Tree[current_level]))
+			print("Current number of solutions:", len(Sol))
+			print("Total Nodes Considered:", nodes_considered)
 
 			last_node = Tree[current_level][-1]
 			print("Last Node:", last_node.data)
