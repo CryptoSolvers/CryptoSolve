@@ -1,3 +1,8 @@
+"""
+Work in progress implementation of
+Syntactic AC Unification
+by Cornell, Marshall, and Rozek
+"""
 from copy import deepcopy
 from collections import defaultdict
 from functools import lru_cache
@@ -20,7 +25,6 @@ from symcollab.Unification.flat import flat
 from symcollab.Unification.orderedset import OrderedSet
 OrderedSet = set
 
-INITIAL_SET_HACK = set()
 
 @lru_cache(maxsize=1024)
 def get_vars_uo(t: Term):
@@ -667,9 +671,10 @@ def solved_form(U: Set[Equation]) -> bool:
 Tree = None
 
 def build_tree(root: MutateNode, ES1, single_sol: bool):
-	global Tree, INITIAL_SET_HACK
+	global Tree
 	NODE_BOUND = -1
 	LEVEL_BOUND = -1
+	SOLUTIONS_BOUND = 500
 	Sol = list()
 	Q = list()
 	Q.append((root, 0))
@@ -677,7 +682,6 @@ def build_tree(root: MutateNode, ES1, single_sol: bool):
 	Tree[0] = [root]
 	current_level = 0
 	nodes_considered = 0
-	INITIAL_SET_HACK = ES1
 	while 0 < len(Q):
 		
 		if LEVEL_BOUND > 0 and current_level > LEVEL_BOUND:
@@ -721,7 +725,7 @@ def build_tree(root: MutateNode, ES1, single_sol: bool):
 		if len(cn.data) > 0:
 			if solved_form(cn.data):
 				Sol.append(cn.data)
-				if single_sol:
+				if single_sol or (SOLUTIONS_BOUND > 0 and len(Sol) >= SOLUTIONS_BOUND):
 					print("Total Layers Computed:", current_level)
 					return Sol
 			else:

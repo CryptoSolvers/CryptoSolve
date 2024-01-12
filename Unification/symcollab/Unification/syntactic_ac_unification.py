@@ -1,3 +1,8 @@
+"""
+Implementation of
+"Syntactic" AC Unification
+by Boudet and Contejean 1994
+"""
 from copy import deepcopy
 from typing import List, Set, Optional, Tuple, Dict
 
