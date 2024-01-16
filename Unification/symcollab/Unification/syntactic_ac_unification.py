@@ -329,28 +329,21 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Variable], restricte
 	candidate_equation = None
 	for e in equations:
 		# Conditions
-		both_sides_variables = isinstance(e.left_side, Variable) and isinstance(e.right_side, Variable)
 		variables_in_P = helper_gvs(equations - {e})
-		exists_within_p = e.left_side in variables_in_P and e.right_side in variables_in_P
-		not_restricted_l = e.left_side not in restricted_vars
-		# NOTE: The only free variables are from the original problem, bound variables are created by mutation
+		within_p = e.left_side in variables_in_P and e.right_side in variables_in_P
 
-		left_bound_or_right_free = e.left_side not in VS1 or e.right_side in VS1
-		condition1 = both_sides_variables and exists_within_p and not_restricted_l and left_bound_or_right_free
-		if condition1:
+		# Condition 1
+		if within_p and e.left_side not in VS1 and e.left_side not in restricted_vars:
 			candidate_equation = e
 			delta = SubstituteTerm()
 			delta.add(e.left_side, e.right_side)
 			break
 
-
-		left_free_or_right_bound = e.left_side in VS1 or e.right_side not in VS1
-		not_restricted_r = e.right_side not in restricted_vars
-		condition2 = both_sides_variables and exists_within_p and not_restricted_r and left_free_or_right_bound
-		if condition2:
+		# Condition 2
+		if within_p and e.right_side in VS1 and e.left_side not in restricted_vars:
 			candidate_equation = e
 			delta = SubstituteTerm()
-			delta.add(e.right_side, e.left_side)
+			delta.add(e.left_side, e.right_side)
 			break
 
 	if candidate_equation is None:
@@ -373,23 +366,21 @@ def variable_replacement(equations: Set[Equation], VS1: Set[Variable], restricte
 def replacement(equations: Set[Equation], VS1: Set[Variable], restricted_vars: Set[Variable]) -> Set[Equation]:
 	candidate_equation = None
 	for e in equations:
-		# Conditions for Option 1
-		variable_left_side = isinstance(e.left_side, Variable)
 		variables_in_P = helper_gvs(equations - {e})
-		left_side_within_P = e.left_side in variables_in_P
-		nonvariable_right_side = not isinstance(e.right_side, Variable)
+		# x \in V(P)
+		left_within_p = e.left_side in variables_in_P
+		# x \not\in V(s)
 		left_not_within_right = e.left_side not in get_vars_uo(e.right_side)
-		not_restricted1 = e.left_side not in restricted_vars
-		condition1 = variable_left_side and left_side_within_P and nonvariable_right_side and left_not_within_right and not_restricted1
+		# x, s \in V(P)
+		within_p = left_within_p and e.right_side in variables_in_P
 
-		# Conditions for Option 2
-		variable_right_side = isinstance(e.right_side, Variable)
-		not_equiv = e.left_side != e.right_side
-		right_side_within_P = e.right_side in variables_in_P
-		not_restricted2 = e.left_side not in restricted_vars and e.right_side not in restricted_vars
-		condition2 = variable_right_side and not_equiv and variable_left_side and left_side_within_P and right_side_within_P and not_restricted2
+		# Condition 1
+		if left_within_p and not isinstance(e.right_side, Variable) and left_not_within_right and e.left_side not in restricted_vars:
+			candidate_equation = e
+			break
 
-		if condition1 or condition2:
+		# Condition 2
+		if isinstance(e.right_side, Variable) and e.left_side != e.right_side and within_p and e.left_side not in restricted_vars:
 			candidate_equation = e
 			break
 
@@ -417,25 +408,16 @@ def eqe(equations: Set[Equation], VS1: Set[Variable], restricted_vars: Set[Varia
 	equation_to_remove: Optional[Equation] = None
 	for e in equations:
 		# Conditions
-		variable_left_side = isinstance(e.left_side, Variable)
+
 		# Bound variables are fresh ones not from the original problem
-		left_side_bound = e.left_side not in VS1
+		left_side_bound = isinstance(e.left_side, Variable) and e.left_side not in VS1
+
+		# x \not\in V(s) \cup V(P)
 		variables_in_right_side = set(get_vars_uo(e.right_side))
 		variables_in_P = helper_gvs(equations - {e})
 		not_in_SP = e.left_side not in variables_in_right_side.union(variables_in_P)
-		not_restricted_l = e.left_side not in restricted_vars
 
-		if variable_left_side and left_side_bound and not_in_SP and not_restricted_l:
-			equation_to_remove = e
-			break # NOTE: REQUIRED
-
-		variable_right_side = isinstance(e.right_side, Variable)
-		right_side_bound = e.right_side not in VS1
-		variables_in_left_side = set(get_vars_uo(e.left_side))
-		not_in_XP = e.right_side not in variables_in_left_side.union(variables_in_P)
-		not_restricted_r = e.right_side not in restricted_vars
-
-		if variable_right_side and right_side_bound and not_in_XP and not_restricted_r:
+		if left_side_bound and not_in_SP and e.left_side not in restricted_vars:
 			equation_to_remove = e
 			break # NOTE: REQUIRED
 
@@ -448,6 +430,7 @@ def merge(equations: Set[Equation], restricted_vars: Set[Variable]) -> Set[Equat
 	"""
 	remove_equation: Optional[Equation] = None
 	add_equation: Optional[Equation] = None
+
 	for e1, e2 in itertools.product(equations, equations):
 		# Skip if the two equations are the same
 		if e1 == e2:
@@ -530,21 +513,21 @@ def s_rules_no_mutate_og_vars(U: set[Equation], VS1: Set[Variable]):
 def s_rules_no_mutate_new_vars(U: set[Equation], VS1: Set[Variable]):
 	"""
 	Apply S rules only on variables not from the original equations
-	NOTE: It actually works better if we don't put any restrictions
 	"""
+	nVST = helper_gvs(U) - VS1
 	Utemp = set()
 	while Utemp != U:
 		Utemp = U
 		if occurs_check(U):
 			return set()
-		if prune(U, VS1, set()):
+		if prune(U, VS1, nVST):
 			# print("[Stage 3] Prune rule applied")
 			return set()
 		U = orient(U)
-		U = merge(U, set())
-		U = variable_replacement(U, VS1, set())
-		U = replacement(U, VS1, set())
-		U = eqe(U, VS1, set())
+		U = merge(U, nVST)
+		U = variable_replacement(U, VS1, nVST)
+		U = replacement(U, VS1, nVST)
+		U = eqe(U, VS1, nVST)
 
 	return U
 
@@ -608,7 +591,7 @@ def solved_form(U: Set[Equation]) -> bool:
 
 def build_tree(U: Set[Equation], num_solutions: int):
 
-	NODE_BOUND = 100
+	NODE_BOUND = 500
 	LEVEL_BOUND = 20
 
 	################ Step 0.5 #####################
