@@ -22,9 +22,9 @@ benchmarks = (
     # 2. w + x + y + z = w1 + x1 + y1 + z1
     # (41503 solutions)
     {Equation(f(w, f(x, f(y, z))), f(w1, f(x1, f(y1, z1))))},
-    # 3. x + y + z = x1 + y1
-    # (25 solutions)
-    {Equation(f(x, f(y, z)), f(x1, y1))},
+    # 3. x + y + z = x1 + x1 + z1
+    # (381 solutions)
+    {Equation(f(x, f(y, z)), f(x1, f(x1, z1)))},
     # 4. x + y + z = x1 + x1
     # (45 solutions)
     {Equation(f(x, f(y, z)), f(x1, x1))},
