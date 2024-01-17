@@ -5,6 +5,7 @@ by Boudet and Contejean 1994
 """
 from copy import deepcopy
 from collections import defaultdict
+from datetime import datetime
 from functools import lru_cache
 from typing import List, Set, Optional, Dict
 
@@ -17,6 +18,41 @@ from symcollab.algebra import (
 )
 
 from .common import orient, occurs_check
+
+##########################################################
+############# Experiment Helpers          ################
+##########################################################
+
+RECORD_TIMING = False
+TIME_START = None
+SOLUTION_TIMES = []
+
+def enable_recording():
+	global RECORD_TIMING
+	RECORD_TIMING = True
+
+def disable_recording():
+	global RECORD_TIMING
+	RECORD_TIMING = False
+
+def start_recording():
+	global TIME_START, SOLUTION_TIMES
+	TIME_START = datetime.now()
+	SOLUTION_TIMES = []
+
+def add_timing():
+	global SOLUTION_TIMES, TIME_START
+	if TIME_START is not None:
+		SOLUTION_TIMES.append(datetime.now() - TIME_START)
+
+def get_timings():
+	global SOLUTION_TIMES
+	return SOLUTION_TIMES
+
+VERBOSE = True
+def set_verbose(b):
+	global VERBOSE
+	VERBOSE = b
 
 ##########################################################
 ############# Helpers                     ################
@@ -657,7 +693,7 @@ def build_tree(U: Set[Equation], num_solutions: int):
 		nodes_considered += 1
 
 		if NODE_BOUND > 0 and nodes_considered > NODE_BOUND:
-			print("[WARNING] Stopping after considering {nodes_considered} nodes at stage 1.")
+			print(f"[WARNING] Stopping after considering {nodes_considered} nodes at stage 1.")
 			break
 
 		if level > current_level:
@@ -726,7 +762,8 @@ def build_tree(U: Set[Equation], num_solutions: int):
 	# Apply S rules only on the variables
 	# from the original problem
 	step_2_solutions: List[Set[Equation]] = []
-	print("# Equations after Stage 1 = ", len(step_1_5_solutions))
+	if VERBOSE:
+		print("# Equations after Stage 1 = ", len(step_1_5_solutions))
 	for s in step_1_5_solutions:
 		root = MutateNode(s, [])
 		root.var_count = [max_var_count]
@@ -771,7 +808,8 @@ def build_tree(U: Set[Equation], num_solutions: int):
 
 	# ################### Step 3, 4 ###################
 	Sol: List[Set[Equation]] = []
-	print("# Equations after Stage 2 =", len(step_2_solutions))
+	if VERBOSE:
+		print("# Equations after Stage 2 =", len(step_2_solutions))
 	for s in step_2_solutions:
 		root = MutateNode(s, [])
 		root.var_count = [max_var_count]
@@ -811,6 +849,8 @@ def build_tree(U: Set[Equation], num_solutions: int):
 				if len(cn.data) > 0:
 					if solved_form(cn.data):
 						Sol.append(cn.data)
+						if RECORD_TIMING:
+							add_timing()
 						if num_solutions > 0 and len(Sol) >= num_solutions:
 							return Sol
 
@@ -829,7 +869,8 @@ def synt_ac_unif(U: Set[Equation], num_solutions: int = 1):
 				"equations without shared variables on both sides"
 			)
 
-
+	if RECORD_TIMING:
+		start_recording()
 	res = build_tree(U, num_solutions)
 
 	final_sol = set()

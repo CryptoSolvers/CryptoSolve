@@ -5,6 +5,7 @@ by Cornell, Marshall, and Rozek
 """
 from copy import deepcopy
 from collections import defaultdict
+from datetime import datetime
 from functools import lru_cache
 from typing import List, Set, Optional, Tuple
 
@@ -17,6 +18,40 @@ from symcollab.algebra import (
 from symcollab.Unification.common import occurs_check
 from symcollab.Unification.flat import flat
 
+##########################################################
+############# Experiment Helpers          ################
+##########################################################
+
+RECORD_TIMING = False
+TIME_START = None
+SOLUTION_TIMES = []
+
+def enable_recording():
+	global RECORD_TIMING
+	RECORD_TIMING = True
+
+def disable_recording():
+	global RECORD_TIMING
+	RECORD_TIMING = False
+
+def start_recording():
+	global TIME_START, SOLUTION_TIMES
+	TIME_START = datetime.now()
+	SOLUTION_TIMES = []
+
+def add_timing():
+	global SOLUTION_TIMES, TIME_START
+	if TIME_START is not None:
+		SOLUTION_TIMES.append(datetime.now() - TIME_START)
+
+def get_timings():
+	global SOLUTION_TIMES
+	return SOLUTION_TIMES
+
+VERBOSE = True
+def set_verbose(b):
+	global VERBOSE
+	VERBOSE = b
 
 ##########################################################
 ############# Helpers                     ################
@@ -600,7 +635,6 @@ def solved_form(U: Set[Equation]) -> bool:
 def build_tree(root: MutateNode, ES1, num_solutions: int):
 	NODE_BOUND = -1
 	LEVEL_BOUND = -1
-	VERBOSE = True
 
 	Sol = list()
 	Q = [(root, 0)]
@@ -652,6 +686,8 @@ def build_tree(root: MutateNode, ES1, num_solutions: int):
 		if len(cn.data) > 0:
 			if solved_form(cn.data):
 				Sol.append(cn.data)
+				if RECORD_TIMING:
+					add_timing()
 
 				if num_solutions > 0 and len(Sol) >= num_solutions:
 					if VERBOSE:
@@ -671,6 +707,9 @@ def synt_ac_unif2(U: Set[Equation], num_solutions: int = 1):
 	Syntactic AC Algorithm.
 	Set num_solutions to -1 for all solutions.
 	"""
+	if RECORD_TIMING:
+		start_recording()
+
 	var_count = [0]
 	VS1 = helper_gvs(U)
 
