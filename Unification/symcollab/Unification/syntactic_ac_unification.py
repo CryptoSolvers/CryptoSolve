@@ -692,7 +692,7 @@ def build_tree(U: Set[Equation], num_solutions: int):
 		cn, level = Q.pop(0)
 		nodes_considered += 1
 
-		if NODE_BOUND > 0 and nodes_considered > NODE_BOUND:
+		if NODE_BOUND > 0 and nodes_considered >= NODE_BOUND:
 			print(f"[WARNING] Stopping after considering {nodes_considered} nodes at stage 1.")
 			break
 
