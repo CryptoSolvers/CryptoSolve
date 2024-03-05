@@ -546,6 +546,43 @@ def delete_trivial(equations) -> Set[Equation]:
 			new_equations.add(e)
 	return new_equations
 
+
+def left_cancel(equations) -> Set[Equation]:
+	equation_to_remove = None
+	equation_to_add = None
+	for equation in equations:
+		# f(.., ..) = f(.., ..)
+		if isinstance(equation.left_side, FuncTerm) and isinstance(equation.right_side, FuncTerm):
+			# f(x, ..) = f(x, ..)
+			if isinstance(equation.left_side[0], Variable) and equation.left_side[0] == equation.right_side[0]:
+				equation_to_remove = equation
+				equation_to_add = Equation(equation.left_side[1], equation.right_side[1])
+				break
+
+	if equation_to_remove is None:
+		return equations
+	new_equations = equations - {equation_to_remove}
+	new_equations.add(equation_to_add)
+	return new_equations
+
+def right_cancel(equations) -> Set[Equation]:
+	equation_to_remove = None
+	equation_to_add = None
+	for equation in equations:
+		# f(.., ..) = f(.., ..)
+		if isinstance(equation.left_side, FuncTerm) and isinstance(equation.right_side, FuncTerm):
+			# f(.., x) = f(.., x)
+			if isinstance(equation.left_side[1], Variable) and equation.left_side[1] == equation.right_side[1]:
+				equation_to_remove = equation
+				equation_to_add = Equation(equation.left_side[0], equation.right_side[0])
+				break
+
+	if equation_to_remove is None:
+		return equations
+	new_equations = equations - {equation_to_remove}
+	new_equations.add(equation_to_add)
+	return new_equations
+
 def s_rules(U: Set[Equation], VS1: Set[Variable]):
 	"""
 	S Rules
@@ -559,6 +596,8 @@ def s_rules(U: Set[Equation], VS1: Set[Variable]):
 		U = variable_replacement(U)
 		U = eqe(U, VS1)
 		U = delete_trivial(U)
+		U = left_cancel(U)
+		U = right_cancel(U)
 
 		# For slow debugging
 		# print(U)

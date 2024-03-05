@@ -48,6 +48,9 @@ for j, (solutions, timings) in enumerate(results):
     if len(unique_solutions) < UNIQUE_SOLUTION_BOUND:
         print(f"[WARNING] Only {len(unique_solutions)} unique solutions found for benchmark problem {j}.")
 
+    print(f"{j}. Time spent for one: {unique_timings[0]}")
+    print(f"Time spent for all: {unique_timings[-1]}")
+    print("")
     results2.append((unique_solutions, unique_timings))
 
-print(results2)
+# print(results2)
