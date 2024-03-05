@@ -7,7 +7,7 @@ from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime
 from functools import lru_cache
-from typing import List, Set, Optional, Tuple
+from typing import Dict, List, Set, Optional, Tuple
 
 import itertools
 
@@ -90,10 +90,13 @@ class MutateNode:
 		self.data = data
 		self.var_count = None
 		self.ruleList = ruleList
+		self.mutate_count = 0
+		self.introduced_at = {}
 
 	def add_node(self, ruleName: str, data: Set[Equation], var_count: List[int]):
 		newNode = MutateNode(data, self.ruleList + [ruleName])
 		newNode.var_count = var_count
+		newNode.mutate_count = self.mutate_count + 1
 		if   ruleName == "ID":      self.id = newNode
 		elif ruleName == "C":       self.c = newNode
 		elif ruleName == "A_RIGHT": self.a1 = newNode
@@ -181,10 +184,14 @@ def look_for_duplicates(Tree: List[List[MutateNode]], U: Set[Equation]):
 ############# Mutation Rules              ################
 ##########################################################
 
-def match_mutation(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+def match_mutation(U: Set[Equation], introduced_at: Dict[Equation, int]) -> Optional[Tuple[Equation, Equation]]:
 	for e1, e2 in itertools.product(U, U):
 		# Skip if e1 and e2 are the same
 		if e1 == e2:
+			continue
+
+		# Make sure we're keeping the older equation
+		if introduced_at[e1] > introduced_at[e2]:
 			continue
 
 		# Variables on lhs are the same and right side are FuncTerms
@@ -200,7 +207,7 @@ def match_mutation(U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
 def match_mutation_rule1(e: Tuple[Equation, Equation], _) -> Optional[Tuple[Equation, Equation]]:
 	return e
 
-def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation], _) -> Set[Equation]:
+def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation], _, introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -218,6 +225,8 @@ def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation], _) -> Set[Eq
 	m1 = set()
 	m1.add(Equation(y1, z1))
 	m1.add(Equation(y2, z2))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	return U
@@ -226,7 +235,7 @@ def mutation_rule1(U: Set[Equation], es: Tuple[Equation, Equation], _) -> Set[Eq
 def match_mutation_rule2(e: Tuple[Equation, Equation], _) -> Optional[Tuple[Equation, Equation]]:
 	return e
 
-def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], _) -> Set[Equation]:
+def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], _, introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -244,6 +253,8 @@ def mutation_rule2(U: Set[Equation], es: Tuple[Equation, Equation], _) -> Set[Eq
 	m1 = set()
 	m1.add(Equation(y1, z2))
 	m1.add(Equation(y2, z1))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	return U
@@ -257,7 +268,7 @@ def match_mutation_rule3(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 		return e
 	return None
 
-def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -283,6 +294,8 @@ def mutation_rule3(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	m1 = set()
 	m1.add(Equation(y1, f(z1, v1)))
 	m1.add(Equation(z2, f(v1, y2)))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 	# print("--------------After Applying A1-------------------")
 	# print(U)
@@ -299,7 +312,7 @@ def match_mutation_rule4(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 		return e
 	return None
 
-def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -326,6 +339,8 @@ def mutation_rule4(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	m1 = set()
 	m1.add(Equation(y2, f(v1, z2)))
 	m1.add(Equation(z1, f(y1, v1)))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	# print("--------------After Applying A2-------------------")
@@ -344,7 +359,7 @@ def match_mutation_rule5(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 
 	return None
 
-def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -370,6 +385,8 @@ def mutation_rule5(U: Set[Equation], es: Tuple[Equation], var_count: List[int]) 
 	m1 = set()
 	m1.add(Equation(y1, f(v1, z2)))
 	m1.add(Equation(z1, f(v1, y2)))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	# print("----------After applying RC--------------")
@@ -388,7 +405,7 @@ def match_mutation_rule6(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 
 	return None
 
-def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -415,6 +432,8 @@ def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	m1 = set()
 	m1.add(Equation(y2, f(z1, v1)))
 	m1.add(Equation(z2, f(y1, v1)))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	# print("---------After applying LC---------------")
@@ -440,7 +459,7 @@ def match_mutation_rule7(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 		return e
 	return None
 
-def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int]) -> Set[Equation]:
+def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
 	e1, e2 = es
 	assert e1 in U and e2 in U
 	assert isinstance(e1.left_side, Variable) and e1.left_side == e2.left_side
@@ -471,6 +490,8 @@ def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 	m1.add(Equation(y2, f(v3, v4)))
 	m1.add(Equation(z1, f(v1, v3)))
 	m1.add(Equation(z2, f(v2, v4)))
+	for m in m1:
+		introduced_at[m] = layer + 1
 	U = U.union(m1)
 
 	# print("--------After applying MC------------")
@@ -484,7 +505,7 @@ def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 ############# S Rules                     ################
 ##########################################################
 
-def variable_replacement(equations) -> Set[Equation]:
+def variable_replacement(equations: Set[Equation], introduced_at) -> Set[Equation]:
 	"""
 	{x = t} U P => {x = t} U P{x -> t}
 	if x and t are variables, x \ne t and x \in Vars(P)
@@ -512,10 +533,16 @@ def variable_replacement(equations) -> Set[Equation]:
 	new_equations = set()
 
 	for equation in equations - {matched_equation}:
-		new_equations.add(Equation(
+		new_eq = Equation(
 			unravel(equation.left_side, new_sub),
 			unravel(equation.right_side, new_sub)
-        ))
+        )
+
+		# Update counter
+		if new_eq != equation:
+			introduced_at[new_eq] = max(introduced_at[matched_equation], introduced_at[equation])
+
+		new_equations.add(new_eq)
 
     # Add the matched equation to the result
 	new_equations.add(matched_equation)
@@ -547,7 +574,7 @@ def delete_trivial(equations) -> Set[Equation]:
 	return new_equations
 
 
-def left_cancel(equations) -> Set[Equation]:
+def left_cancel(equations, introduced_at) -> Set[Equation]:
 	equation_to_remove = None
 	equation_to_add = None
 	for equation in equations:
@@ -563,9 +590,10 @@ def left_cancel(equations) -> Set[Equation]:
 		return equations
 	new_equations = equations - {equation_to_remove}
 	new_equations.add(equation_to_add)
+	introduced_at[equation_to_add] = introduced_at[equation_to_remove]
 	return new_equations
 
-def right_cancel(equations) -> Set[Equation]:
+def right_cancel(equations, introduced_at) -> Set[Equation]:
 	equation_to_remove = None
 	equation_to_add = None
 	for equation in equations:
@@ -581,9 +609,10 @@ def right_cancel(equations) -> Set[Equation]:
 		return equations
 	new_equations = equations - {equation_to_remove}
 	new_equations.add(equation_to_add)
+	introduced_at[equation_to_add] = introduced_at[equation_to_remove]
 	return new_equations
 
-def s_rules(U: Set[Equation], VS1: Set[Variable]):
+def s_rules(U: Set[Equation], VS1: Set[Variable], introduced_at):
 	"""
 	S Rules
 	"""
@@ -593,11 +622,11 @@ def s_rules(U: Set[Equation], VS1: Set[Variable]):
 		Utemp = U
 		if occurs_check(U):
 			return set()
-		U = variable_replacement(U)
+		U = variable_replacement(U, introduced_at)
 		U = eqe(U, VS1)
 		U = delete_trivial(U)
-		U = left_cancel(U)
-		U = right_cancel(U)
+		U = left_cancel(U, introduced_at)
+		U = right_cancel(U, introduced_at)
 
 		# For slow debugging
 		# print(U)
@@ -630,7 +659,7 @@ def apply_mutation_rules(
 	nextBranch: List[Tuple[MutateNode, int]] = []
 
 	dcopy = deepcopy(cn.data)
-	mutate_eq = match_mutation(dcopy)
+	mutate_eq = match_mutation(dcopy, cn.introduced_at)
 
 	if mutate_eq is None:
 		return
@@ -643,11 +672,13 @@ def apply_mutation_rules(
 			# Apply the applicable mutate rule
 			dcopy = deepcopy(cn.data)
 			var_count = deepcopy(cn.var_count)
-			new_eqs = mutation['apply'](dcopy, e, var_count)
+			introduced_at = deepcopy(cn.introduced_at)
+			new_eqs = mutation['apply'](dcopy, e, var_count, introduced_at, cn.mutate_count)
 
 			# If not already existent, add to search space
 			if not look_for_duplicates(Tree, new_eqs):
 				newNode = cn.add_node(mutation['name'], new_eqs, var_count)
+				newNode.introduced_at = introduced_at
 				nextBranch.append((newNode, level + 1))
 
 	Tree[level + 1].extend([c for c, _ in nextBranch])
@@ -711,6 +742,7 @@ def build_tree(root: MutateNode, ES1, num_solutions: int):
 				print("Last Node:", last_node.data)
 				print("Length of last node:", len(last_node.data))
 				print("Rules for last node:", last_node.ruleList)
+				print(last_node.introduced_at)
 				print("=" * 5)
 
 			current_level = level
@@ -720,7 +752,7 @@ def build_tree(root: MutateNode, ES1, num_solutions: int):
 				return Sol
 
 		#Apply S rules - mutate
-		cn.data = s_rules(cn.data, ES1)
+		cn.data = s_rules(cn.data, ES1, cn.introduced_at)
 
 		if len(cn.data) > 0:
 			if solved_form(cn.data):
@@ -757,6 +789,8 @@ def synt_ac_unif2(U: Set[Equation], num_solutions: int = 1):
 
 	# Setup initial search space node
 	N1 = MutateNode(U, [])
+	for eq in U:
+		N1.introduced_at[eq] = 0
 	N1.var_count = var_count
 
 	# Search for the set of solutions
