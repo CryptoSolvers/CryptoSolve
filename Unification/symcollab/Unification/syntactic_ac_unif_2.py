@@ -18,6 +18,18 @@ from symcollab.algebra import (
 from symcollab.Unification.common import occurs_check
 from symcollab.Unification.flat import flat
 
+# TODO: Temporary
+INITIAL_VARIABLES = set()
+TEST_ONLY_FRESH_MC = True
+
+def set_test_only_fresh_mc(b):
+	global TEST_ONLY_FRESH_MC
+	TEST_ONLY_FRESH_MC = b
+
+def get_test_only_fresh_mc():
+	global TEST_ONLY_FRESH_MC
+	return TEST_ONLY_FRESH_MC
+
 ##########################################################
 ############# Experiment Helpers          ################
 ##########################################################
@@ -443,6 +455,7 @@ def mutation_rule6(U: Set[Equation], es: Tuple[Equation, Equation], var_count: L
 
 #Mutation Rule MC
 def match_mutation_rule7(e: Tuple[Equation, Equation], U: Set[Equation]) -> Optional[Tuple[Equation, Equation]]:
+	global TEST_ONLY_FRESH_MC
 	e1, e2 = e
 	rhs1 = e1.right_side; rhs2 = e2.right_side
 	to_check = [
@@ -456,7 +469,11 @@ def match_mutation_rule7(e: Tuple[Equation, Equation], U: Set[Equation]) -> Opti
 	# NOTE: Temporary condition until conditions are worked out
 	if not any(v1 == v2 for v1, v2 in to_check):
 	# if not any(trace_check(v1, v2, U) for v1, v2 in to_check):
-		return e
+		if not TEST_ONLY_FRESH_MC:
+			return e
+		VS = helper_gvs({e1, e2})
+		if any((v in INITIAL_VARIABLES for v in VS)):
+			return e
 	return None
 
 def mutation_rule7(U: Set[Equation], es: Tuple[Equation, Equation], var_count: List[int], introduced_at, layer) -> Set[Equation]:
@@ -778,14 +795,20 @@ def synt_ac_unif2(U: Set[Equation], num_solutions: int = 1):
 	Syntactic AC Algorithm.
 	Set num_solutions to -1 for all solutions.
 	"""
+	global INITIAL_VARIABLES
+
 	if RECORD_TIMING:
 		start_recording()
 
 	var_count = [0]
-	VS1 = helper_gvs(U)
+	# VS1 = helper_gvs(U)
 
 	# Flatten Terms within Equations
 	U, var_count[0] = flat(U, var_count[0])
+
+	# TODO: Should VS1 be before or after flattening?
+	VS1 = helper_gvs(U)
+	INITIAL_VARIABLES = VS1
 
 	# Setup initial search space node
 	N1 = MutateNode(U, [])
